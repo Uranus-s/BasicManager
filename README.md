@@ -1,4 +1,4 @@
-# Spring Boot 多模块项目说明（README）
+# Basic Project（README）
 
 ## 一、项目简介
 
@@ -43,12 +43,21 @@ basic-parent
 **职责：** 提供全项目通用能力
 
 **包含内容：**
-
-* 工具类（DateUtil、StringUtil 等）
-* 通用返回对象（Result、PageResult）
-* 通用异常（BizException）
-* 常量、枚举
-* 通用注解
+```text
+common
+└─ com.basic.common
+   ├─ constant       常量
+   ├─ enums          枚举
+   ├─ exception      通用异常
+   ├─ result         统一返回对象
+   ├─ utils          工具类
+   ├─ annotation     自定义注解
+   ├─ config         通用配置
+   ├─ model          通用模型 / DTO
+   ├─ validate       校验相关
+   ├─ aspect         通用切面（可选）
+   └─ cache          通用缓存封装（可选）
+```
 
 **依赖原则：**
 
