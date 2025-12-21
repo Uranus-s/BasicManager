@@ -35,12 +35,13 @@
     </dependencyManagement>
 
     <modules>
-        <module>basic-common</module>
+        <module>basic-common-core</module>
         <module>basic-web</module>
         <module>basic-service</module>
         <module>basic-dao</module>
         <module>basic-api</module>
         <module>basic-core</module>
+        <module>basic-common-web</module>
     </modules>
     <packaging>pom</packaging>
 

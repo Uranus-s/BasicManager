@@ -38,14 +38,14 @@ basic-parent
 
 ---
 
-### 2. common（公共模块）
+### 2. common-core（公共模块）
 
 **职责：** 提供全项目通用能力
 
 **包含内容：**
 ```text
-common
-└─ com.basic.common
+common-core
+└─ com.basic.common-core
    ├─ constant       常量
    ├─ enums          枚举
    ├─ exception      通用异常
@@ -57,6 +57,13 @@ common
    ├─ validate       校验相关
    ├─ aspect         通用切面（可选）
    └─ cache          通用缓存封装（可选）
+└─ com.basic.common-web
+   ├─ advice         统一处理
+   ├─ annotation     自定义注解(web)
+   ├─ config         Web MVC 配置
+   ├─ exception      Web 层异常
+   ├─ filter         Filter（可选）
+   ├─ interceptor    拦截器（可选）
 ```
 
 **依赖原则：**
