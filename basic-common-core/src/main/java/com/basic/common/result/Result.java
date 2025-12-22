@@ -78,6 +78,18 @@ public class Result<T> {
     }
 
     /**
+     * 构建失败结果对象（指定错误类型）
+     *
+     * @param code    错误码
+     * @param message 错误信息
+     * @return 失败的结果对象
+     */
+    public static Result<?> failed(Integer code, String message) {
+        return new Result<>(false, code, message, null);
+    }
+
+
+    /**
      * 构建结果对象实例
      *
      * @param <T>     数据泛型类型
