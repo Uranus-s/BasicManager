@@ -7,6 +7,9 @@ import jakarta.validation.constraints.NotBlank;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+
 @RestController(value = "testController")
 @RequestMapping("/test")
 @Validated
@@ -20,5 +23,13 @@ public class TestController {
     @GetMapping("/getEmail")
     public String getEmail(@RequestParam @NotBlank @Email String email) {
         return email;
+    }
+
+    @GetMapping("/getStock")
+    public String getStock(){
+        return CompletableFuture.supplyAsync(()->{
+            // 查询库存
+            return "stock";
+        }, Executors.newVirtualThreadPerTaskExecutor()).join();
     }
 }

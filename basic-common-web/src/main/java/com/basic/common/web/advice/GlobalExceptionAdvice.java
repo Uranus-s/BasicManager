@@ -5,6 +5,7 @@ import com.basic.common.result.Result;
 import com.basic.common.result.ResultEnum;
 import com.basic.common.web.exception.ForbiddenException;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * 全局异常处理类，用于统一处理系统中抛出的各种异常
  * 作用范围：com.basic包及其子包下的所有控制器
  */
+@Slf4j
 @RestControllerAdvice(basePackages = "com.basic")
 public class GlobalExceptionAdvice {
 
@@ -90,7 +92,7 @@ public class GlobalExceptionAdvice {
     @ExceptionHandler(Exception.class)
     public Result<?> handleException(Exception ex) {
         // 日志输出
-//        log.error("系统异常", ex);
+        log.error("系统异常", ex);
         return Result.failed(ResultEnum.SYSTEM_ERROR);
     }
 }
