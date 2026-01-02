@@ -41,6 +41,11 @@
 
         <dependency>
             <groupId>com.basic</groupId>
+            <artifactId>basic-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.basic</groupId>
             <artifactId>basic-common-core</artifactId>
         </dependency>
 
