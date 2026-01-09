@@ -73,4 +73,13 @@ basic-core
      │   └── CommonMetaObjectHandler # 自动填充实现
      └── interceptor
          └── DataScopeInterceptor    # 数据权限拦截器
+ └── redis
+     ├── config
+     │   └── RedisConfig                 # RedisTemplate + 序列化配置
+     ├── utils
+     │   └── RedisUtils                  # Redis 常用方法封装
+     ├── annotation
+     │   └── RedisCache.java             # 可选：自动缓存注解
+     └── aspect
+         └── RedisCacheAspect.java       # 可选：注解切面实现
 ```

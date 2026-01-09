@@ -9,7 +9,7 @@ spring:
     virtual:
       enabled: true
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/test?useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://192.168.0.110:3306/test?useSSL=false&serverTimezone=Asia/Shanghai
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -19,3 +19,26 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+  data:
+    redis:
+      mode: cluster           # cluster/single
+      password:               # 如果集群有密码就填
+      lettuce:
+        cluster:
+          refresh:
+            adaptive: true
+            period: 60s
+        pool:
+          max-active: 10
+          max-idle: 5
+          min-idle: 1
+          max-wait: 1000ms
+      cluster:
+        max-redirects: 3
+        nodes:
+          - 192.168.0.110:6379
+          - 192.168.0.110:6380
+          - 192.168.0.110:6381
+          - 192.168.0.110:6382
+          - 192.168.0.110:6383
+          - 192.168.0.110:6384
