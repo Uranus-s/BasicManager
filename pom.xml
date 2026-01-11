@@ -49,6 +49,24 @@
                 <artifactId>basic-common-web</artifactId>
                 <version>${basic.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.basic</groupId>
+                <artifactId>basic-service</artifactId>
+                <version>${basic.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.basic</groupId>
+                <artifactId>basic-dao</artifactId>
+                <version>${basic.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.basic</groupId>
+                <artifactId>basic-api</artifactId>
+                <version>${basic.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

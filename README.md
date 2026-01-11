@@ -129,7 +129,30 @@ public interface UserApi {
 **职责：** 核心业务逻辑实现
 
 **包含内容：**
+```text
+xxx-service
+└── com.xxx.project.service
+    ├── user
+    │   ├── service        （Service 接口）
+    │   ├── impl           （Service 实现）
+    │   ├── manager        （复杂业务编排 / 领域服务，可选）
+    │   ├── domain         （领域模型 / BO）
+    │   ├── convert        （DTO / Entity 转换）
+    │   └── validator      （业务校验）
+    │
+    ├── order
+    │   ├── service
+    │   ├── impl
+    │   └── domain
+    │
+    ├── common             （service 层公共能力）
+    │   ├── exception
+    │   ├── util
+    │   └── constant
+    │
+    └── config             （service 专用配置）
 
+```
 * Service 接口与实现类
 * 业务规则、校验逻辑
 * 事务控制
@@ -140,6 +163,23 @@ public interface UserApi {
 ```text
 service → api → common
 ```
+
+> manager（可选，但很有用）
+> 
+> 👉 当一个 service 方法太复杂时，用它
+> 
+> public class UserRegisterManager {
+> public void register(...) {
+> // 调用多个 service / 校验 / 规则 / 风控
+> }
+> }
+> 
+> 
+> 📌 本质：
+> 
+> 业务编排层
+> 
+聚合多个原子 service
 
 ---
 
@@ -152,6 +192,26 @@ service → api → common
 * Mapper 接口
 * MyBatis XML
 * Repository
+
+```text
+xxx-dao
+└── com.xxx.project.dao
+    ├── user
+    │   ├── mapper        （Mapper 接口）
+    │   ├── entity        （数据库实体 / PO）
+    │   └── xml           （MyBatis XML）
+    │
+    ├── order
+    │   ├── mapper
+    │   ├── entity
+    │   └── xml
+    │
+    ├── common
+    │   ├── base          （BaseMapper / 通用 CRUD）
+    │   └── handler       （TypeHandler / 枚举映射）
+    │
+    └── config            （MyBatis / 数据源配置）
+```
 
 📌 小项目可合并至 `service` 模块
 

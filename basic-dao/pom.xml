@@ -17,4 +17,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.basic</groupId>
+            <artifactId>basic-core</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>
