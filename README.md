@@ -11,13 +11,13 @@
 ```text
 basic-parent
 │
-├─ basic-common      公共基础模块
-├─ basic-core        核心能力模块（配置 / AOP / 安全等）
-├─ basic-api         接口定义模块（接口契约）
-├─ basic-service     业务逻辑模块
-├─ basic-dao         数据访问模块（Mapper / Repository）
-├─ basic-web         Web 接入层 & 启动模块
-└─ basic-job         定时任务模块（未实现）
+├─ basic-common(web,core)       公共基础模块
+├─ basic-core                   核心能力模块（配置 / AOP / 安全等）
+├─ basic-api                    接口定义模块（接口契约）
+├─ basic-service                业务逻辑模块
+├─ basic-dao                    数据访问模块（Mapper / Repository）
+├─ basic-web                    Web 接入层 & 启动模块
+└─ basic-job                    定时任务模块（未实现）
 ```
 
 ---
@@ -93,10 +93,15 @@ common
 **职责：** 定义系统对外提供的能力（接口契约）
 
 **包含内容：**
-
-* Controller 接口定义（仅接口，无实现）
-* DTO / VO
-* Feign 接口（如有微服务）
+```text
+common
+└─ com.basic.api
+   ├── controller     （对外接口定义）
+   ├── dto            （入参 DTO）
+   ├── vo             （出参 VO）
+   ├── query          （查询参数对象）
+   └── feign          （Feign 接口，可选）
+```
 
 **示例：**
 
@@ -255,6 +260,24 @@ dao（数据访问）
 * 上层依赖下层，禁止反向依赖
 * Controller 不写业务
 * api 稳定，service / web 可重构
+
+推荐分层模型：
+```text
+api:
+UserCreateDTO   （接口入参）
+UserVO          （接口出参）
+
+service:
+UserBO          （业务对象，可选）
+
+dao:
+UserEntity / PO （数据库对象）
+```
+转换关系：
+```text
+DTO → BO → Entity
+Entity → BO → VO
+```
 
 ---
 
