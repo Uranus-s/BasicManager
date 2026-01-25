@@ -25,8 +25,10 @@ public class CommonMetaObjectHandler implements MetaObjectHandler {
         this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
         this.strictInsertFill(metaObject, "createBy", Long.class, getCurrentUserId());
         this.strictInsertFill(metaObject, "updateBy", Long.class, getCurrentUserId());
-        this.strictInsertFill(metaObject, "deleted", Integer.class, 0); // 默认未删除
-        this.strictInsertFill(metaObject, "version", Integer.class, 1); // 默认 version=1
+        // 默认未删除
+        this.strictInsertFill(metaObject, "deleted", Integer.class, 0);
+        // 默认 version=1
+        this.strictInsertFill(metaObject, "version", Integer.class, 1);
     }
 
     @Override
