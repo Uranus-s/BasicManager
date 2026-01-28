@@ -53,6 +53,39 @@
             </dependency>
 
             <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-aop</artifactId>
+                <version>4.0.0-M2</version>
+            </dependency>
+
+            <!-- MyBatis 官方 Starter（Boot 4 兼容） -->
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>4.0.0</version>
+            </dependency>
+
+            <!-- MyBatis-Plus 核心（不走 starter） -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-core</artifactId>
+                <version>3.5.15</version>
+            </dependency>
+
+            <!-- MyBatis-Plus 扩展（分页、插件） -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-extension</artifactId>
+                <version>3.5.15</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-jsqlparser</artifactId>
+                <version>3.5.15</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.basic</groupId>
                 <artifactId>basic-core</artifactId>
                 <version>${basic.version}</version>
@@ -98,6 +131,7 @@
         <module>basic-core</module>
         <module>basic-common-core</module>
         <module>basic-common-web</module>
+        <module>basic-generator</module>
     </modules>
     <packaging>pom</packaging>
 

@@ -82,4 +82,20 @@ basic-core
      │   └── RedisCache.java             # 可选：自动缓存注解
      └── aspect
          └── RedisCacheAspect.java       # 可选：注解切面实现
+ └── security
+     ├── config
+     │   └── SecurityConfig.java                    # Security 配置
+     ├── filter
+     │   └── JwtAuthenticationFilter.java           # JWT 认证过滤器
+     ├── handler
+     │   ├── AuthenticationEntryPointImpl.java      # 认证失败处理
+     │   └── AccessDeniedHandlerImpl.java           # 权限不足处理
+     ├── model
+     │   └── LoginUser.java                         # 用户信息
+     ├── service
+     │   └── SecurityUserDetailsService.java        # 用户信息查询服务
+     ├── spi
+     │   └── SecurityUserQueryService.java          # 用户信息查询 SPI （解耦 core 与业务模块）
+     └── util
+         └── JwtUtil.java                           # JWT 工具类
 ```
