@@ -81,6 +81,12 @@
 
             <dependency>
                 <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring</artifactId>
+                <version>3.5.15</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-jsqlparser</artifactId>
                 <version>3.5.15</version>
             </dependency>
@@ -131,7 +137,6 @@
         <module>basic-core</module>
         <module>basic-common-core</module>
         <module>basic-common-web</module>
-        <module>basic-generator</module>
     </modules>
     <packaging>pom</packaging>
 
