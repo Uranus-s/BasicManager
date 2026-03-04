@@ -2,6 +2,9 @@ server:
   port: 8080
   tomcat:
     max-connections: 8192
+    threads:
+      # 使用虚拟线程
+      use-virtual-threads: true
 spring:
   application:
     name: BasicManage
@@ -9,7 +12,7 @@ spring:
     virtual:
       enabled: true
   datasource:
-    url: jdbc:mysql://192.168.0.110:3306/test?useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://192.168.0.110:3306/basic_project?useSSL=false&serverTimezone=Asia/Shanghai
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -19,6 +22,39 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+  # MyBatis-Plus 配置
+  mybatis-plus:
+#    mapper-locations: classpath*:/com/basic/dao/**/xml/*.xml
+    mapper-locations: classpath*:/mapper/*.xml
+    configuration:
+      # 自动映射行为
+      auto-mapping-behavior: full
+      # 驼峰命名转换
+      map-underscore-to-camel-case: true
+      # 日志实现
+      log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    global-config:
+      db-config:
+        # 逻辑删除字段名
+        logic-delete-field: deleted
+        # 逻辑删除值
+        logic-delete-value: 1
+        # 逻辑未删除值
+        logic-not-delete-value: 0
+        # 主键类型
+        id-type: auto
+    # 分页插件配置
+    pagehelper:
+      helper-dialect: mysql
+      reasonable: true
+      support-methods-arguments: true
+  # 日志配置
+  logging:
+    level:
+      org.mybatis: debug
+      com.basic.dao: debug
+    pattern:
+      console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   data:
     redis:
       mode: cluster           # cluster/single

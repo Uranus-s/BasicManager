@@ -22,5 +22,7 @@
     <file url="file://$PROJECT_DIR$/busic-common-web/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../projectGenerator/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../projectGenerator/src/main/resources" charset="UTF-8" />
   </component>
 </project>

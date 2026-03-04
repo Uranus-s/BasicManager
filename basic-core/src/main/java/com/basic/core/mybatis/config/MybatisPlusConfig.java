@@ -1,14 +1,22 @@
 package com.basic.core.mybatis.config;
 
 import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
-import com.baomidou.mybatisplus.extension.plugins.inner.*;
+import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import com.basic.core.mybatis.handler.CommonMetaObjectHandler;
 import com.basic.core.mybatis.interceptor.DataScopeInterceptor;
+import org.apache.ibatis.logging.stdout.StdOutImpl;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
+import javax.sql.DataSource;
 
 /**
  * MyBatis-Plus 配置类
@@ -49,4 +57,22 @@ public class MybatisPlusConfig {
     public MetaObjectHandler metaObjectHandler() {
         return new CommonMetaObjectHandler();
     }
+
+//    /**
+//     * 配置SqlSessionFactory
+//     */
+//    @Bean
+//    public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
+//        MybatisSqlSessionFactoryBean factory = new MybatisSqlSessionFactoryBean();
+//        factory.setDataSource(dataSource);
+//        factory.setMapperLocations(new PathMatchingResourcePatternResolver()
+//                .getResources("classpath*:/com/basic/dao/**/xml/*.xml"));
+//
+//        MybatisConfiguration configuration = new MybatisConfiguration();
+//        configuration.setMapUnderscoreToCamelCase(true);
+//        configuration.setLogImpl(StdOutImpl.class);
+//        factory.setConfiguration(configuration);
+//
+//        return factory.getObject();
+//    }
 }
