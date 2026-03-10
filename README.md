@@ -9,16 +9,18 @@
 ## 二、整体模块结构
 
 ```text
-basic-parent
+basic-parent (pom)
 │
-├─ basic-common(web,core)       公共基础模块
-├─ basic-core                   核心能力模块（配置 / AOP / 安全等）
-├─ basic-api                    接口定义模块（接口契约）
-├─ basic-service                业务逻辑模块
-├─ basic-dao                    数据访问模块（Mapper / Repository）
-├─ basic-web                    Web 接入层 & 启动模块
-└─ basic-job                    定时任务模块（未实现）
+├─ basic-common-core            公共工具模块
+├─ basic-common-web              Web层公共模块
+├─ basic-core                    核心能力模块（MyBatis-Plus / Redis / Security）
+├─ basic-api                     接口定义模块（Controller 接口）
+├─ basic-service                 业务逻辑模块
+├─ basic-dao                     数据访问模块（Entity / Mapper）
+└─ basic-web                     Web入口模块（启动类）
 ```
+
+**模块数量**：7 个（无 basic-job 模块）
 
 ---
 
@@ -38,69 +40,83 @@ basic-parent
 
 ---
 
-### 2. common（公共模块）
+### 2. basic-common-core（公共工具模块）
 
-**职责：** 提供全项目通用能力
+**职责：** 提供最底层的通用能力，无业务逻辑
 
 **包含内容：**
 ```text
-common
-└─ com.basic.common-core
-   ├─ annotation     自定义注解
-   ├─ aspect         通用切面（可选）
-   ├─ cache          通用缓存封装（可选）
-   ├─ config         通用配置
-   ├─ constant       常量
-   ├─ enums          枚举
-   ├─ exception      通用异常
-   ├─ model          通用模型 / DTO
-   ├─ result         统一返回对象
-   ├─ utils          工具类
-   └─ validate       校验相关
-└─ com.basic.common-web
-   ├─ advice         统一处理
-   ├─ annotation     自定义注解(web)
-   ├─ config         Web MVC 配置
-   ├─ exception      Web 层异常
-   ├─ filter         Filter（可选）
-   └─ interceptor    拦截器（可选）
+basic-common-core
+└─ com.basic.common
+   ├─ result/         统一返回封装（Result、ResultEnum）
+   ├─ utils/          工具类（BeanConvertUtils）
+   ├─ validate/       参数校验注解（@Mobile）
+   └─ exception/      业务异常（BusinessException）
 ```
 
 **依赖原则：**
-
 * ❌ 不依赖任何业务模块
 * ✅ 可被所有模块依赖
 
 ---
 
-### 3. core（核心模块）
+### 3. basic-common-web（Web层公共模块）
+
+**职责：** 提供 Web 层通用能力
+
+**包含内容：**
+```text
+basic-common-web
+└─ com.basic.common.web
+   ├─ advice/         全局响应封装、异常处理
+   ├─ annotation/     忽略响应包装注解
+   └─ exception/       Web 层异常
+```
+
+**依赖：** basic-common-core
+
+---
+
+### 4. basic-core（核心模块）
 
 **职责：** 提供项目级通用基础能力
 
 **包含内容：**
 
-* MyBatis / Redis / MQ 等通用配置
-* 拦截器、过滤器
-* AOP（日志、鉴权、限流）
-* 安全相关组件
+```text
+basic-core
+└─ mybatis/          MyBatis-Plus 配置（分页、乐观锁、逻辑删除、数据权限）
+   ├─ base/          BaseEntity、BaseMapperPlus
+   ├─ config/        MybatisPlusConfig
+   ├─ handler/       自动填充处理器
+   └─ interceptor/  数据权限拦截器
+└─ redis/            Redis 缓存（配置、工具类、缓存注解）
+   ├─ config/
+   ├─ utils/
+   └─ aspect/
+└─ security/         Spring Security + JWT
+   ├─ config/        SecurityConfig
+   ├─ filter/        JwtAuthenticationFilter
+   ├─ handler/       认证/授权异常处理
+   ├─ model/         LoginUser
+   ├─ service/       SecurityUserDetailsService
+   ├─ spi/           SecurityUserQueryService（SPI 解耦）
+   └─ util/          JwtUtil
+```
 
 📌 业务无关，但项目强相关
 
 ---
 
-### 4. api（接口定义模块）
+### 5. basic-api（接口定义模块）
 
-**职责：** 定义系统对外提供的能力（接口契约）
+**职责：** 定义系统对外提供的能力（接口契约），实现 Controller 与 Service 解耦
 
 **包含内容：**
 ```text
-common
+basic-api
 └─ com.basic.api
-   ├── controller     （对外接口定义）
-   ├── dto            （入参 DTO）
-   ├── vo             （出参 VO）
-   ├── query          （查询参数对象）
-   └── feign          （Feign 接口，可选）
+   └── controller/    （对外接口定义，仅接口，无实现）
 ```
 
 **示例：**
@@ -110,13 +126,16 @@ common
 public interface UserApi {
 
     @GetMapping("/{id}")
-    UserDTO getById(@PathVariable Long id);
+    Result<UserVO> getUser(@PathVariable Long id);
+
+    @PostMapping
+    Result<Long> saveUser(@RequestBody @Valid UserDTO dto);
 }
 ```
 
 **特点：**
 
-* ❌ 不包含 `@RestController`
+* ❌ 不包含 `@RestController`（仅接口定义）
 * ❌ 不包含业务实现
 * ❌ 不可独立启动
 
@@ -124,122 +143,119 @@ public interface UserApi {
 
 ---
 
-### 5. service（业务服务模块）
+### 6. basic-service（业务逻辑模块）
 
 **职责：** 核心业务逻辑实现
 
 **包含内容：**
 ```text
-xxx-service
-└── com.xxx.project.service
-    ├── user
-    │   ├── service        （Service 接口）
-    │   ├── impl           （Service 实现）
-    │   ├── manager        （复杂业务编排 / 领域服务，可选）
-    │   ├── domain         （领域模型 / BO）
-    │   ├── convert        （DTO / Entity 转换）
-    │   └── validator      （业务校验）
-    │
-    ├── order
-    │   ├── service
-    │   ├── impl
-    │   └── domain
-    │
-    ├── common             （service 层公共能力）
-    │   ├── exception
-    │   ├── util
-    │   └── constant
-    │
-    └── config             （service 专用配置）
-
+basic-service
+└─ com.basic.sericve (注意：包名 sericve)
+    ├── sysUser/           用户服务
+    ├── sysRole/           角色服务
+    ├── sysPermission/     权限服务
+    ├── sysDept/           部门服务
+    ├── sysDict/           字典服务
+    ├── sysDictItem/       字典项服务
+    ├── sysConfig/         配置服务
+    ├── sysFile/           文件服务
+    ├── sysLoginLog/       登录日志服务
+    ├── sysOperLog/        操作日志服务
+    ├── sysUserRole/       用户角色关联
+    ├── sysUserDept/       用户部门关联
+    ├── sysRolePermission/ 角色权限关联
+    └── security/          Security SPI 实现
 ```
-* Service 接口与实现类
+
+* Service 接口与实现类（IService + ServiceImpl）
 * 业务规则、校验逻辑
 * 事务控制
-* 领域模型
+* SPI 实现（如 SecurityUserQueryService）
 
 **依赖关系：**
 
 ```text
-service → api → common
+basic-service → basic-api → basic-core → basic-dao
+                    ↓
+              basic-common-core
 ```
 
-> manager（可选，但很有用）
-> 
-> 👉 当一个 service 方法太复杂时，用它
-> 
-> public class UserRegisterManager {
-> public void register(...) {
-> // 调用多个 service / 校验 / 规则 / 风控
-> }
-> }
-> 
-> 
-> 📌 本质：
-> 
-> 业务编排层
-> 
-聚合多个原子 service
+📌 包名有拼写 "sericve" 而非 "service"
 
 ---
 
-### 6. dao（数据访问模块）
+### 7. basic-dao（数据访问模块）
 
 **职责：** 数据持久化
 
 **包含内容：**
 
-* Mapper 接口
-* MyBatis XML
-* Repository
-
 ```text
-xxx-dao
-└── com.xxx.project.dao
-    ├── user
-    │   ├── mapper        （Mapper 接口）
-    │   ├── entity        （数据库实体 / PO）
-    │   └── xml           （MyBatis XML）
-    │
-    ├── order
-    │   ├── mapper
-    │   ├── entity
-    │   └── xml
-    │
-    ├── common
-    │   ├── base          （BaseMapper / 通用 CRUD）
-    │   └── handler       （TypeHandler / 枚举映射）
-    │
-    └── config            （MyBatis / 数据源配置）
+basic-dao
+└─ com.basic.dao
+    ├── sysUser/           用户表
+    │   ├── entity/        SysUser
+    │   └── mapper/        SysUserMapper
+    ├── sysRole/           角色表
+    ├── sysPermission/     权限表
+    ├── sysDept/           部门表
+    ├── sysDict/           字典表
+    ├── sysDictItem/       字典项表
+    ├── sysConfig/         配置表
+    ├── sysFile/           文件表
+    ├── sysLoginLog/       登录日志表
+    ├── sysOperLog/        操作日志表
+    ├── sysUserRole/       用户角色关联表
+    ├── sysUserDept/       用户部门关联表
+    └── sysRolePermission/ 角色权限关联表
 ```
 
-📌 小项目可合并至 `service` 模块
+* Entity 实体类（继承 BaseEntity）
+* Mapper 接口（继承 BaseMapperPlus）
+
+**依赖关系：**
+
+```text
+basic-dao → basic-core
+```
+
+📌 只负责数据持久化，无业务逻辑
 
 ---
 
-### 7. web（Web 接入层 & 启动模块）
+### 8. basic-web（Web入口模块）
 
 **职责：** 对外 HTTP 接口 & 应用启动
 
 **包含内容：**
 
-* `@SpringBootApplication`
-* `@RestController`
+* `@SpringBootApplication` 启动类
+* `@RestController` Controller 实现
 * Controller 接口实现（实现 api 模块）
-* Web 配置（MVC、CORS、异常处理）
+* application.yml 配置
 
 **示例：**
 
 ```java
+@SpringBootApplication(scanBasePackages = "com.basic")
+@MapperScan("com.basic.dao")
+public class WebApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(WebApplication.class, args);
+    }
+}
+```
+
+```java
 @RestController
-public class UserController implements UserApi {
+public class TestController implements TestApi {
 
     @Autowired
-    private UserService userService;
+    private ISysUserService sysUserService;
 
     @Override
-    public UserDTO getById(Long id) {
-        return userService.getById(id);
+    public String getTest(Long id) {
+        return sysUserService.getById(id).toString();
     }
 }
 ```
@@ -248,33 +264,31 @@ public class UserController implements UserApi {
 
 ---
 
-### 8. job（定时任务模块，未实现）
+### 9. 技术栈
 
-**职责：** 定时任务调度
-
-**包含内容：**
-
-* Spring `@Scheduled`
-* Quartz / XXL-Job 任务
+| 技术 | 版本 |
+|------|------|
+| Java | 23 |
+| Spring Boot | 4.0.0 |
+| MyBatis-Plus | 3.5.x |
+| MySQL | 8.0 |
+| Redis | Cluster (Lettuce) |
+| JWT | jjwt 0.12.5 |
+| Spring Security | - |
+| Spring AOP | - |
 
 ---
 
 ## 四、模块依赖关系（非常重要）
 
-```text
-web
- ↓
-service
- ↓
-dao
- ↓
-common
-```
-
-或（推荐模式）：
+**依赖方向（单向）：**
 
 ```text
-web → api → service → dao → common
+web → api → service → dao → core
+                    ↓
+              common-core
+                   ↑
+              common-web
 ```
 
 📌 **禁止反向依赖**（如 common 依赖 service）
@@ -341,18 +355,19 @@ Entity → BO → VO
 
 ---
 
-## 八、启动说明
+## 十、启动说明
 
-启动模块：
+### 启动模块
 
 ```text
 basic-web
 ```
 
-启动类：
+### 启动类
 
 ```java
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.basic")
+@MapperScan("com.basic.dao")
 public class WebApplication {
     public static void main(String[] args) {
         SpringApplication.run(WebApplication.class, args);
@@ -360,9 +375,46 @@ public class WebApplication {
 }
 ```
 
+### Maven 命令
+
+```bash
+# 构建所有模块
+mvn clean install -DskipTests
+
+# 运行应用
+mvn spring-boot:run -pl basic-web
+
+# 运行单个测试
+mvn test -Dtest=TestClassName
+```
+
+### 配置信息
+
+| 配置项 | 值 |
+|--------|-----|
+| 服务端口 | 8080 |
+| 数据库 | MySQL 192.168.0.110:3306 (basic_project) |
+| Redis | Cluster 192.168.0.110:6379-6384 |
+
 ---
 
-## 九、备注
+## 十一、各模块文档
+
+详细说明请参考各模块目录下的 README.md：
+
+| 模块 | 文档 |
+|------|------|
+| basic-common-core | [README.md](./basic-common-core/README.md) |
+| basic-common-web | [README.md](./basic-common-web/README.md) |
+| basic-core | [README.md](./basic-core/README.md) |
+| basic-api | [README.md](./basic-api/README.md) |
+| basic-service | [README.md](./basic-service/README.md) |
+| basic-dao | [README.md](./basic-dao/README.md) |
+| basic-web | [README.md](./basic-web/README.md) |
+
+---
+
+## 十二、备注
 
 该结构可平滑演进为微服务架构，`api` 模块可直接作为 Feign Client 或 SDK 使用。
 
