@@ -7,7 +7,9 @@ target/
 .idea/modules.xml
 .idea/jarRepositories.xml
 .idea/compiler.xml
+.idea/ApifoxUploaderProjectSetting.xml
 .idea/libraries/
+.idea/.cache/**
 *.iws
 *.iml
 *.ipr

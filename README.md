@@ -180,8 +180,6 @@ basic-service → basic-api → basic-core → basic-dao
               basic-common-core
 ```
 
-📌 包名有拼写 "sericve" 而非 "service"
-
 ---
 
 ### 7. basic-dao（数据访问模块）

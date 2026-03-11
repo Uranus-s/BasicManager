@@ -1,5 +1,6 @@
 package com.basic.core.security.handler;
 
+import com.basic.common.result.ResultEnum;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
@@ -15,8 +16,8 @@ import java.io.IOException;
 @Component
 public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {
 
-    private static final String ERROR_MESSAGE = "未登录或登录已过期";
-    private static final int UNAUTHORIZED_CODE = 401;
+    private static final String ERROR_MESSAGE = ResultEnum.UNAUTHORIZED.getMessage();
+    private static final int UNAUTHORIZED_CODE = ResultEnum.UNAUTHORIZED.getCode();
     private static final String CONTENT_TYPE = "application/json;charset=UTF-8";
     private static final String CHARSET = "UTF-8";
 
