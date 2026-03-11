@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(whereis mvn:*)",
+      "Read(//usr/local/**)",
+      "Read(//opt/**)",
+      "Bash(cmd.exe /c \"where mvn\" 2>/dev/null || powershell.exe -Command \"Get-Command mvn -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\" 2>/dev/null || echo \"Windows Maven not found\")",
+      "Read(//home/gas/.sdkman/candidates/**)",
+      "Read(//home/gas/**)",
+      "Read(//home/**)",
+      "Read(//mnt/g/Java/BasicProject/$HOME/.m2/wrapper/**)",
+      "Bash(echo $PATH)",
+      "Bash(mvn clean:*)",
+      "Bash(java -version 2>&1)"
+    ]
+  }
+}

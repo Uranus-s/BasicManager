@@ -36,26 +36,50 @@ public class Result<T> {
     private T data;
 
     /**
+     * 构建成功结果对象（无返回值）
+     *
+     * @return 成功的结果对象
+     */
+    public static Result<?> success() {
+        Result<?> result = new Result<>();
+        result.setSuccess(true);
+        result.setCode(ResultEnum.SUCCESS.getCode());
+        result.setMessage(ResultEnum.SUCCESS.getMessage());
+        result.setData(null);
+        return result;
+    }
+
+    /**
      * 构建成功结果对象
      *
-     * @param <T>  数据泛型类型
      * @param data 成功时返回的数据
+     * @param <T>  数据泛型类型
      * @return 成功的结果对象
      */
     public static <T> Result<T> success(T data) {
-        return new Result<>(true, ResultEnum.SUCCESS.getCode(), ResultEnum.SUCCESS.getMessage(), data);
+        Result<T> result = new Result<>();
+        result.setSuccess(true);
+        result.setCode(ResultEnum.SUCCESS.getCode());
+        result.setMessage(ResultEnum.SUCCESS.getMessage());
+        result.setData(data);
+        return result;
     }
 
     /**
      * 构建成功结果对象（自定义消息）
      *
-     * @param <T>     数据泛型类型
      * @param message 自定义成功消息
-     * @param data    成功时返回的数据
+     * @param data   成功时返回的数据
+     * @param <T>    数据泛型类型
      * @return 成功的结果对象
      */
     public static <T> Result<T> success(String message, T data) {
-        return new Result<>(true, ResultEnum.SUCCESS.getCode(), message, data);
+        Result<T> result = new Result<>();
+        result.setSuccess(true);
+        result.setCode(ResultEnum.SUCCESS.getCode());
+        result.setMessage(message);
+        result.setData(data);
+        return result;
     }
 
     /**
@@ -74,7 +98,12 @@ public class Result<T> {
      * @return 失败的结果对象
      */
     public static Result<?> failed(IResult errorResult) {
-        return new Result<>(false, errorResult.getCode(), errorResult.getMessage(), null);
+        Result<?> result = new Result<>();
+        result.setSuccess(false);
+        result.setCode(errorResult.getCode());
+        result.setMessage(errorResult.getMessage());
+        result.setData(null);
+        return result;
     }
 
     /**
@@ -85,21 +114,30 @@ public class Result<T> {
      * @return 失败的结果对象
      */
     public static Result<?> failed(Integer code, String message) {
-        return new Result<>(false, code, message, null);
+        Result<?> result = new Result<>();
+        result.setSuccess(false);
+        result.setCode(code);
+        result.setMessage(message);
+        result.setData(null);
+        return result;
     }
-
 
     /**
      * 构建结果对象实例
      *
-     * @param <T>     数据泛型类型
      * @param success 是否成功
      * @param code    状态码
      * @param message 消息
      * @param data    数据
+     * @param <T>     数据泛型类型
      * @return 结果对象实例
      */
-    public static <T> Result<T> instance(boolean success, Integer code, String message, T data) {
-        return new Result<>(success, code, message, data);
+    public static <T> Result<T> build(boolean success, Integer code, String message, T data) {
+        Result<T> result = new Result<>();
+        result.setSuccess(success);
+        result.setCode(code);
+        result.setMessage(message);
+        result.setData(data);
+        return result;
     }
 }
