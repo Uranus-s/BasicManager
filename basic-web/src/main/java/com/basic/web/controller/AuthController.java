@@ -13,9 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 认证 Controller
@@ -39,6 +37,7 @@ public class AuthController implements AuthApi {
      * @return 登录结果（Token和用户信息）
      */
     @Override
+    @PostMapping("login")
     public Result<LoginVO> login(@Valid @RequestBody LoginDTO loginDTO) {
         LoginVO loginVO = sysUserService.login(loginDTO.getUsername(), loginDTO.getPassword());
         return Result.success(loginVO);
@@ -50,6 +49,7 @@ public class AuthController implements AuthApi {
      * @return 当前用户信息
      */
     @Override
+    @GetMapping("getUserInfo")
     public Result<LoginVO> getUserInfo() {
         // 从SecurityContextHolder获取当前登录用户
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -76,6 +76,7 @@ public class AuthController implements AuthApi {
      * @return 操作结果
      */
     @Override
+    @PostMapping("logout")
     public Result<?> logout() {
         // Security会自动处理登出，清除SecurityContext即可
         SecurityContextHolder.clearContext();
@@ -89,6 +90,7 @@ public class AuthController implements AuthApi {
      * @return 初始化结果
      */
     @Override
+    @PostMapping("initAdmin")
     public Result<InitResultVO> initAdmin(@Valid @RequestBody InitAdminDTO initAdminDTO) {
         // 验证密钥
         if (!initKey.equals(initAdminDTO.getInitKey())) {

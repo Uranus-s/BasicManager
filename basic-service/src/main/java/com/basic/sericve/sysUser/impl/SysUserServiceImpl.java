@@ -31,7 +31,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -58,10 +57,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final ISysDeptService sysDeptService;
     private final ISysRoleService sysRoleService;
     private final ISysPermissionService sysPermissionService;
-    @Lazy
-    private final PasswordEncoder passwordEncoder;
     private final SysUserRoleMapper sysUserRoleMapper;
     private final SysRolePermissionMapper sysRolePermissionMapper;
+    private final PasswordEncoder passwordEncoder;
 
     private static final String DEFAULT_PASSWORD = "123456";
 

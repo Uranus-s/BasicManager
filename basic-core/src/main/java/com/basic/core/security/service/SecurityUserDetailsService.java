@@ -2,6 +2,7 @@ package com.basic.core.security.service;
 
 import com.basic.core.security.spi.SecurityUserQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ public class SecurityUserDetailsService implements UserDetailsService {
     /**
      * 注入安全用户查询服务，用于执行具体的用户查询逻辑
      */
+    @Lazy
     @Autowired
     private SecurityUserQueryService securityUserQueryService;
 
