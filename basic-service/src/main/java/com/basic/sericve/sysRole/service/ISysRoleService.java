@@ -80,4 +80,12 @@ public interface ISysRoleService extends IService<SysRole> {
      * @return 权限ID列表
      */
     List<Long> getRolePermissions(Long roleId);
+
+    /**
+     * 获取用户角色编码列表
+     *
+     * @param userId 用户ID
+     * @return 角色编码列表
+     */
+    List<String> getRoleCodes(Long userId);
 }

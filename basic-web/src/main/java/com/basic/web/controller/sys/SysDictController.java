@@ -26,6 +26,12 @@ public class SysDictController implements SysDictApi {
 
     private final ISysDictService sysDictService;
 
+    /**
+     * 新增字典
+     *
+     * @param dto 字典信息
+     * @return 操作结果
+     */
     @Override
     @PostMapping
     public Result<?> addDict(@Valid @RequestBody DictAddDTO dto) {
@@ -33,6 +39,12 @@ public class SysDictController implements SysDictApi {
         return Result.success();
     }
 
+    /**
+     * 更新字典信息
+     *
+     * @param dto 字典信息
+     * @return 操作结果
+     */
     @Override
     @PutMapping
     public Result<?> updateDict(@Valid @RequestBody DictUpdateDTO dto) {
@@ -40,6 +52,12 @@ public class SysDictController implements SysDictApi {
         return Result.success();
     }
 
+    /**
+     * 删除字典
+     *
+     * @param id 字典ID
+     * @return 操作结果
+     */
     @Override
     @DeleteMapping("/{id}")
     public Result<?> deleteDict(@PathVariable Long id) {
@@ -47,18 +65,35 @@ public class SysDictController implements SysDictApi {
         return Result.success();
     }
 
+    /**
+     * 根据ID获取字典详情
+     *
+     * @param id 字典ID
+     * @return 字典信息
+     */
     @Override
     @GetMapping("/{id}")
     public Result<DictVO> getDictById(@PathVariable Long id) {
         return Result.success(sysDictService.getDictById(id));
     }
 
+    /**
+     * 获取字典列表（分页）
+     *
+     * @param dto 查询条件
+     * @return 字典列表（分页）
+     */
     @Override
     @GetMapping("/list")
     public Result<PageResult<DictVO>> getDictList(DictQueryDTO dto) {
         return Result.success(sysDictService.getDictList(dto));
     }
 
+    /**
+     * 获取所有字典列表（不分页）
+     *
+     * @return 所有字典列表
+     */
     @Override
     @GetMapping("/all")
     public Result<List<DictVO>> getAllDicts() {

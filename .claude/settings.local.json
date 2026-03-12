@@ -11,7 +11,8 @@
       "Read(//mnt/g/Java/BasicProject/$HOME/.m2/wrapper/**)",
       "Bash(echo $PATH)",
       "Bash(mvn clean:*)",
-      "Bash(java -version 2>&1)"
+      "Bash(java -version 2>&1)",
+      "Bash(git add:*)"
     ]
   }
 }

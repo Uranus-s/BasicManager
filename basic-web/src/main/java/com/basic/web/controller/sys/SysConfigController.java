@@ -24,6 +24,12 @@ public class SysConfigController implements SysConfigApi {
 
     private final ISysConfigService sysConfigService;
 
+    /**
+     * 新增配置
+     *
+     * @param dto 配置信息
+     * @return 操作结果
+     */
     @Override
     @PostMapping
     public Result<?> addConfig(@Valid @RequestBody ConfigAddDTO dto) {
@@ -31,6 +37,12 @@ public class SysConfigController implements SysConfigApi {
         return Result.success();
     }
 
+    /**
+     * 更新配置信息
+     *
+     * @param dto 配置信息
+     * @return 操作结果
+     */
     @Override
     @PutMapping
     public Result<?> updateConfig(@Valid @RequestBody ConfigUpdateDTO dto) {
@@ -38,6 +50,12 @@ public class SysConfigController implements SysConfigApi {
         return Result.success();
     }
 
+    /**
+     * 删除配置
+     *
+     * @param id 配置ID
+     * @return 操作结果
+     */
     @Override
     @DeleteMapping("/{id}")
     public Result<?> deleteConfig(@PathVariable Long id) {
@@ -45,18 +63,36 @@ public class SysConfigController implements SysConfigApi {
         return Result.success();
     }
 
+    /**
+     * 根据ID获取配置详情
+     *
+     * @param id 配置ID
+     * @return 配置信息
+     */
     @Override
     @GetMapping("/{id}")
     public Result<ConfigVO> getConfigById(@PathVariable Long id) {
         return Result.success(sysConfigService.getConfigById(id));
     }
 
+    /**
+     * 获取配置列表（分页）
+     *
+     * @param dto 查询条件
+     * @return 配置列表（分页）
+     */
     @Override
     @GetMapping("/list")
     public Result<PageResult<ConfigVO>> getConfigList(ConfigQueryDTO dto) {
         return Result.success(sysConfigService.getConfigList(dto));
     }
 
+    /**
+     * 根据配置键获取配置值
+     *
+     * @param configKey 配置键
+     * @return 配置值
+     */
     @Override
     @GetMapping("/key/{configKey}")
     public Result<String> getConfigByKey(@PathVariable String configKey) {

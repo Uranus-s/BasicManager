@@ -75,7 +75,7 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable()).httpBasic(basic -> basic.disable())
 
                 // 权限规则
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/login", "/captcha", "/public/**", "/test/**").permitAll().anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/login", "/auth/logout", "/captcha", "/public/**", "/test/**").permitAll().anyRequest().authenticated())
 
                 // 加 JWT 过滤器
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

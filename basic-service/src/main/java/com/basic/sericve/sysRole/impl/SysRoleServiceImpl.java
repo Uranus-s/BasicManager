@@ -14,6 +14,7 @@ import com.basic.dao.sysRole.mapper.SysRoleMapper;
 import com.basic.sericve.sysPermission.service.ISysPermissionService;
 import com.basic.sericve.sysRole.service.ISysRoleService;
 import com.basic.sericve.sysRolePermission.service.ISysRolePermissionService;
+import com.basic.sericve.sysUserRole.service.ISysUserRoleService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -41,6 +42,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
     private final ISysRolePermissionService sysRolePermissionService;
     private final ISysPermissionService sysPermissionService;
+    private final ISysUserRoleService sysUserRoleService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -182,5 +184,19 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @Override
     public List<Long> getRolePermissions(Long roleId) {
         return sysRolePermissionService.getPermissionIdsByRoleId(roleId);
+    }
+
+    @Override
+    public List<String> getRoleCodes(Long userId) {
+        // 获取用户角色ID列表
+        List<Long> roleIds = sysUserRoleService.getRoleIdsByUserId(userId);
+        if (roleIds == null || roleIds.isEmpty()) {
+            return List.of();
+        }
+        // 获取角色信息
+        List<SysRole> roles = listByIds(roleIds);
+        return roles.stream()
+                .map(SysRole::getRoleCode)
+                .collect(Collectors.toList());
     }
 }

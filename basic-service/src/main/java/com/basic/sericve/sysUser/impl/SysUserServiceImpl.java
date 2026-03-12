@@ -329,7 +329,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public InitResultVO initAdmin(String adminPassword) {
         // 1. 检查是否已存在用户
         if (count() > 0) {
-            throw new BusinessException("系统已存在用户，无需初始化");
+            throw new BusinessException(ResultEnum.DATA_ALREADY_EXIST);
         }
 
         // 2. 创建管理员角色
