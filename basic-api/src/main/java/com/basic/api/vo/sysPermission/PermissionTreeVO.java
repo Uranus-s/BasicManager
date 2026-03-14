@@ -38,6 +38,11 @@ public class PermissionTreeVO {
     private String path;
 
     /**
+     * 前端组件路径
+     */
+    private String component;
+
+    /**
      * 权限标识
      */
     private String permission;
