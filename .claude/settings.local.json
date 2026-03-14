@@ -12,7 +12,17 @@
       "Bash(echo $PATH)",
       "Bash(mvn clean:*)",
       "Bash(java -version 2>&1)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(mvn compile:*)",
+      "Bash(mvn spring-boot:run -pl basic-web 2>&1 | head -150)",
+      "Bash(mvn spring-boot:run -pl basic-web 2>&1 | tail -80)",
+      "Bash(mvn install:*)",
+      "Bash(timeout 30 mvn spring-boot:run -pl basic-web 2>&1 || true)",
+      "Bash(curl -s -X POST http://localhost:8080/auth/initAdmin -H \"Content-Type: application/json\" -d '{\"initKey\":\"admin-init-key\",\"adminPassword\":\"admin123\"}')",
+      "Bash(curl -s -X GET http://localhost:8080/auth/routes -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWQiOiIxIiwibmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzM4NTI2MDk1LCJleHAiOjE3Mzg1Mjk2OTV9.X4dN3sVnJ8qRkU7tQ2YfXh5Wc6Lm9pZCJ9\")",
+      "Bash(curl -s http://localhost:8080/auth/initAdmin -H \"Content-Type: application/json\" -d '{\"initKey\":\"wrong-key\",\"adminPassword\":\"admin123\"}')",
+      "Bash(pkill -f \"spring-boot:run\" 2>/dev/null || true)",
+      "Bash(mysql -h 192.168.0.110 -u root -p123456 basic_project -e \"SELECT id, username, password FROM sys_user WHERE username='admin'\" 2>/dev/null)"
     ]
   }
 }

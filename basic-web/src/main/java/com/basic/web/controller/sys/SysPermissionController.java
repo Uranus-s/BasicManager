@@ -120,7 +120,7 @@ public class SysPermissionController implements SysPermissionApi {
      */
     @Override
     @GetMapping("/user/{userId}")
-    public Result<List<String>> getUserPermissions(@PathVariable Long userId) {
+    public Result<List<String>> getUserPermissions(@PathVariable("userId") Long userId) {
         return Result.success(sysPermissionService.getUserPermissions(userId));
     }
 }
