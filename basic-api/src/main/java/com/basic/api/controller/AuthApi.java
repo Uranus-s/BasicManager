@@ -4,7 +4,10 @@ import com.basic.api.dto.auth.InitAdminDTO;
 import com.basic.api.dto.auth.LoginDTO;
 import com.basic.api.vo.auth.InitResultVO;
 import com.basic.api.vo.auth.LoginVO;
+import com.basic.api.vo.sysPermission.PermissionTreeVO;
 import com.basic.common.result.Result;
+
+import java.util.List;
 
 /**
  * 认证 API 接口
@@ -42,4 +45,11 @@ public interface AuthApi {
      * @return 初始化结果
      */
     Result<InitResultVO> initAdmin(InitAdminDTO initAdminDTO);
+
+    /**
+     * 获取当前用户路由权限
+     *
+     * @return 路由权限树形列表
+     */
+    Result<List<PermissionTreeVO>> getUserRoutes();
 }

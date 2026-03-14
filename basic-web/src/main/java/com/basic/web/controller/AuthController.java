@@ -5,10 +5,13 @@ import com.basic.api.dto.auth.InitAdminDTO;
 import com.basic.api.dto.auth.LoginDTO;
 import com.basic.api.vo.auth.InitResultVO;
 import com.basic.api.vo.auth.LoginVO;
+import com.basic.api.vo.sysPermission.PermissionTreeVO;
 import com.basic.common.result.Result;
 import com.basic.core.security.model.LoginUser;
 import com.basic.sericve.sysUser.service.ISysUserService;
+
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -49,7 +52,7 @@ public class AuthController implements AuthApi {
      * @return 当前用户信息
      */
     @Override
-    @GetMapping("getUserInfo")
+    @GetMapping("info")
     public Result<LoginVO> getUserInfo() {
         // 从SecurityContextHolder获取当前登录用户
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -100,5 +103,17 @@ public class AuthController implements AuthApi {
         // 执行初始化
         InitResultVO result = sysUserService.initAdmin(initAdminDTO.getAdminPassword());
         return Result.success(result);
+    }
+
+    /**
+     * 获取当前用户路由权限
+     *
+     * @return 路由权限树形列表
+     */
+    @Override
+    @GetMapping("routes")
+    public Result<List<PermissionTreeVO>> getUserRoutes() {
+        List<PermissionTreeVO> routes = sysUserService.getUserRoutes();
+        return Result.success(routes);
     }
 }
