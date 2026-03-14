@@ -79,4 +79,12 @@ public interface ISysPermissionService extends IService<SysPermission> {
      * @return 权限标识列表
      */
     List<String> getUserPermissions(Long userId);
+
+    /**
+     * 获取用户权限实体列表
+     *
+     * @param userId 用户ID
+     * @return 权限实体列表
+     */
+    List<SysPermission> getPermissionsByUserId(Long userId);
 }

@@ -24,7 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -217,5 +219,28 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
                 .filter(p -> StringUtils.hasText(p))
                 .distinct()
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SysPermission> getPermissionsByUserId(Long userId) {
+        // 获取用户角色
+        List<Long> roleIds = sysUserRoleService.getRoleIdsByUserId(userId);
+        if (roleIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // 获取角色权限ID
+        Set<Long> permissionIds = new HashSet<>();
+        for (Long roleId : roleIds) {
+            List<Long> perms = sysRolePermissionService.getPermissionIdsByRoleId(roleId);
+            permissionIds.addAll(perms);
+        }
+
+        if (permissionIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // 获取权限实体列表
+        return listByIds(new ArrayList<>(permissionIds));
     }
 }

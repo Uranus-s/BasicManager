@@ -4,6 +4,7 @@ import com.basic.api.dto.sysUser.UserAddDTO;
 import com.basic.api.dto.sysUser.UserQueryDTO;
 import com.basic.api.dto.sysUser.UserUpdateDTO;
 import com.basic.api.vo.auth.InitResultVO;
+import com.basic.api.vo.sysPermission.PermissionTreeVO;
 import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.api.vo.sysUser.UserVO;
 import com.basic.common.result.PageResult;
@@ -123,4 +124,11 @@ public interface ISysUserService extends IService<SysUser> {
      * @return 初始化结果
      */
     InitResultVO initAdmin(String adminPassword);
+
+    /**
+     * 获取用户路由权限
+     *
+     * @return 路由权限树形列表
+     */
+    List<PermissionTreeVO> getUserRoutes();
 }

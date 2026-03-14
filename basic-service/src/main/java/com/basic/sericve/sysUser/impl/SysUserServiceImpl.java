@@ -5,11 +5,13 @@ import com.basic.api.dto.sysUser.UserQueryDTO;
 import com.basic.api.dto.sysUser.UserUpdateDTO;
 import com.basic.api.vo.auth.InitResultVO;
 import com.basic.api.vo.auth.LoginVO;
+import com.basic.api.vo.sysPermission.PermissionTreeVO;
 import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.api.vo.sysUser.UserVO;
 import com.basic.common.exception.BusinessException;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.ResultEnum;
+import com.basic.core.security.model.LoginUser;
 import com.basic.core.security.util.JwtUtil;
 import com.basic.dao.sysDept.entity.SysDept;
 import com.basic.dao.sysPermission.entity.SysPermission;
@@ -32,13 +34,18 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -322,6 +329,73 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public List<String> getUserPermissions(Long userId) {
         // 使用ISysPermissionService获取用户权限
         return sysPermissionService.getUserPermissions(userId);
+    }
+
+    @Override
+    public List<PermissionTreeVO> getUserRoutes() {
+        // 1. 获取当前登录用户ID
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        LoginUser loginUser = (LoginUser) authentication.getPrincipal();
+        Long userId = loginUser.getUserId();
+
+        // 2. 获取用户所有权限实体列表
+        List<SysPermission> permissions = sysPermissionService.getPermissionsByUserId(userId);
+
+        // 3. 过滤可用权限（status=1 且 visible=1）
+        List<SysPermission> activePermissions = permissions.stream()
+                .filter(p -> p.getStatus() != null && p.getStatus() == 1)
+                .filter(p -> p.getVisible() == null || p.getVisible() == 1)
+                .collect(Collectors.toList());
+
+        // 4. 构建树形结构
+        return buildPermissionTree(activePermissions);
+    }
+
+    /**
+     * 构建权限树形结构
+     */
+    private List<PermissionTreeVO> buildPermissionTree(List<SysPermission> permissions) {
+        // 按parentId分组
+        Map<Long, List<SysPermission>> parentMap = permissions.stream()
+                .collect(Collectors.groupingBy(p -> p.getParentId() != null ? p.getParentId() : 0L));
+
+        // 获取所有顶级菜单（parentId = 0）
+        List<SysPermission> rootPermissions = parentMap.getOrDefault(0L, Collections.emptyList());
+
+        // 构建树
+        return rootPermissions.stream()
+                .map(p -> convertToPermissionTreeVO(p, parentMap))
+                .sorted(Comparator.comparingInt(PermissionTreeVO::getSort))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 递归转换权限为PermissionTreeVO
+     */
+    private PermissionTreeVO convertToPermissionTreeVO(SysPermission permission, Map<Long, List<SysPermission>> parentMap) {
+        PermissionTreeVO vo = new PermissionTreeVO();
+        vo.setId(permission.getId());
+        vo.setParentId(permission.getParentId());
+        vo.setName(permission.getName());
+        vo.setType(permission.getType());
+        vo.setPath(permission.getPath());
+        vo.setComponent(permission.getComponent());
+        vo.setPermission(permission.getPermission());
+        vo.setIcon(permission.getIcon());
+        vo.setSort(permission.getSort());
+        vo.setVisible(permission.getVisible());
+        vo.setStatus(permission.getStatus());
+
+        // 递归处理子权限
+        List<SysPermission> children = parentMap.getOrDefault(permission.getId(), Collections.emptyList());
+        if (!children.isEmpty()) {
+            vo.setChildren(children.stream()
+                    .map(c -> convertToPermissionTreeVO(c, parentMap))
+                    .sorted(Comparator.comparingInt(PermissionTreeVO::getSort))
+                    .collect(Collectors.toList()));
+        }
+
+        return vo;
     }
 
     @Override
