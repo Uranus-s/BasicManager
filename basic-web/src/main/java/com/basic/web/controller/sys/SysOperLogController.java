@@ -31,7 +31,7 @@ public class SysOperLogController implements SysOperLogApi {
      */
     @Override
     @GetMapping("/{id}")
-    public Result<OperLogVO> getOperLogById(@PathVariable Long id) {
+    public Result<OperLogVO> getOperLogById(@PathVariable("id") Long id) {
         return Result.success(sysOperLogService.getOperLogById(id));
     }
 
@@ -55,7 +55,7 @@ public class SysOperLogController implements SysOperLogApi {
      */
     @Override
     @DeleteMapping("/{id}")
-    public Result<?> deleteOperLog(@PathVariable Long id) {
+    public Result<?> deleteOperLog(@PathVariable("id") Long id) {
         sysOperLogService.deleteOperLog(id);
         return Result.success();
     }

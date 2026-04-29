@@ -60,7 +60,7 @@ public class SysDictItemController implements SysDictItemApi {
      */
     @Override
     @DeleteMapping("/{id}")
-    public Result<?> deleteDictItem(@PathVariable Long id) {
+    public Result<?> deleteDictItem(@PathVariable("id") Long id) {
         sysDictItemService.deleteDictItem(id);
         return Result.success();
     }
@@ -73,7 +73,7 @@ public class SysDictItemController implements SysDictItemApi {
      */
     @Override
     @GetMapping("/{id}")
-    public Result<DictItemVO> getDictItemById(@PathVariable Long id) {
+    public Result<DictItemVO> getDictItemById(@PathVariable("id") Long id) {
         return Result.success(sysDictItemService.getDictItemById(id));
     }
 
@@ -97,7 +97,7 @@ public class SysDictItemController implements SysDictItemApi {
      */
     @Override
     @GetMapping("/dict/{dictId}")
-    public Result<List<DictItemVO>> getDictItemsByDictId(@PathVariable Long dictId) {
+    public Result<List<DictItemVO>> getDictItemsByDictId(@PathVariable("dictId") Long dictId) {
         return Result.success(sysDictItemService.getDictItemsByDictId(dictId));
     }
 

@@ -58,7 +58,7 @@ public class SysConfigController implements SysConfigApi {
      */
     @Override
     @DeleteMapping("/{id}")
-    public Result<?> deleteConfig(@PathVariable Long id) {
+    public Result<?> deleteConfig(@PathVariable("id") Long id) {
         sysConfigService.deleteConfig(id);
         return Result.success();
     }
@@ -71,7 +71,7 @@ public class SysConfigController implements SysConfigApi {
      */
     @Override
     @GetMapping("/{id}")
-    public Result<ConfigVO> getConfigById(@PathVariable Long id) {
+    public Result<ConfigVO> getConfigById(@PathVariable("id") Long id) {
         return Result.success(sysConfigService.getConfigById(id));
     }
 

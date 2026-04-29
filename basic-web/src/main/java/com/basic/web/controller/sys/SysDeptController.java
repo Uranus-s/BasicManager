@@ -61,7 +61,7 @@ public class SysDeptController implements SysDeptApi {
      */
     @Override
     @DeleteMapping("/{id}")
-    public Result<?> deleteDept(@PathVariable Long id) {
+    public Result<?> deleteDept(@PathVariable("id") Long id) {
         sysDeptService.deleteDept(id);
         return Result.success();
     }
@@ -74,7 +74,7 @@ public class SysDeptController implements SysDeptApi {
      */
     @Override
     @GetMapping("/{id}")
-    public Result<DeptVO> getDeptById(@PathVariable Long id) {
+    public Result<DeptVO> getDeptById(@PathVariable("id") Long id) {
         return Result.success(sysDeptService.getDeptById(id));
     }
 

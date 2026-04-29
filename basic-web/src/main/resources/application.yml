@@ -1,5 +1,7 @@
 server:
   port: 8080
+  servlet:
+    context-path: /
   tomcat:
     max-connections: 8192
     threads:
@@ -12,7 +14,7 @@ spring:
     virtual:
       enabled: true
   datasource:
-    url: jdbc:mysql://192.168.0.110:3306/basic_project?useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://0.0.0.0:3306/basic_project?useSSL=false&serverTimezone=Asia/Shanghai
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -72,12 +74,12 @@ spring:
       cluster:
         max-redirects: 3
         nodes:
-          - 192.168.0.110:6379
-          - 192.168.0.110:6380
-          - 192.168.0.110:6381
-          - 192.168.0.110:6382
-          - 192.168.0.110:6383
-          - 192.168.0.110:6384
+          - 0.0.0.0:6379
+          - 0.0.0.0:6380
+          - 0.0.0.0:6381
+          - 0.0.0.0:6382
+          - 0.0.0.0:6383
+          - 0.0.0.0:6384
 
 # 系统配置
 system:

@@ -31,7 +31,7 @@ public class SysLoginLogController implements SysLoginLogApi {
      */
     @Override
     @GetMapping("/{id}")
-    public Result<LoginLogVO> getLoginLogById(@PathVariable Long id) {
+    public Result<LoginLogVO> getLoginLogById(@PathVariable("id") Long id) {
         return Result.success(sysLoginLogService.getLoginLogById(id));
     }
 
@@ -55,7 +55,7 @@ public class SysLoginLogController implements SysLoginLogApi {
      */
     @Override
     @DeleteMapping("/{id}")
-    public Result<?> deleteLoginLog(@PathVariable Long id) {
+    public Result<?> deleteLoginLog(@PathVariable("id") Long id) {
         sysLoginLogService.deleteLoginLog(id);
         return Result.success();
     }

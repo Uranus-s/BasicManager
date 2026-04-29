@@ -64,7 +64,7 @@ public class SysUserController implements SysUserApi {
      */
     @Override
     @DeleteMapping("/{id}")
-    public Result<?> deleteUser(@PathVariable Long id) {
+    public Result<?> deleteUser(@PathVariable("id") Long id) {
         sysUserService.deleteUser(id);
         return Result.success();
     }
@@ -77,7 +77,7 @@ public class SysUserController implements SysUserApi {
      */
     @Override
     @GetMapping("/{id}")
-    public Result<UserVO> getUserById(@PathVariable Long id) {
+    public Result<UserVO> getUserById(@PathVariable("id") Long id) {
         return Result.success(sysUserService.getUserById(id));
     }
 
@@ -101,7 +101,7 @@ public class SysUserController implements SysUserApi {
      */
     @Override
     @PostMapping("/resetPwd/{id}")
-    public Result<?> resetPassword(@PathVariable Long id) {
+    public Result<?> resetPassword(@PathVariable("id") Long id) {
         sysUserService.resetPassword(id);
         return Result.success();
     }
@@ -115,7 +115,7 @@ public class SysUserController implements SysUserApi {
      */
     @Override
     @PostMapping("/assignRoles/{userId}")
-    public Result<?> assignRoles(@PathVariable Long userId, @RequestBody List<Long> roleIds) {
+    public Result<?> assignRoles(@PathVariable("userId") Long userId, @RequestBody List<Long> roleIds) {
         sysUserService.assignRoles(userId, roleIds);
         return Result.success();
     }
@@ -128,7 +128,7 @@ public class SysUserController implements SysUserApi {
      */
     @Override
     @GetMapping("/roles/{userId}")
-    public Result<List<Long>> getUserRoles(@PathVariable Long userId) {
+    public Result<List<Long>> getUserRoles(@PathVariable("userId") Long userId) {
         return Result.success(sysUserService.getUserRoles(userId));
     }
 
@@ -141,7 +141,7 @@ public class SysUserController implements SysUserApi {
      */
     @Override
     @PostMapping("/updatePwd")
-    public Result<?> updatePassword(@RequestParam String oldPassword, @RequestParam String newPassword) {
+    public Result<?> updatePassword(@RequestParam("oldPassword") String oldPassword, @RequestParam("newPassword") String newPassword) {
         // 从SecurityContext获取当前用户ID
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         LoginUser loginUser = (LoginUser) authentication.getPrincipal();

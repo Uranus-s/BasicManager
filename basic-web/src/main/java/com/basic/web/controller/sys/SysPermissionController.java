@@ -61,7 +61,7 @@ public class SysPermissionController implements SysPermissionApi {
      */
     @Override
     @DeleteMapping("/{id}")
-    public Result<?> deletePermission(@PathVariable Long id) {
+    public Result<?> deletePermission(@PathVariable("id") Long id) {
         sysPermissionService.deletePermission(id);
         return Result.success();
     }
@@ -74,7 +74,7 @@ public class SysPermissionController implements SysPermissionApi {
      */
     @Override
     @GetMapping("/{id}")
-    public Result<PermissionVO> getPermissionById(@PathVariable Long id) {
+    public Result<PermissionVO> getPermissionById(@PathVariable("id") Long id) {
         return Result.success(sysPermissionService.getPermissionById(id));
     }
 

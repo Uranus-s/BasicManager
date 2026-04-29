@@ -61,7 +61,7 @@ public class SysRoleController implements SysRoleApi {
      */
     @Override
     @DeleteMapping("/{id}")
-    public Result<?> deleteRole(@PathVariable Long id) {
+    public Result<?> deleteRole(@PathVariable("id") Long id) {
         sysRoleService.deleteRole(id);
         return Result.success();
     }
@@ -74,7 +74,7 @@ public class SysRoleController implements SysRoleApi {
      */
     @Override
     @GetMapping("/{id}")
-    public Result<RoleVO> getRoleById(@PathVariable Long id) {
+    public Result<RoleVO> getRoleById(@PathVariable("id") Long id) {
         return Result.success(sysRoleService.getRoleById(id));
     }
 
@@ -110,7 +110,7 @@ public class SysRoleController implements SysRoleApi {
      */
     @Override
     @PostMapping("/assignPermissions/{roleId}")
-    public Result<?> assignPermissions(@PathVariable Long roleId, @RequestBody List<Long> permissionIds) {
+    public Result<?> assignPermissions(@PathVariable("roleId") Long roleId, @RequestBody List<Long> permissionIds) {
         sysRoleService.assignPermissions(roleId, permissionIds);
         return Result.success();
     }
@@ -123,7 +123,7 @@ public class SysRoleController implements SysRoleApi {
      */
     @Override
     @GetMapping("/permissions/{roleId}")
-    public Result<List<Long>> getRolePermissions(@PathVariable Long roleId) {
+    public Result<List<Long>> getRolePermissions(@PathVariable("roleId") Long roleId) {
         return Result.success(sysRoleService.getRolePermissions(roleId));
     }
 }

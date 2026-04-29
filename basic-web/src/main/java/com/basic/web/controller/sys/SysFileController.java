@@ -35,9 +35,9 @@ public class SysFileController implements SysFileApi {
      */
     @Override
     @PostMapping
-    public Result<Long> uploadFile(@RequestParam String fileName, @RequestParam String filePath,
-                                    @RequestParam Long fileSize, @RequestParam String fileType,
-                                    @RequestParam String bizType) {
+    public Result<Long> uploadFile(@RequestParam("fileName") String fileName, @RequestParam("filePath") String filePath,
+                                    @RequestParam("fileSize") Long fileSize, @RequestParam("fileType") String fileType,
+                                    @RequestParam("bizType") String bizType) {
         Long fileId = sysFileService.uploadFile(fileName, filePath, fileSize, fileType, bizType);
         return Result.success(fileId);
     }
@@ -50,7 +50,7 @@ public class SysFileController implements SysFileApi {
      */
     @Override
     @DeleteMapping("/{id}")
-    public Result<?> deleteFile(@PathVariable Long id) {
+    public Result<?> deleteFile(@PathVariable("id") Long id) {
         sysFileService.deleteFile(id);
         return Result.success();
     }
@@ -76,7 +76,7 @@ public class SysFileController implements SysFileApi {
      */
     @Override
     @GetMapping("/{id}")
-    public Result<FileVO> getFileById(@PathVariable Long id) {
+    public Result<FileVO> getFileById(@PathVariable("id") Long id) {
         return Result.success(sysFileService.getFileById(id));
     }
 

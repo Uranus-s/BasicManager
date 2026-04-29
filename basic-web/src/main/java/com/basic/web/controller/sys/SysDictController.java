@@ -60,7 +60,7 @@ public class SysDictController implements SysDictApi {
      */
     @Override
     @DeleteMapping("/{id}")
-    public Result<?> deleteDict(@PathVariable Long id) {
+    public Result<?> deleteDict(@PathVariable("id") Long id) {
         sysDictService.deleteDict(id);
         return Result.success();
     }
@@ -73,7 +73,7 @@ public class SysDictController implements SysDictApi {
      */
     @Override
     @GetMapping("/{id}")
-    public Result<DictVO> getDictById(@PathVariable Long id) {
+    public Result<DictVO> getDictById(@PathVariable("id") Long id) {
         return Result.success(sysDictService.getDictById(id));
     }
 
