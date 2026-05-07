@@ -4,8 +4,10 @@ import com.basic.api.controller.sys.SysRoleApi;
 import com.basic.api.dto.sysRole.RoleAddDTO;
 import com.basic.api.dto.sysRole.RoleQueryDTO;
 import com.basic.api.dto.sysRole.RoleUpdateDTO;
+import com.basic.api.dto.sysRole.RoleUserManageDTO;
 import com.basic.api.vo.sysRole.RoleListVO;
 import com.basic.api.vo.sysRole.RoleVO;
+import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import com.basic.sericve.sysRole.service.ISysRoleService;
@@ -125,5 +127,32 @@ public class SysRoleController implements SysRoleApi {
     @GetMapping("/permissions/{roleId}")
     public Result<List<Long>> getRolePermissions(@PathVariable("roleId") Long roleId) {
         return Result.success(sysRoleService.getRolePermissions(roleId));
+    }
+
+    /**
+     * 获取角色关联的用户列表
+     *
+     * @param roleId 角色ID
+     * @return 用户列表
+     */
+    @Override
+    @GetMapping("/users/{roleId}")
+    public Result<List<UserListVO>> getUsersByRoleId(@PathVariable("roleId") Long roleId) {
+        return Result.success(sysRoleService.getUsersByRoleId(roleId));
+    }
+
+    /**
+     * 批量管理角色关联用户
+     *
+     * @param roleId 角色ID
+     * @param dto    用户增量变更信息
+     * @return 操作结果
+     */
+    @Override
+    @PostMapping("/users/{roleId}")
+    public Result<?> manageRoleUsers(@PathVariable("roleId") Long roleId,
+                                     @Valid @RequestBody RoleUserManageDTO dto) {
+        sysRoleService.manageRoleUsers(roleId, dto);
+        return Result.success();
     }
 }

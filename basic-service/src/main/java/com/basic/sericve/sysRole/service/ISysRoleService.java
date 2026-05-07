@@ -3,8 +3,10 @@ package com.basic.sericve.sysRole.service;
 import com.basic.api.dto.sysRole.RoleAddDTO;
 import com.basic.api.dto.sysRole.RoleQueryDTO;
 import com.basic.api.dto.sysRole.RoleUpdateDTO;
+import com.basic.api.dto.sysRole.RoleUserManageDTO;
 import com.basic.api.vo.sysRole.RoleListVO;
 import com.basic.api.vo.sysRole.RoleVO;
+import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.common.result.PageResult;
 import com.basic.dao.sysRole.entity.SysRole;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -80,6 +82,22 @@ public interface ISysRoleService extends IService<SysRole> {
      * @return 权限ID列表
      */
     List<Long> getRolePermissions(Long roleId);
+
+    /**
+     * 获取角色关联的用户列表
+     *
+     * @param roleId 角色ID
+     * @return 用户列表
+     */
+    List<UserListVO> getUsersByRoleId(Long roleId);
+
+    /**
+     * 批量管理角色关联用户
+     *
+     * @param roleId 角色ID
+     * @param dto    用户增量变更信息
+     */
+    void manageRoleUsers(Long roleId, RoleUserManageDTO dto);
 
     /**
      * 获取用户角色编码列表

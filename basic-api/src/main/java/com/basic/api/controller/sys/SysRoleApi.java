@@ -3,8 +3,10 @@ package com.basic.api.controller.sys;
 import com.basic.api.dto.sysRole.RoleAddDTO;
 import com.basic.api.dto.sysRole.RoleQueryDTO;
 import com.basic.api.dto.sysRole.RoleUpdateDTO;
+import com.basic.api.dto.sysRole.RoleUserManageDTO;
 import com.basic.api.vo.sysRole.RoleListVO;
 import com.basic.api.vo.sysRole.RoleVO;
+import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import jakarta.validation.Valid;
@@ -90,4 +92,23 @@ public interface SysRoleApi {
      */
     @GetMapping("/permissions/{roleId}")
     Result<List<Long>> getRolePermissions(@PathVariable Long roleId);
+
+    /**
+     * 获取角色关联的用户列表
+     *
+     * @param roleId 角色ID
+     * @return 用户列表
+     */
+    @GetMapping("/users/{roleId}")
+    Result<List<UserListVO>> getUsersByRoleId(@PathVariable Long roleId);
+
+    /**
+     * 批量管理角色关联用户
+     *
+     * @param roleId 角色ID
+     * @param dto    用户增量变更信息
+     * @return 操作结果
+     */
+    @PostMapping("/users/{roleId}")
+    Result<?> manageRoleUsers(@PathVariable Long roleId, @Valid @RequestBody RoleUserManageDTO dto);
 }

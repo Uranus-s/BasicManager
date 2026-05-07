@@ -3,14 +3,18 @@ package com.basic.sericve.sysRole.impl;
 import com.basic.api.dto.sysRole.RoleAddDTO;
 import com.basic.api.dto.sysRole.RoleQueryDTO;
 import com.basic.api.dto.sysRole.RoleUpdateDTO;
+import com.basic.api.dto.sysRole.RoleUserManageDTO;
 import com.basic.api.vo.sysRole.RoleListVO;
 import com.basic.api.vo.sysRole.RoleVO;
+import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.common.exception.BusinessException;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.ResultEnum;
 import com.basic.dao.sysPermission.entity.SysPermission;
 import com.basic.dao.sysRole.entity.SysRole;
 import com.basic.dao.sysRole.mapper.SysRoleMapper;
+import com.basic.dao.sysUser.entity.SysUser;
+import com.basic.dao.sysUser.mapper.SysUserMapper;
 import com.basic.sericve.sysPermission.service.ISysPermissionService;
 import com.basic.sericve.sysRole.service.ISysRoleService;
 import com.basic.sericve.sysRolePermission.service.ISysRolePermissionService;
@@ -43,6 +47,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     private final ISysRolePermissionService sysRolePermissionService;
     private final ISysPermissionService sysPermissionService;
     private final ISysUserRoleService sysUserRoleService;
+    private final SysUserMapper sysUserMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -184,6 +189,41 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @Override
     public List<Long> getRolePermissions(Long roleId) {
         return sysRolePermissionService.getPermissionIdsByRoleId(roleId);
+    }
+
+    @Override
+    public List<UserListVO> getUsersByRoleId(Long roleId) {
+        SysRole role = getById(roleId);
+        if (role == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+
+        List<Long> userIds = sysUserRoleService.getUserIdsByRoleId(roleId);
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<SysUser> users = sysUserMapper.selectByIds(userIds);
+        return users.stream()
+                .map(user -> {
+                    UserListVO vo = new UserListVO();
+                    BeanUtils.copyProperties(user, vo);
+                    return vo;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void manageRoleUsers(Long roleId, RoleUserManageDTO dto) {
+        SysRole role = getById(roleId);
+        if (role == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+        if (dto == null || !dto.isNotEmptyOperation()) {
+            throw new BusinessException(ResultEnum.PARAM_INVALID);
+        }
+        sysUserRoleService.manageRoleUsers(roleId, dto.getAddUserIds(), dto.getRemoveUserIds());
     }
 
     @Override

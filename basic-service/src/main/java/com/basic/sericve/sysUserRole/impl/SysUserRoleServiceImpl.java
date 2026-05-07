@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -46,6 +48,45 @@ public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleMapper, SysUs
         wrapper.eq(SysUserRole::getUserId, userId);
         List<SysUserRole> userRoles = list(wrapper);
         return userRoles.stream().map(SysUserRole::getRoleId).toList();
+    }
+
+    @Override
+    public List<Long> getUserIdsByRoleId(Long roleId) {
+        LambdaQueryWrapper<SysUserRole> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysUserRole::getRoleId, roleId);
+        List<SysUserRole> userRoles = list(wrapper);
+        return userRoles.stream().map(SysUserRole::getUserId).toList();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void manageRoleUsers(Long roleId, List<Long> addUserIds, List<Long> removeUserIds) {
+        if (removeUserIds != null && !removeUserIds.isEmpty()) {
+            LambdaQueryWrapper<SysUserRole> removeWrapper = new LambdaQueryWrapper<>();
+            removeWrapper.eq(SysUserRole::getRoleId, roleId)
+                    .in(SysUserRole::getUserId, removeUserIds);
+            remove(removeWrapper);
+        }
+
+        if (addUserIds == null || addUserIds.isEmpty()) {
+            return;
+        }
+
+        List<Long> existingUserIds = getUserIdsByRoleId(roleId);
+        Set<Long> existingUserIdSet = new HashSet<>(existingUserIds);
+        List<SysUserRole> userRoles = addUserIds.stream()
+                .distinct()
+                .filter(userId -> !existingUserIdSet.contains(userId))
+                .map(userId -> {
+                    SysUserRole userRole = new SysUserRole();
+                    userRole.setRoleId(roleId);
+                    userRole.setUserId(userId);
+                    return userRole;
+                })
+                .toList();
+        if (!userRoles.isEmpty()) {
+            saveBatch(userRoles);
+        }
     }
 
     @Override
