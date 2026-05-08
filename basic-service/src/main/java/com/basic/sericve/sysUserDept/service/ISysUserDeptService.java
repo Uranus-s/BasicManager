@@ -31,6 +31,30 @@ public interface ISysUserDeptService extends IService<SysUserDept> {
     List<Long> getDeptIdsByUserId(Long userId);
 
     /**
+     * 获取部门用户ID列表
+     *
+     * @param deptId 部门ID
+     * @return 用户ID列表
+     */
+    List<Long> getUserIdsByDeptId(Long deptId);
+
+    /**
+     * 给部门新增用户关联
+     *
+     * @param deptId  部门ID
+     * @param userIds 用户ID列表
+     */
+    void addUsersToDept(Long deptId, List<Long> userIds);
+
+    /**
+     * 删除部门用户关联
+     *
+     * @param deptId  部门ID
+     * @param userIds 用户ID列表
+     */
+    void removeUsersFromDept(Long deptId, List<Long> userIds);
+
+    /**
      * 移除用户所有部门
      *
      * @param userId 用户ID

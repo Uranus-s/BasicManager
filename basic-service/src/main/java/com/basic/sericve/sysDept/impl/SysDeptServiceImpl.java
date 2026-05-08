@@ -5,16 +5,21 @@ import com.basic.api.dto.sysDept.DeptQueryDTO;
 import com.basic.api.dto.sysDept.DeptUpdateDTO;
 import com.basic.api.vo.sysDept.DeptTreeVO;
 import com.basic.api.vo.sysDept.DeptVO;
+import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.common.exception.BusinessException;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.ResultEnum;
 import com.basic.dao.sysDept.entity.SysDept;
 import com.basic.dao.sysDept.mapper.SysDeptMapper;
+import com.basic.dao.sysUser.entity.SysUser;
+import com.basic.dao.sysUser.mapper.SysUserMapper;
 import com.basic.sericve.sysDept.service.ISysDeptService;
+import com.basic.sericve.sysUserDept.service.ISysUserDeptService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +38,11 @@ import java.util.stream.Collectors;
  * @author Gas
  */
 @Service
+@RequiredArgsConstructor
 public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> implements ISysDeptService {
+
+    private final ISysUserDeptService sysUserDeptService;
+    private final SysUserMapper sysUserMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -156,7 +165,8 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
     private List<DeptTreeVO> buildDeptTree(Long parentId, List<SysDept> allDepts) {
         List<DeptTreeVO> tree = new ArrayList<>();
         for (SysDept dept : allDepts) {
-            if (dept.getParentId().equals(parentId)) {
+            Long currentParentId = dept.getParentId() == null ? 0L : dept.getParentId();
+            if (currentParentId.equals(parentId)) {
                 DeptTreeVO vo = new DeptTreeVO();
                 BeanUtils.copyProperties(dept, vo);
                 vo.setChildren(buildDeptTree(dept.getId(), allDepts));
@@ -178,5 +188,51 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
                     return vo;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserListVO> getUsersByDeptId(Long deptId) {
+        SysDept dept = getById(deptId);
+        if (dept == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+
+        List<Long> userIds = sysUserDeptService.getUserIdsByDeptId(deptId);
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<SysUser> users = sysUserMapper.selectByIds(userIds);
+        return users.stream()
+                .map(user -> {
+                    UserListVO vo = new UserListVO();
+                    BeanUtils.copyProperties(user, vo);
+                    return vo;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void addUsersToDept(Long deptId, List<Long> userIds) {
+        checkDeptAndUserIds(deptId, userIds);
+        sysUserDeptService.addUsersToDept(deptId, userIds);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void removeUsersFromDept(Long deptId, List<Long> userIds) {
+        checkDeptAndUserIds(deptId, userIds);
+        sysUserDeptService.removeUsersFromDept(deptId, userIds);
+    }
+
+    private void checkDeptAndUserIds(Long deptId, List<Long> userIds) {
+        SysDept dept = getById(deptId);
+        if (dept == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+        if (userIds == null || userIds.isEmpty()) {
+            throw new BusinessException(ResultEnum.PARAM_INVALID);
+        }
     }
 }

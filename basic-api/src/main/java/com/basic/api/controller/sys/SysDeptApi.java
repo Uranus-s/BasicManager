@@ -5,6 +5,7 @@ import com.basic.api.dto.sysDept.DeptQueryDTO;
 import com.basic.api.dto.sysDept.DeptUpdateDTO;
 import com.basic.api.vo.sysDept.DeptTreeVO;
 import com.basic.api.vo.sysDept.DeptVO;
+import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import jakarta.validation.Valid;
@@ -79,4 +80,33 @@ public interface SysDeptApi {
      */
     @GetMapping("/all")
     Result<List<DeptVO>> getAllDepts();
+
+    /**
+     * 获取部门关联的用户列表
+     *
+     * @param deptId 部门ID
+     * @return 用户列表
+     */
+    @GetMapping("/users/{deptId}")
+    Result<List<UserListVO>> getUsersByDeptId(@PathVariable Long deptId);
+
+    /**
+     * 给部门新增用户
+     *
+     * @param deptId  部门ID
+     * @param userIds 用户ID列表
+     * @return 操作结果
+     */
+    @PostMapping("/users/{deptId}")
+    Result<?> addUsersToDept(@PathVariable Long deptId, @RequestBody List<Long> userIds);
+
+    /**
+     * 删除部门下的用户
+     *
+     * @param deptId  部门ID
+     * @param userIds 用户ID列表
+     * @return 操作结果
+     */
+    @DeleteMapping("/users/{deptId}")
+    Result<?> removeUsersFromDept(@PathVariable Long deptId, @RequestBody List<Long> userIds);
 }

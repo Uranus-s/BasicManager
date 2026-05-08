@@ -42,3 +42,11 @@ build/
 /docs/
 /.claude/
 /basic-web/src/test/
+!/basic-web/src/test/
+!/basic-web/src/test/java/
+!/basic-web/src/test/java/com/
+!/basic-web/src/test/java/com/basic/
+!/basic-web/src/test/java/com/basic/web/
+!/basic-web/src/test/java/com/basic/web/sys/
+/basic-web/src/test/java/com/basic/web/sys/*
+/basic-web/src/test/

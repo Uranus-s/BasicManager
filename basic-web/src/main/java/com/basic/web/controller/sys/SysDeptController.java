@@ -6,6 +6,7 @@ import com.basic.api.dto.sysDept.DeptQueryDTO;
 import com.basic.api.dto.sysDept.DeptUpdateDTO;
 import com.basic.api.vo.sysDept.DeptTreeVO;
 import com.basic.api.vo.sysDept.DeptVO;
+import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import com.basic.sericve.sysDept.service.ISysDeptService;
@@ -110,5 +111,45 @@ public class SysDeptController implements SysDeptApi {
     @GetMapping("/all")
     public Result<List<DeptVO>> getAllDepts() {
         return Result.success(sysDeptService.getAllDepts());
+    }
+
+    /**
+     * 获取部门关联的用户列表
+     *
+     * @param deptId 部门ID
+     * @return 用户列表
+     */
+    @Override
+    @GetMapping("/users/{deptId}")
+    public Result<List<UserListVO>> getUsersByDeptId(@PathVariable("deptId") Long deptId) {
+        return Result.success(sysDeptService.getUsersByDeptId(deptId));
+    }
+
+    /**
+     * 给部门新增用户
+     *
+     * @param deptId  部门ID
+     * @param userIds 用户ID列表
+     * @return 操作结果
+     */
+    @Override
+    @PostMapping("/users/{deptId}")
+    public Result<?> addUsersToDept(@PathVariable("deptId") Long deptId, @RequestBody List<Long> userIds) {
+        sysDeptService.addUsersToDept(deptId, userIds);
+        return Result.success();
+    }
+
+    /**
+     * 删除部门下的用户
+     *
+     * @param deptId  部门ID
+     * @param userIds 用户ID列表
+     * @return 操作结果
+     */
+    @Override
+    @DeleteMapping("/users/{deptId}")
+    public Result<?> removeUsersFromDept(@PathVariable("deptId") Long deptId, @RequestBody List<Long> userIds) {
+        sysDeptService.removeUsersFromDept(deptId, userIds);
+        return Result.success();
     }
 }

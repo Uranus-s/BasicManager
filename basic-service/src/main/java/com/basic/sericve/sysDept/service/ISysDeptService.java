@@ -5,6 +5,7 @@ import com.basic.api.dto.sysDept.DeptQueryDTO;
 import com.basic.api.dto.sysDept.DeptUpdateDTO;
 import com.basic.api.vo.sysDept.DeptTreeVO;
 import com.basic.api.vo.sysDept.DeptVO;
+import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.common.result.PageResult;
 import com.basic.dao.sysDept.entity.SysDept;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -71,4 +72,28 @@ public interface ISysDeptService extends IService<SysDept> {
      * @return 部门列表
      */
     List<DeptVO> getAllDepts();
+
+    /**
+     * 获取部门关联的用户列表
+     *
+     * @param deptId 部门ID
+     * @return 用户列表
+     */
+    List<UserListVO> getUsersByDeptId(Long deptId);
+
+    /**
+     * 给部门新增用户
+     *
+     * @param deptId  部门ID
+     * @param userIds 用户ID列表
+     */
+    void addUsersToDept(Long deptId, List<Long> userIds);
+
+    /**
+     * 删除部门下的用户
+     *
+     * @param deptId  部门ID
+     * @param userIds 用户ID列表
+     */
+    void removeUsersFromDept(Long deptId, List<Long> userIds);
 }

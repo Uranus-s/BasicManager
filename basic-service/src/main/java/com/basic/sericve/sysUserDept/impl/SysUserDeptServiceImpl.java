@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -46,6 +48,45 @@ public class SysUserDeptServiceImpl extends ServiceImpl<SysUserDeptMapper, SysUs
         wrapper.eq(SysUserDept::getUserId, userId);
         List<SysUserDept> userDepts = list(wrapper);
         return userDepts.stream().map(SysUserDept::getDeptId).toList();
+    }
+
+    @Override
+    public List<Long> getUserIdsByDeptId(Long deptId) {
+        LambdaQueryWrapper<SysUserDept> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysUserDept::getDeptId, deptId);
+        List<SysUserDept> userDepts = list(wrapper);
+        return userDepts.stream().map(SysUserDept::getUserId).toList();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void addUsersToDept(Long deptId, List<Long> userIds) {
+        List<Long> distinctUserIds = userIds.stream().distinct().toList();
+        List<Long> existingUserIds = getUserIdsByDeptId(deptId);
+        Set<Long> existingUserIdSet = existingUserIds.stream().collect(Collectors.toSet());
+
+        List<SysUserDept> userDepts = distinctUserIds.stream()
+                .filter(userId -> !existingUserIdSet.contains(userId))
+                .map(userId -> {
+                    SysUserDept userDept = new SysUserDept();
+                    userDept.setDeptId(deptId);
+                    userDept.setUserId(userId);
+                    return userDept;
+                })
+                .toList();
+
+        if (!userDepts.isEmpty()) {
+            saveBatch(userDepts);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void removeUsersFromDept(Long deptId, List<Long> userIds) {
+        LambdaQueryWrapper<SysUserDept> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysUserDept::getDeptId, deptId)
+                .in(SysUserDept::getUserId, userIds);
+        remove(wrapper);
     }
 
     @Override
