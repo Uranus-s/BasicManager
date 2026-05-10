@@ -11,7 +11,7 @@
 ```text
 basic-parent (pom)
 │
-├─ basic-common-core            公共工具模块
+├─ basic-common-core             公共工具模块
 ├─ basic-common-web              Web层公共模块
 ├─ basic-core                    核心能力模块（MyBatis-Plus / Redis / Security）
 ├─ basic-api                     接口定义模块（Controller 接口）
@@ -68,8 +68,8 @@ basic-common-core
 ```text
 basic-common-web
 └─ com.basic.common.web
-   ├─ advice/         全局响应封装、异常处理
-   ├─ annotation/     忽略响应包装注解
+   ├─ advice/          全局响应封装、异常处理
+   ├─ annotation/      忽略响应包装注解
    └─ exception/       Web 层异常
 ```
 
@@ -89,7 +89,7 @@ basic-core
    ├─ base/          BaseEntity、BaseMapperPlus
    ├─ config/        MybatisPlusConfig
    ├─ handler/       自动填充处理器
-   └─ interceptor/  数据权限拦截器
+   └─ interceptor/   数据权限拦截器
 └─ redis/            Redis 缓存（配置、工具类、缓存注解）
    ├─ config/
    ├─ utils/

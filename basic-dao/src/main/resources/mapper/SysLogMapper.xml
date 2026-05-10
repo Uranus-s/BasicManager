@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.basic.dao.sysLog.mapper.SysLogMapper">
+
+    <select id="selectLogPage" resultType="com.basic.dao.sysLog.model.SysLogRecord">
+        SELECT
+            t.id,
+            t.log_type AS logType,
+            t.title,
+            t.content,
+            t.method,
+            t.request_method AS requestMethod,
+            t.ip,
+            t.status,
+            t.cost_time AS costTime,
+            t.create_time AS createTime
+        FROM (
+            SELECT
+                id,
+                'LOGIN' AS log_type,
+                username AS title,
+                msg AS content,
+                NULL AS method,
+                NULL AS request_method,
+                ip,
+                status,
+                NULL AS cost_time,
+                create_time
+            FROM sys_login_log
+            UNION ALL
+            SELECT
+                id,
+                'OPER' AS log_type,
+                module AS title,
+                request_url AS content,
+                method,
+                request_method,
+                NULL AS ip,
+                status,
+                cost_time,
+                create_time
+            FROM sys_oper_log
+        ) t
+        <where>
+            <if test="query.logType != null and query.logType != ''">
+                AND t.log_type = #{query.logType}
+            </if>
+            <if test="query.status != null">
+                AND t.status = #{query.status}
+            </if>
+            <if test="query.keyword != null and query.keyword != ''">
+                AND (
+                    t.title LIKE CONCAT('%', #{query.keyword}, '%')
+                    OR t.content LIKE CONCAT('%', #{query.keyword}, '%')
+                    OR t.method LIKE CONCAT('%', #{query.keyword}, '%')
+                    OR t.request_method LIKE CONCAT('%', #{query.keyword}, '%')
+                    OR t.ip LIKE CONCAT('%', #{query.keyword}, '%')
+                )
+            </if>
+        </where>
+        ORDER BY t.create_time DESC
+    </select>
+</mapper>

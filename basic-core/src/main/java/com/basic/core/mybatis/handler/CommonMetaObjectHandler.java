@@ -1,8 +1,10 @@
 package com.basic.core.mybatis.handler;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import com.basic.core.security.model.LoginUser;
 import org.apache.ibatis.reflection.MetaObject;
-import org.springframework.stereotype.Component;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
 
@@ -13,9 +15,20 @@ import java.time.LocalDateTime;
  */
 public class CommonMetaObjectHandler implements MetaObjectHandler {
 
-    // 模拟当前用户获取逻辑，实际可接入 SecurityContext 或自定义线程变量
+    /**
+     * 获取当前登录用户ID。无认证上下文时返回系统用户ID。
+     */
     private Long getCurrentUserId() {
-        // TODO: 替换为真实用户逻辑
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return 0L;
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof LoginUser loginUser && loginUser.getUserId() != null) {
+            return loginUser.getUserId();
+        }
+
         return 0L;
     }
 
