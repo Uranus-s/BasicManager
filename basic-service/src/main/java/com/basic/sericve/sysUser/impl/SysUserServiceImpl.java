@@ -11,6 +11,7 @@ import com.basic.api.vo.sysUser.UserVO;
 import com.basic.common.exception.BusinessException;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.ResultEnum;
+import com.basic.core.redis.utils.RedisUtils;
 import com.basic.core.security.model.LoginUser;
 import com.basic.core.security.util.JwtUtil;
 import com.basic.dao.sysDept.entity.SysDept;
@@ -46,6 +47,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -67,8 +69,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysUserRoleMapper sysUserRoleMapper;
     private final SysRolePermissionMapper sysRolePermissionMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RedisUtils redisUtils;
 
     private static final String DEFAULT_PASSWORD = "123456";
+    private static final String LOGIN_TOKEN_KEY_PREFIX = "login:token:";
+    private static final long LOGIN_TOKEN_EXPIRE_HOURS = 24L;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -305,6 +310,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         // 生成JWT Token
         String token = JwtUtil.generateToken(user.getId(), user.getUsername());
+        redisUtils.set(LOGIN_TOKEN_KEY_PREFIX + user.getId(), token, LOGIN_TOKEN_EXPIRE_HOURS, TimeUnit.HOURS);
 
         // 构建登录响应
         LoginVO loginVO = new LoginVO();
