@@ -5,6 +5,7 @@ import com.basic.api.dto.sysFile.FileQueryDTO;
 import com.basic.api.vo.sysFile.FileVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
+import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysFile.service.ISysFileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +36,7 @@ public class SysFileController implements SysFileApi {
      */
     @Override
     @PostMapping
+    @OperateLog(module = "文件管理", method = "上传文件记录")
     public Result<Long> uploadFile(@RequestParam("fileName") String fileName, @RequestParam("filePath") String filePath,
                                     @RequestParam("fileSize") Long fileSize, @RequestParam("fileType") String fileType,
                                     @RequestParam("bizType") String bizType) {
@@ -50,6 +52,7 @@ public class SysFileController implements SysFileApi {
      */
     @Override
     @DeleteMapping("/{id}")
+    @OperateLog(module = "文件管理", method = "删除文件")
     public Result<?> deleteFile(@PathVariable("id") Long id) {
         sysFileService.deleteFile(id);
         return Result.success();
@@ -63,6 +66,7 @@ public class SysFileController implements SysFileApi {
      */
     @Override
     @DeleteMapping("/batch")
+    @OperateLog(module = "文件管理", method = "批量删除文件")
     public Result<?> deleteFiles(@RequestBody List<Long> ids) {
         sysFileService.deleteFiles(ids);
         return Result.success();

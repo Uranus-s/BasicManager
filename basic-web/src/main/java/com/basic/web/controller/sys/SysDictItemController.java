@@ -7,6 +7,7 @@ import com.basic.api.dto.sysDictItem.DictItemUpdateDTO;
 import com.basic.api.vo.sysDictItem.DictItemVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
+import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysDictItem.service.ISysDictItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class SysDictItemController implements SysDictItemApi {
      */
     @Override
     @PostMapping
+    @OperateLog(module = "字典项管理", method = "新增字典项")
     public Result<?> addDictItem(@Valid @RequestBody DictItemAddDTO dto) {
         sysDictItemService.addDictItem(dto);
         return Result.success();
@@ -47,6 +49,7 @@ public class SysDictItemController implements SysDictItemApi {
      */
     @Override
     @PutMapping
+    @OperateLog(module = "字典项管理", method = "更新字典项")
     public Result<?> updateDictItem(@Valid @RequestBody DictItemUpdateDTO dto) {
         sysDictItemService.updateDictItem(dto);
         return Result.success();
@@ -60,6 +63,7 @@ public class SysDictItemController implements SysDictItemApi {
      */
     @Override
     @DeleteMapping("/{id}")
+    @OperateLog(module = "字典项管理", method = "删除字典项")
     public Result<?> deleteDictItem(@PathVariable("id") Long id) {
         sysDictItemService.deleteDictItem(id);
         return Result.success();

@@ -9,6 +9,7 @@ import com.basic.api.vo.sysDept.DeptVO;
 import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
+import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysDept.service.ISysDeptService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class SysDeptController implements SysDeptApi {
      */
     @Override
     @PostMapping
+    @OperateLog(module = "部门管理", method = "新增部门")
     public Result<?> addDept(@Valid @RequestBody DeptAddDTO dto) {
         sysDeptService.addDept(dto);
         return Result.success();
@@ -49,6 +51,7 @@ public class SysDeptController implements SysDeptApi {
      */
     @Override
     @PutMapping
+    @OperateLog(module = "部门管理", method = "更新部门")
     public Result<?> updateDept(@Valid @RequestBody DeptUpdateDTO dto) {
         sysDeptService.updateDept(dto);
         return Result.success();
@@ -62,6 +65,7 @@ public class SysDeptController implements SysDeptApi {
      */
     @Override
     @DeleteMapping("/{id}")
+    @OperateLog(module = "部门管理", method = "删除部门")
     public Result<?> deleteDept(@PathVariable("id") Long id) {
         sysDeptService.deleteDept(id);
         return Result.success();
@@ -134,6 +138,7 @@ public class SysDeptController implements SysDeptApi {
      */
     @Override
     @PostMapping("/users/{deptId}")
+    @OperateLog(module = "部门管理", method = "新增部门用户")
     public Result<?> addUsersToDept(@PathVariable("deptId") Long deptId, @RequestBody List<Long> userIds) {
         sysDeptService.addUsersToDept(deptId, userIds);
         return Result.success();
@@ -148,6 +153,7 @@ public class SysDeptController implements SysDeptApi {
      */
     @Override
     @DeleteMapping("/users/{deptId}")
+    @OperateLog(module = "部门管理", method = "删除部门用户")
     public Result<?> removeUsersFromDept(@PathVariable("deptId") Long deptId, @RequestBody List<Long> userIds) {
         sysDeptService.removeUsersFromDept(deptId, userIds);
         return Result.success();

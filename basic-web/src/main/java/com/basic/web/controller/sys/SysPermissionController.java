@@ -8,6 +8,7 @@ import com.basic.api.vo.sysPermission.PermissionTreeVO;
 import com.basic.api.vo.sysPermission.PermissionVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
+import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysPermission.service.ISysPermissionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class SysPermissionController implements SysPermissionApi {
      */
     @Override
     @PostMapping
+    @OperateLog(module = "菜单权限管理", method = "新增权限")
     public Result<?> addPermission(@Valid @RequestBody PermissionAddDTO dto) {
         sysPermissionService.addPermission(dto);
         return Result.success();
@@ -48,6 +50,7 @@ public class SysPermissionController implements SysPermissionApi {
      */
     @Override
     @PutMapping
+    @OperateLog(module = "菜单权限管理", method = "更新权限")
     public Result<?> updatePermission(@Valid @RequestBody PermissionUpdateDTO dto) {
         sysPermissionService.updatePermission(dto);
         return Result.success();
@@ -61,6 +64,7 @@ public class SysPermissionController implements SysPermissionApi {
      */
     @Override
     @DeleteMapping("/{id}")
+    @OperateLog(module = "菜单权限管理", method = "删除权限")
     public Result<?> deletePermission(@PathVariable("id") Long id) {
         sysPermissionService.deletePermission(id);
         return Result.success();

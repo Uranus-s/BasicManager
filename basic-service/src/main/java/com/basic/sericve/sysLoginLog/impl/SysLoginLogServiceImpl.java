@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +35,7 @@ public class SysLoginLogServiceImpl extends ServiceImpl<SysLoginLogMapper, SysLo
     @Transactional(rollbackFor = Exception.class)
     public Long saveLoginLog(String username, String ip, String browser, String os, Byte status, String msg) {
         SysLoginLog loginLog = new SysLoginLog();
+        loginLog.setCreateTime(LocalDateTime.now());
         loginLog.setUsername(username);
         loginLog.setIp(ip);
         loginLog.setBrowser(browser);

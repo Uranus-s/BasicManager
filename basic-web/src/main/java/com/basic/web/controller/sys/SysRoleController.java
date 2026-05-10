@@ -10,6 +10,7 @@ import com.basic.api.vo.sysRole.RoleVO;
 import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
+import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysRole.service.ISysRoleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,7 @@ public class SysRoleController implements SysRoleApi {
      */
     @Override
     @PostMapping
+    @OperateLog(module = "角色管理", method = "新增角色")
     public Result<?> addRole(@Valid @RequestBody RoleAddDTO dto) {
         sysRoleService.addRole(dto);
         return Result.success();
@@ -50,6 +52,7 @@ public class SysRoleController implements SysRoleApi {
      */
     @Override
     @PutMapping
+    @OperateLog(module = "角色管理", method = "更新角色")
     public Result<?> updateRole(@Valid @RequestBody RoleUpdateDTO dto) {
         sysRoleService.updateRole(dto);
         return Result.success();
@@ -63,6 +66,7 @@ public class SysRoleController implements SysRoleApi {
      */
     @Override
     @DeleteMapping("/{id}")
+    @OperateLog(module = "角色管理", method = "删除角色")
     public Result<?> deleteRole(@PathVariable("id") Long id) {
         sysRoleService.deleteRole(id);
         return Result.success();
@@ -112,6 +116,7 @@ public class SysRoleController implements SysRoleApi {
      */
     @Override
     @PostMapping("/assignPermissions/{roleId}")
+    @OperateLog(module = "角色管理", method = "分配角色权限")
     public Result<?> assignPermissions(@PathVariable("roleId") Long roleId, @RequestBody List<Long> permissionIds) {
         sysRoleService.assignPermissions(roleId, permissionIds);
         return Result.success();
@@ -150,6 +155,7 @@ public class SysRoleController implements SysRoleApi {
      */
     @Override
     @PostMapping("/users/{roleId}")
+    @OperateLog(module = "角色管理", method = "管理角色用户")
     public Result<?> manageRoleUsers(@PathVariable("roleId") Long roleId,
                                      @Valid @RequestBody RoleUserManageDTO dto) {
         sysRoleService.manageRoleUsers(roleId, dto);

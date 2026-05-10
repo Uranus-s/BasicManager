@@ -8,6 +8,7 @@ import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.api.vo.sysUser.UserVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
+import com.basic.core.log.annotation.OperateLog;
 import com.basic.core.security.model.LoginUser;
 import com.basic.sericve.sysUser.service.ISysUserService;
 import jakarta.validation.Valid;
@@ -38,6 +39,7 @@ public class SysUserController implements SysUserApi {
      */
     @Override
     @PostMapping
+    @OperateLog(module = "用户管理", method = "新增用户")
     public Result<?> addUser(@Valid @RequestBody UserAddDTO dto) {
         sysUserService.addUser(dto);
         return Result.success();
@@ -51,6 +53,7 @@ public class SysUserController implements SysUserApi {
      */
     @Override
     @PutMapping
+    @OperateLog(module = "用户管理", method = "更新用户")
     public Result<?> updateUser(@Valid @RequestBody UserUpdateDTO dto) {
         sysUserService.updateUser(dto);
         return Result.success();
@@ -64,6 +67,7 @@ public class SysUserController implements SysUserApi {
      */
     @Override
     @DeleteMapping("/{id}")
+    @OperateLog(module = "用户管理", method = "删除用户")
     public Result<?> deleteUser(@PathVariable("id") Long id) {
         sysUserService.deleteUser(id);
         return Result.success();
@@ -101,6 +105,7 @@ public class SysUserController implements SysUserApi {
      */
     @Override
     @PostMapping("/resetPwd/{id}")
+    @OperateLog(module = "用户管理", method = "重置密码")
     public Result<?> resetPassword(@PathVariable("id") Long id) {
         sysUserService.resetPassword(id);
         return Result.success();
@@ -115,6 +120,7 @@ public class SysUserController implements SysUserApi {
      */
     @Override
     @PostMapping("/assignRoles/{userId}")
+    @OperateLog(module = "用户管理", method = "分配用户角色")
     public Result<?> assignRoles(@PathVariable("userId") Long userId, @RequestBody List<Long> roleIds) {
         sysUserService.assignRoles(userId, roleIds);
         return Result.success();
@@ -141,6 +147,7 @@ public class SysUserController implements SysUserApi {
      */
     @Override
     @PostMapping("/updatePwd")
+    @OperateLog(module = "用户管理", method = "修改密码")
     public Result<?> updatePassword(@RequestParam("oldPassword") String oldPassword, @RequestParam("newPassword") String newPassword) {
         // 从SecurityContext获取当前用户ID
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

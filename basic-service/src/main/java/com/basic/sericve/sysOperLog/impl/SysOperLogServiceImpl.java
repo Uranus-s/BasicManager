@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +36,7 @@ public class SysOperLogServiceImpl extends ServiceImpl<SysOperLogMapper, SysOper
     public Long saveOperLog(String module, String method, String requestUrl, String requestMethod,
                             String requestParams, String responseResult, Byte status, Long costTime) {
         SysOperLog operLog = new SysOperLog();
+        operLog.setCreateTime(LocalDateTime.now());
         operLog.setModule(module);
         operLog.setMethod(method);
         operLog.setRequestUrl(requestUrl);

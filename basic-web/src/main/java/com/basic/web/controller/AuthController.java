@@ -7,6 +7,7 @@ import com.basic.api.vo.auth.InitResultVO;
 import com.basic.api.vo.auth.LoginVO;
 import com.basic.api.vo.sysPermission.PermissionTreeVO;
 import com.basic.common.result.Result;
+import com.basic.core.log.annotation.OperateLog;
 import com.basic.core.security.model.LoginUser;
 import com.basic.sericve.sysUser.service.ISysUserService;
 
@@ -80,6 +81,7 @@ public class AuthController implements AuthApi {
      */
     @Override
     @PostMapping("logout")
+    @OperateLog(module = "认证管理", method = "用户登出")
     public Result<?> logout() {
         // Security会自动处理登出，清除SecurityContext即可
         SecurityContextHolder.clearContext();
@@ -94,6 +96,7 @@ public class AuthController implements AuthApi {
      */
     @Override
     @PostMapping("initAdmin")
+    @OperateLog(module = "认证管理", method = "初始化管理员")
     public Result<InitResultVO> initAdmin(@Valid @RequestBody InitAdminDTO initAdminDTO) {
         // 验证密钥
         if (!initKey.equals(initAdminDTO.getInitKey())) {

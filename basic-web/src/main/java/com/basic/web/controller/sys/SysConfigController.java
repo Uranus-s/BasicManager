@@ -7,6 +7,7 @@ import com.basic.api.dto.sysConfig.ConfigUpdateDTO;
 import com.basic.api.vo.sysConfig.ConfigVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
+import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysConfig.service.ISysConfigService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class SysConfigController implements SysConfigApi {
      */
     @Override
     @PostMapping
+    @OperateLog(module = "参数配置管理", method = "新增配置")
     public Result<?> addConfig(@Valid @RequestBody ConfigAddDTO dto) {
         sysConfigService.addConfig(dto);
         return Result.success();
@@ -45,6 +47,7 @@ public class SysConfigController implements SysConfigApi {
      */
     @Override
     @PutMapping
+    @OperateLog(module = "参数配置管理", method = "更新配置")
     public Result<?> updateConfig(@Valid @RequestBody ConfigUpdateDTO dto) {
         sysConfigService.updateConfig(dto);
         return Result.success();
@@ -58,6 +61,7 @@ public class SysConfigController implements SysConfigApi {
      */
     @Override
     @DeleteMapping("/{id}")
+    @OperateLog(module = "参数配置管理", method = "删除配置")
     public Result<?> deleteConfig(@PathVariable("id") Long id) {
         sysConfigService.deleteConfig(id);
         return Result.success();
