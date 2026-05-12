@@ -21,6 +21,16 @@ public class SecurityUserQueryServiceImpl implements SecurityUserQueryService {
     public LoginUser loadByUsername(String username) {
         // 根据用户名查询用户
         SysUser user = sysUserService.getUserByUsername(username);
+        return buildLoginUser(user);
+    }
+
+    @Override
+    public LoginUser loadByUserId(Long userId) {
+        SysUser user = sysUserService.getById(userId);
+        return buildLoginUser(user);
+    }
+
+    private LoginUser buildLoginUser(SysUser user) {
         if (user == null) {
             return null;
         }

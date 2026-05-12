@@ -32,4 +32,8 @@ public class SecurityUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) {
         return securityUserQueryService.loadByUsername(username);
     }
+
+    public UserDetails loadUserByUserId(Long userId) {
+        return securityUserQueryService.loadByUserId(userId);
+    }
 }

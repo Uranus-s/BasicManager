@@ -23,15 +23,6 @@ import java.util.List;
 public interface ISysUserService extends IService<SysUser> {
 
     /**
-     * 用户登录
-     *
-     * @param username 用户名
-     * @param password 密码
-     * @return 登录结果（包含Token和用户信息）
-     */
-    com.basic.api.vo.auth.LoginVO login(String username, String password);
-
-    /**
      * 获取用户权限列表
      *
      * @param userId 用户ID

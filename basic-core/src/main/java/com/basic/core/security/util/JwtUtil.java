@@ -43,6 +43,21 @@ public class JwtUtil {
         return Jwts.builder().subject(username).claim("uid", userId).issuedAt(new Date()).expiration(new Date(System.currentTimeMillis() + EXPIRE)).signWith(KEY, Jwts.SIG.HS256).compact();
     }
 
+    public static long getExpireMillis() {
+        return EXPIRE;
+    }
+
+    public static Long getUserId(String token) {
+        Object userId = parseToken(token).get("uid");
+        if (userId instanceof Number number) {
+            return number.longValue();
+        }
+        if (userId instanceof String text && !text.trim().isEmpty()) {
+            return Long.parseLong(text);
+        }
+        throw new IllegalArgumentException("Token user ID cannot be null");
+    }
+
     /**
      * 解析JWT令牌并返回其中的声明信息
      *

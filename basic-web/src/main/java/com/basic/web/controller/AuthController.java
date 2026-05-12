@@ -9,6 +9,7 @@ import com.basic.api.vo.sysPermission.PermissionTreeVO;
 import com.basic.common.result.Result;
 import com.basic.core.log.annotation.OperateLog;
 import com.basic.core.security.model.LoginUser;
+import com.basic.sericve.auth.service.IAuthService;
 import com.basic.sericve.sysUser.service.ISysUserService;
 
 import jakarta.validation.Valid;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController implements AuthApi {
 
     private final ISysUserService sysUserService;
+    private final IAuthService authService;
 
     @Value("${system.init-key:admin-init-key}")
     private String initKey;
@@ -43,7 +45,7 @@ public class AuthController implements AuthApi {
     @Override
     @PostMapping("login")
     public Result<LoginVO> login(@Valid @RequestBody LoginDTO loginDTO) {
-        LoginVO loginVO = sysUserService.login(loginDTO.getUsername(), loginDTO.getPassword());
+        LoginVO loginVO = authService.login(loginDTO.getUsername(), loginDTO.getPassword());
         return Result.success(loginVO);
     }
 
@@ -82,10 +84,18 @@ public class AuthController implements AuthApi {
     @Override
     @PostMapping("logout")
     @OperateLog(module = "认证管理", method = "用户登出")
-    public Result<?> logout() {
-        // Security会自动处理登出，清除SecurityContext即可
+    public Result<?> logout(@RequestHeader(value = "Authorization", required = false) String authorization) {
+        String token = resolveBearerToken(authorization);
+        authService.logout(token);
         SecurityContextHolder.clearContext();
         return Result.success();
+    }
+
+    private String resolveBearerToken(String authorization) {
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            return authorization.substring(7).trim();
+        }
+        return null;
     }
 
     /**

@@ -4,16 +4,13 @@ import com.basic.api.dto.sysUser.UserAddDTO;
 import com.basic.api.dto.sysUser.UserQueryDTO;
 import com.basic.api.dto.sysUser.UserUpdateDTO;
 import com.basic.api.vo.auth.InitResultVO;
-import com.basic.api.vo.auth.LoginVO;
 import com.basic.api.vo.sysPermission.PermissionTreeVO;
 import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.api.vo.sysUser.UserVO;
 import com.basic.common.exception.BusinessException;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.ResultEnum;
-import com.basic.core.redis.utils.RedisUtils;
 import com.basic.core.security.model.LoginUser;
-import com.basic.core.security.util.JwtUtil;
 import com.basic.dao.sysDept.entity.SysDept;
 import com.basic.dao.sysPermission.entity.SysPermission;
 import com.basic.dao.sysRole.entity.SysRole;
@@ -47,7 +44,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -69,11 +65,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysUserRoleMapper sysUserRoleMapper;
     private final SysRolePermissionMapper sysRolePermissionMapper;
     private final PasswordEncoder passwordEncoder;
-    private final RedisUtils redisUtils;
 
     private static final String DEFAULT_PASSWORD = "123456";
-    private static final String LOGIN_TOKEN_KEY_PREFIX = "login:token:";
-    private static final long LOGIN_TOKEN_EXPIRE_HOURS = 24L;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -288,47 +281,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 更新密码
         user.setPassword(passwordEncoder.encode(newPassword));
         updateById(user);
-    }
-
-    @Override
-    public LoginVO login(String username, String password) {
-        // 根据用户名查询用户
-        SysUser user = getUserByUsername(username);
-        if (user == null) {
-            throw new BusinessException(ResultEnum.USER_NOT_EXIST);
-        }
-
-        // 检查用户状态
-        if (user.getStatus() == null || user.getStatus() == 0) {
-            throw new BusinessException(ResultEnum.ACCOUNT_DISABLED);
-        }
-
-        // 验证密码
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BusinessException(ResultEnum.PASSWORD_ERROR);
-        }
-
-        // 生成JWT Token
-        String token = JwtUtil.generateToken(user.getId(), user.getUsername());
-        redisUtils.set(LOGIN_TOKEN_KEY_PREFIX + user.getId(), token, LOGIN_TOKEN_EXPIRE_HOURS, TimeUnit.HOURS);
-
-        // 构建登录响应
-        LoginVO loginVO = new LoginVO();
-        loginVO.setToken(token);
-        loginVO.setUserId(user.getId());
-        loginVO.setUsername(user.getUsername());
-        loginVO.setNickname(user.getNickname());
-        loginVO.setAvatar(user.getAvatar());
-
-        // 获取用户角色
-        List<String> roleCodes = sysRoleService.getRoleCodes(user.getId());
-        loginVO.setRoles(roleCodes);
-
-        // 获取用户权限
-        List<String> permissions = getUserPermissions(user.getId());
-        loginVO.setPermissions(permissions);
-
-        return loginVO;
     }
 
     @Override

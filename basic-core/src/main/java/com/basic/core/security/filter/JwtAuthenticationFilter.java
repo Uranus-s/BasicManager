@@ -1,5 +1,6 @@
 package com.basic.core.security.filter;
 
+import com.basic.core.security.service.AuthTokenService;
 import com.basic.core.security.service.SecurityUserDetailsService;
 import com.basic.core.security.util.JwtUtil;
 import io.jsonwebtoken.Claims;
@@ -7,7 +8,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,8 +24,13 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private SecurityUserDetailsService userDetailsService;
+    private final SecurityUserDetailsService userDetailsService;
+    private final AuthTokenService authTokenService;
+
+    public JwtAuthenticationFilter(SecurityUserDetailsService userDetailsService, AuthTokenService authTokenService) {
+        this.userDetailsService = userDetailsService;
+        this.authTokenService = authTokenService;
+    }
 
     /**
      * 内部过滤方法，处理JWT令牌验证逻辑
@@ -45,10 +50,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 Claims claims = JwtUtil.parseToken(token);
                 if (claims != null) {
-                    String username = claims.getSubject();
+                    Long userId = JwtUtil.getUserId(token);
 
-                    if (username != null && !username.isEmpty()) {
-                        UserDetails user = userDetailsService.loadUserByUsername(username);
+                    if (authTokenService.isCurrentLoginToken(userId, token)) {
+                        UserDetails user = userDetailsService.loadUserByUserId(userId);
                         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(auth);
                     }

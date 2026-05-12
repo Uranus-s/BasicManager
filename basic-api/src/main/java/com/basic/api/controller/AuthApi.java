@@ -6,6 +6,7 @@ import com.basic.api.vo.auth.InitResultVO;
 import com.basic.api.vo.auth.LoginVO;
 import com.basic.api.vo.sysPermission.PermissionTreeVO;
 import com.basic.common.result.Result;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 
@@ -36,7 +37,7 @@ public interface AuthApi {
      *
      * @return 登出结果
      */
-    Result<?> logout();
+    Result<?> logout(@RequestHeader(value = "Authorization", required = false) String authorization);
 
     /**
      * 初始化管理员

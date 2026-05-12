@@ -14,4 +14,12 @@ public interface SecurityUserQueryService {
      * @return LoginUser 返回与用户名匹配的用户对象，如果用户不存在则返回null
      */
     LoginUser loadByUsername(String username);
+
+    /**
+     * 根据用户ID加载登录用户信息
+     *
+     * @param userId 用户ID
+     * @return LoginUser 返回与用户ID匹配的用户对象，如果用户不存在则返回null
+     */
+    LoginUser loadByUserId(Long userId);
 }
