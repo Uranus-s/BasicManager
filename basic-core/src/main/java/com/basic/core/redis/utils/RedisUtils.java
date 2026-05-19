@@ -1,8 +1,12 @@
 package com.basic.core.redis.utils;
 
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -51,6 +55,18 @@ public class RedisUtils {
     public boolean hasKey(String key) {
         Boolean result = redisTemplate.hasKey(key);
         return result != null && result;
+    }
+
+    /**
+     * 根据模式查询 key
+     */
+    public Set<String> keys(String pattern) {
+        Set<String> keys = new LinkedHashSet<>();
+        ScanOptions options = ScanOptions.scanOptions().match(pattern).count(1000).build();
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            cursor.forEachRemaining(keys::add);
+        }
+        return keys;
     }
 
     /**

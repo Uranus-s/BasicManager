@@ -5,6 +5,7 @@ import com.basic.api.dto.auth.InitAdminDTO;
 import com.basic.api.dto.auth.LoginDTO;
 import com.basic.api.vo.auth.InitResultVO;
 import com.basic.api.vo.auth.LoginVO;
+import com.basic.api.vo.auth.OnlineUserVO;
 import com.basic.api.vo.sysPermission.PermissionTreeVO;
 import com.basic.common.result.Result;
 import com.basic.core.log.annotation.OperateLog;
@@ -12,10 +13,12 @@ import com.basic.core.security.model.LoginUser;
 import com.basic.sericve.auth.service.IAuthService;
 import com.basic.sericve.sysUser.service.ISysUserService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -44,8 +47,8 @@ public class AuthController implements AuthApi {
      */
     @Override
     @PostMapping("login")
-    public Result<LoginVO> login(@Valid @RequestBody LoginDTO loginDTO) {
-        LoginVO loginVO = authService.login(loginDTO.getUsername(), loginDTO.getPassword());
+    public Result<LoginVO> login(@Valid @RequestBody LoginDTO loginDTO, HttpServletRequest request) {
+        LoginVO loginVO = authService.login(loginDTO.getUsername(), loginDTO.getPassword(), request);
         return Result.success(loginVO);
     }
 
@@ -88,6 +91,33 @@ public class AuthController implements AuthApi {
         String token = resolveBearerToken(authorization);
         authService.logout(token);
         SecurityContextHolder.clearContext();
+        return Result.success();
+    }
+
+    /**
+     * 获取当前在线用户列表
+     *
+     * @return 在线用户列表
+     */
+    @Override
+    @GetMapping("onlineUsers")
+    @PreAuthorize("hasAuthority('auth:online:list')")
+    public Result<List<OnlineUserVO>> getOnlineUsers() {
+        return Result.success(authService.getOnlineUsers());
+    }
+
+    /**
+     * 强制用户下线
+     *
+     * @param userId 用户ID
+     * @return 操作结果
+     */
+    @Override
+    @PostMapping("forceLogout/{userId}")
+    @PreAuthorize("hasAuthority('auth:online:forceLogout')")
+    @OperateLog(module = "认证管理", method = "强制用户下线")
+    public Result<?> forceLogout(@PathVariable("userId") Long userId) {
+        authService.forceLogout(userId);
         return Result.success();
     }
 

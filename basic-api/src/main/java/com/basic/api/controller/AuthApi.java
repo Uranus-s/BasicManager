@@ -4,8 +4,11 @@ import com.basic.api.dto.auth.InitAdminDTO;
 import com.basic.api.dto.auth.LoginDTO;
 import com.basic.api.vo.auth.InitResultVO;
 import com.basic.api.vo.auth.LoginVO;
+import com.basic.api.vo.auth.OnlineUserVO;
 import com.basic.api.vo.sysPermission.PermissionTreeVO;
 import com.basic.common.result.Result;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
@@ -23,7 +26,7 @@ public interface AuthApi {
      * @param loginDTO 登录请求
      * @return 登录结果（包含Token和用户信息）
      */
-    Result<LoginVO> login(LoginDTO loginDTO);
+    Result<LoginVO> login(LoginDTO loginDTO, HttpServletRequest request);
 
     /**
      * 获取当前登录用户信息
@@ -38,6 +41,21 @@ public interface AuthApi {
      * @return 登出结果
      */
     Result<?> logout(@RequestHeader(value = "Authorization", required = false) String authorization);
+
+    /**
+     * 获取当前在线用户列表
+     *
+     * @return 在线用户列表
+     */
+    Result<List<OnlineUserVO>> getOnlineUsers();
+
+    /**
+     * 强制用户下线
+     *
+     * @param userId 用户ID
+     * @return 操作结果
+     */
+    Result<?> forceLogout(@PathVariable("userId") Long userId);
 
     /**
      * 初始化管理员

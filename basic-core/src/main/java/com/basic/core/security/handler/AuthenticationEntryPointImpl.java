@@ -1,5 +1,6 @@
 package com.basic.core.security.handler;
 
+import com.basic.core.security.filter.JwtAuthenticationFilter;
 import com.basic.common.result.ResultEnum;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,8 +17,6 @@ import java.io.IOException;
 @Component
 public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {
 
-    private static final String ERROR_MESSAGE = ResultEnum.UNAUTHORIZED.getMessage();
-    private static final int UNAUTHORIZED_CODE = ResultEnum.UNAUTHORIZED.getCode();
     private static final String CONTENT_TYPE = "application/json;charset=UTF-8";
     private static final String CHARSET = "UTF-8";
 
@@ -36,7 +35,8 @@ public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {
         response.setCharacterEncoding(CHARSET);
         response.setContentType(CONTENT_TYPE);
 
-        String json = "{\"code\":" + UNAUTHORIZED_CODE + ",\"msg\":\"" + ERROR_MESSAGE + "\"}";
+        ResultEnum resultEnum = resolveResultEnum(request);
+        String json = "{\"code\":" + resultEnum.getCode() + ",\"msg\":\"" + resultEnum.getMessage() + "\"}";
 
         try {
             response.getWriter().write(json);
@@ -44,6 +44,14 @@ public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {
         } catch (IOException e) {
             // 记录异常日志，但不抛出，因为响应已经设置状态码
         }
+    }
+
+    private ResultEnum resolveResultEnum(HttpServletRequest request) {
+        Object authError = request.getAttribute(JwtAuthenticationFilter.AUTH_ERROR_ATTRIBUTE);
+        if (authError instanceof ResultEnum resultEnum) {
+            return resultEnum;
+        }
+        return ResultEnum.UNAUTHORIZED;
     }
 }
 

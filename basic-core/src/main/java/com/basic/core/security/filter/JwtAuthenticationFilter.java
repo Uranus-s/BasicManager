@@ -3,7 +3,9 @@ package com.basic.core.security.filter;
 import com.basic.core.security.service.AuthTokenService;
 import com.basic.core.security.service.SecurityUserDetailsService;
 import com.basic.core.security.util.JwtUtil;
+import com.basic.common.result.ResultEnum;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +25,8 @@ import java.io.IOException;
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    public static final String AUTH_ERROR_ATTRIBUTE = "authError";
 
     private final SecurityUserDetailsService userDetailsService;
     private final AuthTokenService authTokenService;
@@ -56,15 +60,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         UserDetails user = userDetailsService.loadUserByUserId(userId);
                         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(auth);
+                    } else {
+                        req.setAttribute(AUTH_ERROR_ATTRIBUTE, ResultEnum.TOKEN_INVALID);
                     }
                 }
             } catch (Exception e) {
+                req.setAttribute(AUTH_ERROR_ATTRIBUTE, resolveAuthError(e));
                 // 记录无效令牌的日志，但不中断请求流程
                 // 这样允许无认证的公共接口正常工作
             }
         }
 
         chain.doFilter(req, resp);
+    }
+
+    private ResultEnum resolveAuthError(Exception e) {
+        Throwable current = e;
+        while (current != null) {
+            if (current instanceof ExpiredJwtException) {
+                return ResultEnum.TOKEN_EXPIRED;
+            }
+            current = current.getCause();
+        }
+        return ResultEnum.TOKEN_INVALID;
     }
 }
 
