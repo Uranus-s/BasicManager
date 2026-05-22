@@ -1,5 +1,7 @@
 package com.basic.sericve.auth.service;
 
+import com.basic.api.dto.auth.ForgotPasswordResetDTO;
+import com.basic.api.dto.auth.RegisterDTO;
 import com.basic.api.vo.auth.LoginVO;
 import com.basic.api.vo.auth.OnlineUserVO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,6 +9,21 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface IAuthService {
+
+    /**
+     * 注册账号
+     *
+     * @param registerDTO 注册请求
+     * @return 用户ID
+     */
+    Long register(RegisterDTO registerDTO);
+
+    /**
+     * 忘记密码重置密码
+     *
+     * @param resetDTO 重置请求
+     */
+    void resetForgottenPassword(ForgotPasswordResetDTO resetDTO);
 
     /**
      * 用户登录

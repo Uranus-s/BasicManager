@@ -1,8 +1,10 @@
 package com.basic.web.controller;
 
 import com.basic.api.controller.AuthApi;
+import com.basic.api.dto.auth.ForgotPasswordResetDTO;
 import com.basic.api.dto.auth.InitAdminDTO;
 import com.basic.api.dto.auth.LoginDTO;
+import com.basic.api.dto.auth.RegisterDTO;
 import com.basic.api.vo.auth.InitResultVO;
 import com.basic.api.vo.auth.LoginVO;
 import com.basic.api.vo.auth.OnlineUserVO;
@@ -38,6 +40,31 @@ public class AuthController implements AuthApi {
 
     @Value("${system.init-key:admin-init-key}")
     private String initKey;
+
+    /**
+     * 注册账号
+     *
+     * @param registerDTO 注册请求
+     * @return 用户ID
+     */
+    @Override
+    @PostMapping("register")
+    public Result<Long> register(@Valid @RequestBody RegisterDTO registerDTO) {
+        return Result.success(authService.register(registerDTO));
+    }
+
+    /**
+     * 忘记密码重置密码
+     *
+     * @param resetDTO 重置请求
+     * @return 操作结果
+     */
+    @Override
+    @PostMapping("forgotPassword/reset")
+    public Result<?> resetForgottenPassword(@Valid @RequestBody ForgotPasswordResetDTO resetDTO) {
+        authService.resetForgottenPassword(resetDTO);
+        return Result.success();
+    }
 
     /**
      * 用户登录

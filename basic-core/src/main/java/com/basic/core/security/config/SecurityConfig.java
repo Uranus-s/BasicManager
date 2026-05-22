@@ -76,7 +76,14 @@ public class SecurityConfig {
 
                 // 权限规则
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/auth/initAdmin", "/captcha", "/public/**", "/test/**")
+                        .requestMatchers(
+                                "/auth/login",
+                                "/auth/initAdmin",
+                                "/auth/register",
+                                "/auth/forgotPassword/reset",
+                                "/captcha",
+                                "/public/**",
+                                "/test/**")
                         .permitAll()
                         .anyRequest()
                         .authenticated())

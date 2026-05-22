@@ -1,7 +1,9 @@
 package com.basic.api.controller;
 
+import com.basic.api.dto.auth.ForgotPasswordResetDTO;
 import com.basic.api.dto.auth.InitAdminDTO;
 import com.basic.api.dto.auth.LoginDTO;
+import com.basic.api.dto.auth.RegisterDTO;
 import com.basic.api.vo.auth.InitResultVO;
 import com.basic.api.vo.auth.LoginVO;
 import com.basic.api.vo.auth.OnlineUserVO;
@@ -19,6 +21,22 @@ import java.util.List;
  * @author Gas
  */
 public interface AuthApi {
+
+    /**
+     * 注册账号
+     *
+     * @param registerDTO 注册请求
+     * @return 用户ID
+     */
+    Result<Long> register(RegisterDTO registerDTO);
+
+    /**
+     * 忘记密码重置密码
+     *
+     * @param resetDTO 重置请求
+     * @return 操作结果
+     */
+    Result<?> resetForgottenPassword(ForgotPasswordResetDTO resetDTO);
 
     /**
      * 用户登录

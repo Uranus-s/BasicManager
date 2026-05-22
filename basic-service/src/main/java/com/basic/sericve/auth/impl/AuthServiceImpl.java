@@ -1,5 +1,8 @@
 package com.basic.sericve.auth.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.basic.api.dto.auth.ForgotPasswordResetDTO;
+import com.basic.api.dto.auth.RegisterDTO;
 import com.basic.api.vo.auth.LoginVO;
 import com.basic.api.vo.auth.OnlineUserVO;
 import com.basic.common.exception.BusinessException;
@@ -17,6 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,6 +34,48 @@ public class AuthServiceImpl implements IAuthService {
     private final ISysPermissionService sysPermissionService;
     private final PasswordEncoder passwordEncoder;
     private final AuthTokenService authTokenService;
+
+    @Override
+    public Long register(RegisterDTO registerDTO) {
+        if (sysUserService.getUserByUsername(registerDTO.getUsername()) != null) {
+            throw new BusinessException(ResultEnum.USER_ALREADY_EXIST);
+        }
+
+        if (StringUtils.hasText(registerDTO.getPhone()) && isPhoneBound(registerDTO.getPhone())) {
+            throw new BusinessException(ResultEnum.PHONE_ALREADY_BIND);
+        }
+
+        if (StringUtils.hasText(registerDTO.getEmail()) && isEmailBound(registerDTO.getEmail())) {
+            throw new BusinessException(ResultEnum.EMAIL_ALREADY_BIND);
+        }
+
+        SysUser user = new SysUser();
+        user.setUsername(registerDTO.getUsername());
+        user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
+        user.setNickname(registerDTO.getNickname());
+        user.setPhone(registerDTO.getPhone());
+        user.setEmail(registerDTO.getEmail());
+        user.setAvatar(registerDTO.getAvatar());
+        user.setStatus((byte) 1);
+        sysUserService.save(user);
+        return user.getId();
+    }
+
+    @Override
+    public void resetForgottenPassword(ForgotPasswordResetDTO resetDTO) {
+        SysUser user = sysUserService.getUserByUsername(resetDTO.getUsername());
+        if (user == null) {
+            throw new BusinessException(ResultEnum.USER_NOT_EXIST);
+        }
+
+        if (!isMatchedContact(user, resetDTO.getContact())) {
+            throw new BusinessException(ResultEnum.PARAM_ILLEGAL);
+        }
+
+        user.setPassword(passwordEncoder.encode(resetDTO.getNewPassword()));
+        sysUserService.updateById(user);
+        authTokenService.forceLogout(user.getId());
+    }
 
     @Override
     public LoginVO login(String username, String password, HttpServletRequest request) {
@@ -108,5 +154,22 @@ public class AuthServiceImpl implements IAuthService {
         onlineUserVO.setBrowser(session.getBrowser());
         onlineUserVO.setOs(session.getOs());
         return onlineUserVO;
+    }
+
+    private boolean isPhoneBound(String phone) {
+        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysUser::getPhone, phone);
+        return sysUserService.count(wrapper) > 0;
+    }
+
+    private boolean isEmailBound(String email) {
+        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysUser::getEmail, email);
+        return sysUserService.count(wrapper) > 0;
+    }
+
+    private boolean isMatchedContact(SysUser user, String contact) {
+        return StringUtils.hasText(contact)
+                && (contact.equals(user.getPhone()) || contact.equals(user.getEmail()));
     }
 }
