@@ -1,5 +1,6 @@
 package com.basic.core.security.filter;
 
+import com.basic.core.security.model.LoginUser;
 import com.basic.core.security.service.AuthTokenService;
 import com.basic.core.security.service.SecurityUserDetailsService;
 import com.basic.core.security.util.JwtUtil;
@@ -58,6 +59,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     if (authTokenService.isCurrentLoginToken(userId, token)) {
                         UserDetails user = userDetailsService.loadUserByUserId(userId);
+                        if (user instanceof LoginUser loginUser) {
+                            loginUser.setDeptNames(JwtUtil.getDeptNames(token));
+                        }
                         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(auth);
                     } else {

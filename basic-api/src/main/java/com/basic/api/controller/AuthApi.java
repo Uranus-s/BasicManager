@@ -7,6 +7,7 @@ import com.basic.api.dto.auth.RegisterDTO;
 import com.basic.api.vo.auth.InitResultVO;
 import com.basic.api.vo.auth.LoginVO;
 import com.basic.api.vo.auth.OnlineUserVO;
+import com.basic.api.vo.auth.TokenVO;
 import com.basic.api.vo.sysPermission.PermissionTreeVO;
 import com.basic.common.result.Result;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,9 +43,9 @@ public interface AuthApi {
      * 用户登录
      *
      * @param loginDTO 登录请求
-     * @return 登录结果（包含Token和用户信息）
+     * @return Token 信息
      */
-    Result<LoginVO> login(LoginDTO loginDTO, HttpServletRequest request);
+    Result<TokenVO> login(LoginDTO loginDTO, HttpServletRequest request);
 
     /**
      * 获取当前登录用户信息

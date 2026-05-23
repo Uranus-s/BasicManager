@@ -6,7 +6,9 @@ import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * JWT工具类，用于生成、解析和验证JWT令牌
@@ -37,10 +39,30 @@ public class JwtUtil {
      * @throws IllegalArgumentException 当用户ID或用户名为空时抛出异常
      */
     public static String generateToken(Long userId, String username) {
+        return generateToken(userId, username, List.of());
+    }
+
+    /**
+     * 生成JWT令牌
+     *
+     * @param userId    用户ID，不能为空
+     * @param username  用户名，不能为空
+     * @param deptNames 部门名称列表
+     * @return 生成的JWT令牌字符串
+     * @throws IllegalArgumentException 当用户ID或用户名为空时抛出异常
+     */
+    public static String generateToken(Long userId, String username, List<String> deptNames) {
         if (userId == null || username == null) {
             throw new IllegalArgumentException("User ID and username cannot be null");
         }
-        return Jwts.builder().subject(username).claim("uid", userId).issuedAt(new Date()).expiration(new Date(System.currentTimeMillis() + EXPIRE)).signWith(KEY, Jwts.SIG.HS256).compact();
+        return Jwts.builder()
+                .subject(username)
+                .claim("uid", userId)
+                .claim("deptNames", deptNames == null ? List.of() : deptNames)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + EXPIRE))
+                .signWith(KEY, Jwts.SIG.HS256)
+                .compact();
     }
 
     public static long getExpireMillis() {
@@ -56,6 +78,20 @@ public class JwtUtil {
             return Long.parseLong(text);
         }
         throw new IllegalArgumentException("Token user ID cannot be null");
+    }
+
+    public static List<String> getDeptNames(String token) {
+        Object deptNames = parseToken(token).get("deptNames");
+        if (deptNames instanceof List<?> list) {
+            List<String> result = new ArrayList<>();
+            for (Object item : list) {
+                if (item != null) {
+                    result.add(item.toString());
+                }
+            }
+            return result;
+        }
+        return List.of();
     }
 
     /**

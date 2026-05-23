@@ -91,8 +91,31 @@ public class GlobalExceptionAdvice {
      */
     @ExceptionHandler(Exception.class)
     public Result<?> handleException(Exception ex) {
+        // @PreAuthorize 等方法级安全异常会进入 ControllerAdvice，需要先按权限不足处理。
+        if (isAccessDeniedException(ex)) {
+            return Result.failed(ResultEnum.FORBIDDEN);
+        }
+
         // 日志输出
         log.error("系统异常", ex);
         return Result.failed(ResultEnum.SYSTEM_ERROR);
+    }
+
+    /**
+     * 通过类名识别 Spring Security 权限异常，避免 common-web 直接依赖 security 模块。
+     */
+    private boolean isAccessDeniedException(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            Class<?> type = current.getClass();
+            while (type != null) {
+                if ("org.springframework.security.access.AccessDeniedException".equals(type.getName())) {
+                    return true;
+                }
+                type = type.getSuperclass();
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

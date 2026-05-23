@@ -2,12 +2,12 @@ package com.basic.sericve.auth.impl;
 
 import com.basic.api.dto.auth.ForgotPasswordResetDTO;
 import com.basic.api.dto.auth.RegisterDTO;
+import com.basic.api.vo.auth.TokenVO;
+import com.basic.api.vo.sysUser.UserVO;
 import com.basic.common.exception.BusinessException;
 import com.basic.common.result.ResultEnum;
 import com.basic.core.security.service.AuthTokenService;
 import com.basic.dao.sysUser.entity.SysUser;
-import com.basic.sericve.sysPermission.service.ISysPermissionService;
-import com.basic.sericve.sysRole.service.ISysRoleService;
 import com.basic.sericve.sysUser.service.ISysUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,12 +31,6 @@ class AuthServiceImplTest {
     private ISysUserService sysUserService;
 
     @Mock
-    private ISysRoleService sysRoleService;
-
-    @Mock
-    private ISysPermissionService sysPermissionService;
-
-    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -48,8 +42,6 @@ class AuthServiceImplTest {
     void setUp() {
         authService = new AuthServiceImpl(
                 sysUserService,
-                sysRoleService,
-                sysPermissionService,
                 passwordEncoder,
                 authTokenService);
     }
@@ -182,5 +174,31 @@ class AuthServiceImplTest {
         assertEquals("encoded-new-password", user.getPassword());
         verify(sysUserService).updateById(user);
         verify(authTokenService).forceLogout(100L);
+    }
+
+    @Test
+    void loginShouldReturnOnlyToken() {
+        SysUser user = buildEnabledUser();
+        UserVO userVO = new UserVO();
+        userVO.setDeptNames(java.util.List.of("研发部", "平台组"));
+        when(sysUserService.getUserByUsername("admin")).thenReturn(user);
+        when(passwordEncoder.matches("plain-password", "encoded-password")).thenReturn(true);
+        when(sysUserService.getUserById(10L)).thenReturn(userVO);
+
+        TokenVO tokenVO = authService.login("admin", "plain-password");
+
+        org.assertj.core.api.Assertions.assertThat(tokenVO.getToken()).isNotBlank();
+        verify(authTokenService).saveLoginSession(any());
+    }
+
+    private SysUser buildEnabledUser() {
+        SysUser user = new SysUser();
+        user.setId(10L);
+        user.setUsername("admin");
+        user.setPassword("encoded-password");
+        user.setNickname("管理员");
+        user.setAvatar("avatar.png");
+        user.setStatus((byte) 1);
+        return user;
     }
 }

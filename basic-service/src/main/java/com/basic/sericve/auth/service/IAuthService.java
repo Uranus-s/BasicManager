@@ -2,8 +2,8 @@ package com.basic.sericve.auth.service;
 
 import com.basic.api.dto.auth.ForgotPasswordResetDTO;
 import com.basic.api.dto.auth.RegisterDTO;
-import com.basic.api.vo.auth.LoginVO;
 import com.basic.api.vo.auth.OnlineUserVO;
+import com.basic.api.vo.auth.TokenVO;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
@@ -30,9 +30,9 @@ public interface IAuthService {
      *
      * @param username 用户名
      * @param password 密码
-     * @return 登录结果
+     * @return Token 信息
      */
-    default LoginVO login(String username, String password) {
+    default TokenVO login(String username, String password) {
         return login(username, password, null);
     }
 
@@ -42,9 +42,9 @@ public interface IAuthService {
      * @param username 用户名
      * @param password 密码
      * @param request  HTTP请求
-     * @return 登录结果
+     * @return Token 信息
      */
-    LoginVO login(String username, String password, HttpServletRequest request);
+    TokenVO login(String username, String password, HttpServletRequest request);
 
     /**
      * 用户登出

@@ -5,17 +5,12 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 登录响应VO
+ * 当前登录用户信息 VO
  *
  * @author Gas
  */
 @Data
 public class LoginVO {
-
-    /**
-     * JWT Token
-     */
-    private String token;
 
     /**
      * 用户ID
@@ -36,6 +31,11 @@ public class LoginVO {
      * 头像
      */
     private String avatar;
+
+    /**
+     * 部门名称列表
+     */
+    private List<String> deptNames;
 
     /**
      * 角色编码列表

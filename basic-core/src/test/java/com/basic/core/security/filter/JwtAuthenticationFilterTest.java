@@ -39,7 +39,7 @@ class JwtAuthenticationFilterTest {
         AuthTokenService authTokenService = mock(AuthTokenService.class);
         JwtAuthenticationFilter filter = new JwtAuthenticationFilter(userDetailsService, authTokenService);
 
-        String token = JwtUtil.generateToken(10L, "old-admin");
+        String token = JwtUtil.generateToken(10L, "old-admin", List.of("研发部"));
         LoginUser loginUser = new LoginUser();
         loginUser.setUserId(10L);
         loginUser.setUsername("admin");
@@ -56,6 +56,7 @@ class JwtAuthenticationFilterTest {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         assertThat(authentication).isNotNull();
         assertThat(authentication.getPrincipal()).isSameAs(loginUser);
+        assertThat(loginUser.getDeptNames()).containsExactly("研发部");
         verify(userDetailsService).loadUserByUserId(10L);
     }
 

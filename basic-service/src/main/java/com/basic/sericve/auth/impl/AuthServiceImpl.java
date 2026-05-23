@@ -3,8 +3,9 @@ package com.basic.sericve.auth.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.basic.api.dto.auth.ForgotPasswordResetDTO;
 import com.basic.api.dto.auth.RegisterDTO;
-import com.basic.api.vo.auth.LoginVO;
 import com.basic.api.vo.auth.OnlineUserVO;
+import com.basic.api.vo.auth.TokenVO;
+import com.basic.api.vo.sysUser.UserVO;
 import com.basic.common.exception.BusinessException;
 import com.basic.common.result.ResultEnum;
 import com.basic.core.security.model.LoginSession;
@@ -13,8 +14,6 @@ import com.basic.core.security.util.JwtUtil;
 import com.basic.dao.sysUser.entity.SysUser;
 import com.basic.sericve.auth.service.IAuthService;
 import com.basic.sericve.auth.util.LoginRequestUtils;
-import com.basic.sericve.sysPermission.service.ISysPermissionService;
-import com.basic.sericve.sysRole.service.ISysRoleService;
 import com.basic.sericve.sysUser.service.ISysUserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +29,6 @@ import java.util.List;
 public class AuthServiceImpl implements IAuthService {
 
     private final ISysUserService sysUserService;
-    private final ISysRoleService sysRoleService;
-    private final ISysPermissionService sysPermissionService;
     private final PasswordEncoder passwordEncoder;
     private final AuthTokenService authTokenService;
 
@@ -78,7 +75,7 @@ public class AuthServiceImpl implements IAuthService {
     }
 
     @Override
-    public LoginVO login(String username, String password, HttpServletRequest request) {
+    public TokenVO login(String username, String password, HttpServletRequest request) {
         SysUser user = sysUserService.getUserByUsername(username);
         if (user == null) {
             throw new BusinessException(ResultEnum.USER_NOT_EXIST);
@@ -92,23 +89,16 @@ public class AuthServiceImpl implements IAuthService {
             throw new BusinessException(ResultEnum.PASSWORD_ERROR);
         }
 
-        String token = JwtUtil.generateToken(user.getId(), user.getUsername());
+        UserVO userVO = sysUserService.getUserById(user.getId());
+        List<String> deptNames = userVO == null || userVO.getDeptNames() == null
+                ? List.of()
+                : userVO.getDeptNames();
+        String token = JwtUtil.generateToken(user.getId(), user.getUsername(), deptNames);
         authTokenService.saveLoginSession(buildLoginSession(user, token, request));
 
-        LoginVO loginVO = new LoginVO();
-        loginVO.setToken(token);
-        loginVO.setUserId(user.getId());
-        loginVO.setUsername(user.getUsername());
-        loginVO.setNickname(user.getNickname());
-        loginVO.setAvatar(user.getAvatar());
-
-        List<String> roleCodes = sysRoleService.getRoleCodes(user.getId());
-        loginVO.setRoles(roleCodes);
-
-        List<String> permissions = sysPermissionService.getUserPermissions(user.getId());
-        loginVO.setPermissions(permissions);
-
-        return loginVO;
+        TokenVO tokenVO = new TokenVO();
+        tokenVO.setToken(token);
+        return tokenVO;
     }
 
     @Override
@@ -172,4 +162,5 @@ public class AuthServiceImpl implements IAuthService {
         return StringUtils.hasText(contact)
                 && (contact.equals(user.getPhone()) || contact.equals(user.getEmail()));
     }
+
 }

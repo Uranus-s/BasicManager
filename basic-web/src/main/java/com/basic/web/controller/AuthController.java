@@ -8,6 +8,7 @@ import com.basic.api.dto.auth.RegisterDTO;
 import com.basic.api.vo.auth.InitResultVO;
 import com.basic.api.vo.auth.LoginVO;
 import com.basic.api.vo.auth.OnlineUserVO;
+import com.basic.api.vo.auth.TokenVO;
 import com.basic.api.vo.sysPermission.PermissionTreeVO;
 import com.basic.common.result.Result;
 import com.basic.core.log.annotation.OperateLog;
@@ -70,13 +71,13 @@ public class AuthController implements AuthApi {
      * 用户登录
      *
      * @param loginDTO 登录信息（用户名、密码）
-     * @return 登录结果（Token和用户信息）
+     * @return Token 信息
      */
     @Override
     @PostMapping("login")
-    public Result<LoginVO> login(@Valid @RequestBody LoginDTO loginDTO, HttpServletRequest request) {
-        LoginVO loginVO = authService.login(loginDTO.getUsername(), loginDTO.getPassword(), request);
-        return Result.success(loginVO);
+    public Result<TokenVO> login(@Valid @RequestBody LoginDTO loginDTO, HttpServletRequest request) {
+        TokenVO tokenVO = authService.login(loginDTO.getUsername(), loginDTO.getPassword(), request);
+        return Result.success(tokenVO);
     }
 
     /**
@@ -100,6 +101,7 @@ public class AuthController implements AuthApi {
         loginVO.setUsername(loginUser.getUsername());
         loginVO.setNickname(loginUser.getNickname());
         loginVO.setAvatar(loginUser.getAvatar());
+        loginVO.setDeptNames(loginUser.getDeptNames());
         loginVO.setRoles(loginUser.getRoles());
         loginVO.setPermissions(loginUser.getPermissions());
 

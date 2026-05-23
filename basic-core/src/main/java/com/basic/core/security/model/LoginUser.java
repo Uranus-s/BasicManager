@@ -21,6 +21,7 @@ public class LoginUser implements UserDetails {
     private String nickname;
     private String avatar;
     private boolean enabled;
+    private List<String> deptNames;
     private List<String> roles;
     private List<String> permissions;
 
@@ -127,6 +128,14 @@ public class LoginUser implements UserDetails {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public List<String> getDeptNames() {
+        return deptNames;
+    }
+
+    public void setDeptNames(List<String> deptNames) {
+        this.deptNames = deptNames;
     }
 
     public List<String> getRoles() {
