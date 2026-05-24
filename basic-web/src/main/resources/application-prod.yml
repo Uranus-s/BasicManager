@@ -1,0 +1,48 @@
+spring:
+  datasource:
+    url: ${PROD_DB_URL:jdbc:mysql://192.168.0.110:3306/basic_project?useSSL=false&serverTimezone=Asia/Shanghai}
+    username: ${PROD_DB_USERNAME:root}
+    password: ${PROD_DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: ${PROD_DB_MAXIMUM_POOL_SIZE:30}
+      minimum-idle: ${PROD_DB_MINIMUM_IDLE:10}
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  data:
+    redis:
+      mode: ${PROD_REDIS_MODE:cluster} # cluster/single
+      password: ${PROD_REDIS_PASSWORD:}
+      lettuce:
+        cluster:
+          refresh:
+            adaptive: true
+            period: 60s
+        pool:
+          max-active: ${PROD_REDIS_MAX_ACTIVE:20}
+          max-idle: ${PROD_REDIS_MAX_IDLE:10}
+          min-idle: ${PROD_REDIS_MIN_IDLE:2}
+          max-wait: 1000ms
+      cluster:
+        max-redirects: 3
+        nodes:
+          - ${PROD_REDIS_NODE_1:192.168.0.110:6379}
+          - ${PROD_REDIS_NODE_2:192.168.0.110:6380}
+          - ${PROD_REDIS_NODE_3:192.168.0.110:6381}
+          - ${PROD_REDIS_NODE_4:192.168.0.110:6382}
+          - ${PROD_REDIS_NODE_5:192.168.0.110:6383}
+          - ${PROD_REDIS_NODE_6:192.168.0.110:6384}
+
+logging:
+  level:
+    org.mybatis: info
+    com.basic.dao: info
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+basic:
+  security:
+    dev-master-token:
+      enabled: false
+      token: ""

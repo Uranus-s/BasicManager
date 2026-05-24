@@ -2,6 +2,7 @@ package com.basic.core.security.filter;
 
 import com.basic.core.security.model.LoginUser;
 import com.basic.core.security.service.AuthTokenService;
+import com.basic.core.security.service.DevMasterTokenService;
 import com.basic.core.security.service.SecurityUserDetailsService;
 import com.basic.core.security.util.JwtUtil;
 import com.basic.common.result.ResultEnum;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * JWT身份验证过滤器
@@ -31,10 +33,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final SecurityUserDetailsService userDetailsService;
     private final AuthTokenService authTokenService;
+    private final DevMasterTokenService devMasterTokenService;
 
-    public JwtAuthenticationFilter(SecurityUserDetailsService userDetailsService, AuthTokenService authTokenService) {
+    public JwtAuthenticationFilter(SecurityUserDetailsService userDetailsService,
+                                   AuthTokenService authTokenService,
+                                   DevMasterTokenService devMasterTokenService) {
         this.userDetailsService = userDetailsService;
         this.authTokenService = authTokenService;
+        this.devMasterTokenService = devMasterTokenService;
     }
 
     /**
@@ -48,6 +54,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse resp, FilterChain chain) throws ServletException, IOException {
         String token = req.getHeader("Authorization");
+        Optional<org.springframework.security.core.Authentication> devAuthentication = devMasterTokenService.authenticate(token);
+        if (devAuthentication.isPresent()) {
+            SecurityContextHolder.getContext().setAuthentication(devAuthentication.get());
+            chain.doFilter(req, resp);
+            return;
+        }
 
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7).trim();

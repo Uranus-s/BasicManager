@@ -81,6 +81,13 @@ public interface ISysPermissionService extends IService<SysPermission> {
     List<String> getUserPermissions(Long userId);
 
     /**
+     * 获取系统全部权限标识（用于开发环境调试认证）。
+     *
+     * @return 全部权限标识列表
+     */
+    List<String> listAllPermissionCodes();
+
+    /**
      * 获取用户权限实体列表
      *
      * @param userId 用户ID

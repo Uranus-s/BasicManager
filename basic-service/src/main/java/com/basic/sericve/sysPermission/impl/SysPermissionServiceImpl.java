@@ -222,6 +222,16 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     }
 
     @Override
+    public List<String> listAllPermissionCodes() {
+        List<SysPermission> permissions = list();
+        return permissions.stream()
+                .map(SysPermission::getPermission)
+                .filter(StringUtils::hasText)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<SysPermission> getPermissionsByUserId(Long userId) {
         // 获取用户角色
         List<Long> roleIds = sysUserRoleService.getRoleIdsByUserId(userId);

@@ -3,6 +3,7 @@ package com.basic.core.security.filter;
 import com.basic.common.result.ResultEnum;
 import com.basic.core.security.model.LoginUser;
 import com.basic.core.security.service.AuthTokenService;
+import com.basic.core.security.service.DevMasterTokenService;
 import com.basic.core.security.service.SecurityUserDetailsService;
 import com.basic.core.security.util.JwtUtil;
 import io.jsonwebtoken.Jwts;
@@ -13,12 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -37,7 +39,7 @@ class JwtAuthenticationFilterTest {
     void authenticatesOnlyWhenTokenMatchesRedisTokenForUserId() throws Exception {
         SecurityUserDetailsService userDetailsService = mock(SecurityUserDetailsService.class);
         AuthTokenService authTokenService = mock(AuthTokenService.class);
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(userDetailsService, authTokenService);
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(userDetailsService, authTokenService, disabledDevMasterTokenService());
 
         String token = JwtUtil.generateToken(10L, "old-admin", List.of("研发部"));
         LoginUser loginUser = new LoginUser();
@@ -64,7 +66,7 @@ class JwtAuthenticationFilterTest {
     void ignoresJwtWhenRedisTokenDoesNotMatch() throws Exception {
         SecurityUserDetailsService userDetailsService = mock(SecurityUserDetailsService.class);
         AuthTokenService authTokenService = mock(AuthTokenService.class);
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(userDetailsService, authTokenService);
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(userDetailsService, authTokenService, disabledDevMasterTokenService());
 
         String token = JwtUtil.generateToken(10L, "admin");
         when(authTokenService.isCurrentLoginToken(10L, token)).thenReturn(false);
@@ -83,7 +85,7 @@ class JwtAuthenticationFilterTest {
     void marksJwtAsExpiredWhenTokenIsExpired() throws Exception {
         SecurityUserDetailsService userDetailsService = mock(SecurityUserDetailsService.class);
         AuthTokenService authTokenService = mock(AuthTokenService.class);
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(userDetailsService, authTokenService);
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(userDetailsService, authTokenService, disabledDevMasterTokenService());
         String token = expiredToken();
 
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/auth/info");
@@ -96,6 +98,32 @@ class JwtAuthenticationFilterTest {
         verify(userDetailsService, never()).loadUserByUserId(10L);
     }
 
+    @Test
+    void usesDevMasterTokenBeforeJwtValidation() throws Exception {
+        SecurityUserDetailsService userDetailsService = mock(SecurityUserDetailsService.class);
+        AuthTokenService authTokenService = mock(AuthTokenService.class);
+        DevMasterTokenService devMasterTokenService = mock(DevMasterTokenService.class);
+        LoginUser loginUser = new LoginUser();
+        loginUser.setUserId(0L);
+        loginUser.setUsername("dev-master");
+        loginUser.setPermissions(List.of("auth:online:list"));
+        Authentication devAuthentication = new UsernamePasswordAuthenticationToken(
+                loginUser,
+                null,
+                loginUser.getAuthorities());
+        when(devMasterTokenService.authenticate("Bearer dev-token")).thenReturn(Optional.of(devAuthentication));
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(userDetailsService, authTokenService, devMasterTokenService);
+
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/auth/online");
+        request.addHeader("Authorization", "Bearer dev-token");
+
+        filter.doFilterInternal(request, new MockHttpServletResponse(), mock(FilterChain.class));
+
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isSameAs(devAuthentication);
+        verify(authTokenService, never()).isCurrentLoginToken(0L, "dev-token");
+        verify(userDetailsService, never()).loadUserByUserId(0L);
+    }
+
     private String expiredToken() {
         byte[] secret = "abc123!@#abc123!@#abc123!@#abc123!@#".getBytes(StandardCharsets.UTF_8);
         Date now = new Date();
@@ -106,5 +134,11 @@ class JwtAuthenticationFilterTest {
                 .expiration(new Date(now.getTime() - 1_000L))
                 .signWith(Keys.hmacShaKeyFor(secret), Jwts.SIG.HS256)
                 .compact();
+    }
+
+    private DevMasterTokenService disabledDevMasterTokenService() {
+        DevMasterTokenService devMasterTokenService = mock(DevMasterTokenService.class);
+        when(devMasterTokenService.authenticate(org.mockito.ArgumentMatchers.any())).thenReturn(Optional.empty());
+        return devMasterTokenService;
     }
 }

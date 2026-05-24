@@ -30,6 +30,11 @@ public class SecurityUserQueryServiceImpl implements SecurityUserQueryService {
         return buildLoginUser(user);
     }
 
+    @Override
+    public java.util.List<String> listAllPermissionCodes() {
+        return sysPermissionService.listAllPermissionCodes();
+    }
+
     private LoginUser buildLoginUser(SysUser user) {
         if (user == null) {
             return null;
