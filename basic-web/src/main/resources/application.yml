@@ -39,3 +39,10 @@ mybatis-plus:
 # 系统配置
 system:
   init-key: ${SYSTEM_INIT_KEY:admin-init-key}
+
+basic:
+  file:
+    storage-type: local
+    local:
+      base-path: ${BASIC_FILE_LOCAL_BASE_PATH:uploads}
+      url-prefix: ${BASIC_FILE_LOCAL_URL_PREFIX:/uploads}
