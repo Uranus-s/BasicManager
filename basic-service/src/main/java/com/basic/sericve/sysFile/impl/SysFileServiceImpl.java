@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +37,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> implements ISysFileService {
+
+    private static final Pattern BIZ_TYPE_PATTERN = Pattern.compile("^[A-Za-z0-9_-]+$");
 
     private final Map<String, FileStorageService> storageServiceMap;
 
@@ -64,7 +67,8 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public FileVO uploadFile(MultipartFile file, String bizType) {
-        if (file == null || file.isEmpty() || !StringUtils.hasText(bizType)) {
+        if (file == null || file.isEmpty() || !StringUtils.hasText(bizType)
+                || !BIZ_TYPE_PATTERN.matcher(bizType).matches()) {
             throw new BusinessException(ResultEnum.PARAM_INVALID);
         }
 

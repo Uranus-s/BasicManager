@@ -21,6 +21,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -72,5 +73,18 @@ class SysFileServiceImplUploadTest {
 
         assertThatThrownBy(() -> service.uploadFile(file, "docs"))
                 .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    void uploadFileRejectsInvalidBizTypeBeforeUsingStorage() {
+        FileStorageProperties properties = new FileStorageProperties();
+        when(storageService.storageType()).thenReturn("local");
+        SysFileServiceImpl service = new SysFileServiceImpl(List.of(storageService), properties);
+        MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", "content".getBytes());
+
+        assertThatThrownBy(() -> service.uploadFile(file, "../avatar"))
+                .isInstanceOf(BusinessException.class);
+
+        verify(storageService, never()).store(file, "../avatar");
     }
 }
