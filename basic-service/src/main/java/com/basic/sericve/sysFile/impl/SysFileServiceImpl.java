@@ -38,8 +38,14 @@ import java.util.stream.Collectors;
 @Service
 public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> implements ISysFileService {
 
+    /**
+     * 与存储层保持一致的业务类型校验规则，保证不同存储实现的输入约束一致。
+     */
     private static final Pattern BIZ_TYPE_PATTERN = Pattern.compile("^[A-Za-z0-9_-]+$");
 
+    /**
+     * 按 storageType 建立策略映射，便于通过配置选择 local、oss、minio 等实现。
+     */
     private final Map<String, FileStorageService> storageServiceMap;
 
     private final FileStorageProperties fileStorageProperties;
@@ -72,6 +78,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
             throw new BusinessException(ResultEnum.PARAM_INVALID);
         }
 
+        // 业务层只负责选择策略和保存元数据，具体文件落盘由存储策略处理。
         FileStorageService storageService = storageServiceMap.get(fileStorageProperties.getStorageType());
         if (storageService == null) {
             throw new BusinessException(ResultEnum.PARAM_INVALID);
@@ -94,6 +101,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         try {
             save(sysFile);
         } catch (RuntimeException ex) {
+            // 数据库记录失败时尽量清理已保存文件，避免产生孤立文件。
             storageService.delete(storedFile.getFilePath());
             throw ex;
         }

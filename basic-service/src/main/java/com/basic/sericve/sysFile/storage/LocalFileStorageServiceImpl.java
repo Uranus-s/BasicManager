@@ -16,13 +16,28 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+/**
+ * 本地文件存储实现。
+ * <p>
+ * 文件保存到配置的 basePath 下，数据库记录使用 urlPrefix 拼出的访问路径。
+ * 该类只负责本地磁盘读写，不处理文件业务记录。
+ * </p>
+ *
+ * @author Gas
+ */
 @Service
 @RequiredArgsConstructor
 @EnableConfigurationProperties(FileStorageProperties.class)
 public class LocalFileStorageServiceImpl implements FileStorageService {
 
+    /**
+     * 限制业务类型为安全路径片段，避免 ../ 这类路径穿越输入。
+     */
     private static final Pattern BIZ_TYPE_PATTERN = Pattern.compile("^[A-Za-z0-9_-]+$");
 
+    /**
+     * 按日期分目录，避免单目录文件过多。
+     */
     private static final DateTimeFormatter DATE_PATH_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 
     private final FileStorageProperties properties;
@@ -41,6 +56,7 @@ public class LocalFileStorageServiceImpl implements FileStorageService {
         }
 
         String extension = getExtension(originalFilename);
+        // 磁盘文件名使用 UUID，避免原始文件名冲突或携带特殊字符。
         String storedFileName = UUID.randomUUID().toString().replace("-", "") + extension;
         String relativePath = bizType + "/" + DATE_PATH_FORMATTER.format(LocalDate.now()) + "/" + storedFileName;
         Path targetPath = Path.of(properties.getLocal().getBasePath()).resolve(relativePath).normalize();
@@ -62,6 +78,7 @@ public class LocalFileStorageServiceImpl implements FileStorageService {
         if (!StringUtils.hasText(filePath)) {
             return;
         }
+        // 只删除当前 urlPrefix 管理下的文件，避免误删其他路径。
         String urlPrefix = normalizeUrlPrefix(properties.getLocal().getUrlPrefix());
         String normalizedFilePath = filePath.replace("\\", "/");
         if (!normalizedFilePath.startsWith(urlPrefix + "/")) {
