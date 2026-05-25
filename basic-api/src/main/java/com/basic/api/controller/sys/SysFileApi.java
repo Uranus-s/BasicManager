@@ -5,6 +5,7 @@ import com.basic.api.vo.sysFile.FileVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -29,6 +30,16 @@ public interface SysFileApi {
     Result<Long> uploadFile(@RequestParam String fileName, @RequestParam String filePath,
                             @RequestParam Long fileSize, @RequestParam String fileType,
                             @RequestParam String bizType);
+
+    /**
+     * 上传文件
+     *
+     * @param file    文件
+     * @param bizType 业务类型
+     * @return 文件信息
+     */
+    @PostMapping("/upload")
+    Result<FileVO> upload(@RequestParam("file") MultipartFile file, @RequestParam("bizType") String bizType);
 
     /**
      * 删除文件

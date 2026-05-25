@@ -9,6 +9,7 @@ import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysFile.service.ISysFileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -42,6 +43,20 @@ public class SysFileController implements SysFileApi {
                                     @RequestParam("bizType") String bizType) {
         Long fileId = sysFileService.uploadFile(fileName, filePath, fileSize, fileType, bizType);
         return Result.success(fileId);
+    }
+
+    /**
+     * 上传文件
+     *
+     * @param file    文件
+     * @param bizType 业务类型
+     * @return 文件信息
+     */
+    @Override
+    @PostMapping("/upload")
+    @OperateLog(module = "文件管理", method = "上传文件")
+    public Result<FileVO> upload(@RequestParam("file") MultipartFile file, @RequestParam("bizType") String bizType) {
+        return Result.success(sysFileService.uploadFile(file, bizType));
     }
 
     /**
