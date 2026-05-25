@@ -7,7 +7,10 @@ import com.basic.common.result.PageResult;
 import com.basic.common.result.ResultEnum;
 import com.basic.dao.sysFile.entity.SysFile;
 import com.basic.dao.sysFile.mapper.SysFileMapper;
+import com.basic.sericve.sysFile.config.FileStorageProperties;
 import com.basic.sericve.sysFile.service.ISysFileService;
+import com.basic.sericve.sysFile.storage.FileStorageService;
+import com.basic.sericve.sysFile.storage.StoredFile;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -16,9 +19,13 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -29,6 +36,16 @@ import java.util.List;
  */
 @Service
 public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> implements ISysFileService {
+
+    private final Map<String, FileStorageService> storageServiceMap;
+
+    private final FileStorageProperties fileStorageProperties;
+
+    public SysFileServiceImpl(List<FileStorageService> storageServices, FileStorageProperties fileStorageProperties) {
+        this.storageServiceMap = storageServices.stream()
+                .collect(Collectors.toMap(FileStorageService::storageType, Function.identity()));
+        this.fileStorageProperties = fileStorageProperties;
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -42,6 +59,44 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         file.setBizType(bizType);
         save(file);
         return file.getId();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public FileVO uploadFile(MultipartFile file, String bizType) {
+        if (file == null || file.isEmpty() || !StringUtils.hasText(bizType)) {
+            throw new BusinessException(ResultEnum.PARAM_INVALID);
+        }
+
+        FileStorageService storageService = storageServiceMap.get(fileStorageProperties.getStorageType());
+        if (storageService == null) {
+            throw new BusinessException(ResultEnum.PARAM_INVALID);
+        }
+
+        StoredFile storedFile;
+        try {
+            storedFile = storageService.store(file, bizType);
+        } catch (RuntimeException ex) {
+            throw new BusinessException(ResultEnum.IO_ERROR);
+        }
+
+        SysFile sysFile = new SysFile();
+        sysFile.setFileName(storedFile.getFileName());
+        sysFile.setFilePath(storedFile.getFilePath());
+        sysFile.setFileSize(storedFile.getFileSize());
+        sysFile.setFileType(storedFile.getFileType());
+        sysFile.setBizType(bizType);
+
+        try {
+            save(sysFile);
+        } catch (RuntimeException ex) {
+            storageService.delete(storedFile.getFilePath());
+            throw ex;
+        }
+
+        FileVO vo = new FileVO();
+        BeanUtils.copyProperties(sysFile, vo);
+        return vo;
     }
 
     @Override

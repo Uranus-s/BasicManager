@@ -5,6 +5,7 @@ import com.basic.api.vo.sysFile.FileVO;
 import com.basic.common.result.PageResult;
 import com.basic.dao.sysFile.entity.SysFile;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -28,6 +29,15 @@ public interface ISysFileService extends IService<SysFile> {
      * @return 文件ID
      */
     Long uploadFile(String fileName, String filePath, Long fileSize, String fileType, String bizType);
+
+    /**
+     * 上传文件
+     *
+     * @param file    文件
+     * @param bizType 业务类型
+     * @return 文件信息
+     */
+    FileVO uploadFile(MultipartFile file, String bizType);
 
     /**
      * 删除文件
