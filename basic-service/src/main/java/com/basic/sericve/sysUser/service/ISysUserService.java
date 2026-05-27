@@ -10,6 +10,7 @@ import com.basic.api.vo.sysUser.UserVO;
 import com.basic.common.result.PageResult;
 import com.basic.dao.sysUser.entity.SysUser;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -107,6 +108,23 @@ public interface ISysUserService extends IService<SysUser> {
      * @param newPassword 新密码
      */
     void updatePassword(Long userId, String oldPassword, String newPassword);
+
+    /**
+     * 修改当前用户头像
+     *
+     * @param userId 用户ID
+     * @param file   头像文件
+     * @return 头像访问路径
+     */
+    String updateCurrentUserAvatar(Long userId, MultipartFile file);
+
+    /**
+     * 获取当前用户头像
+     *
+     * @param userId 用户ID
+     * @return 头像访问路径
+     */
+    String getCurrentUserAvatar(Long userId);
 
     /**
      * 初始化管理员（用户、角色、权限）

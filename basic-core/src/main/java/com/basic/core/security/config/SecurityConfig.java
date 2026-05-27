@@ -4,6 +4,7 @@ import com.basic.core.security.filter.JwtAuthenticationFilter;
 import com.basic.core.security.handler.AuthenticationEntryPointImpl;
 import com.basic.core.security.handler.AccessDeniedHandlerImpl;
 import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -52,6 +53,17 @@ public class SecurityConfig {
     private AccessDeniedHandlerImpl accessDeniedHandler;
 
     /**
+     * 本地上传文件访问前缀。
+     * <p>
+     * Web 层的 LocalUploadResourceConfig 只负责把本地目录映射成静态资源；
+     * Security 仍会拦截所有未放行的 URL。因此这里必须使用同一个 url-prefix 生成白名单，
+     * 否则浏览器直接访问头像地址时会返回“未登录或登录已过期”。
+     * </p>
+     */
+    @Value("${basic.file.local.url-prefix:/uploads}")
+    private String uploadUrlPrefix;
+
+    /**
      * 配置安全过滤器链
      * 定义了应用的安全策略，包括 CSRF 防护、会话管理、异常处理等
      *
@@ -83,6 +95,8 @@ public class SecurityConfig {
                                 "/auth/forgotPassword/reset",
                                 "/captcha",
                                 "/public/**",
+                                // 放行本地上传文件访问，例如 /uploads/avatar/2026/05/27/xxx.jpg。
+                                localUploadPattern(),
                                 "/test/**")
                         .permitAll()
                         .anyRequest()
@@ -92,5 +106,17 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    private String localUploadPattern() {
+        // 与 LocalUploadResourceConfig 保持同样的前缀规范化规则，避免一个能映射、另一个不能放行。
+        String prefix = uploadUrlPrefix == null || uploadUrlPrefix.isBlank() ? "/uploads" : uploadUrlPrefix.replace("\\", "/");
+        if (!prefix.startsWith("/")) {
+            prefix = "/" + prefix;
+        }
+        if (prefix.endsWith("/")) {
+            prefix = prefix.substring(0, prefix.length() - 1);
+        }
+        return prefix + "/**";
     }
 }

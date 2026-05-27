@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -149,12 +150,37 @@ public class SysUserController implements SysUserApi {
     @PostMapping("/updatePwd")
     @OperateLog(module = "用户管理", method = "修改密码")
     public Result<?> updatePassword(@RequestParam("oldPassword") String oldPassword, @RequestParam("newPassword") String newPassword) {
-        // 从SecurityContext获取当前用户ID
+        sysUserService.updatePassword(getCurrentUserId(), oldPassword, newPassword);
+        return Result.success();
+    }
+
+    /**
+     * 修改当前用户头像
+     *
+     * @param file 头像文件
+     * @return 头像访问路径
+     */
+    @Override
+    @PostMapping("/avatar")
+    @OperateLog(module = "用户管理", method = "修改头像")
+    public Result<String> updateCurrentUserAvatar(@RequestParam("file") MultipartFile file) {
+        return Result.success(sysUserService.updateCurrentUserAvatar(getCurrentUserId(), file));
+    }
+
+    /**
+     * 获取当前用户头像
+     *
+     * @return 头像访问路径
+     */
+    @Override
+    @GetMapping("/getAvatar")
+    public Result<String> getCurrentUserAvatar() {
+        return Result.success(sysUserService.getCurrentUserAvatar(getCurrentUserId()));
+    }
+
+    private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         LoginUser loginUser = (LoginUser) authentication.getPrincipal();
-        Long userId = loginUser.getUserId();
-
-        sysUserService.updatePassword(userId, oldPassword, newPassword);
-        return Result.success();
+        return loginUser.getUserId();
     }
 }

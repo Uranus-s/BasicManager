@@ -44,7 +44,7 @@ logging:
 basic:
   security:
     dev-master-token:
-      enabled: ${DEV_MASTER_TOKEN_ENABLED:false}
-      token: ${DEV_MASTER_TOKEN:}
+      enabled: ${DEV_MASTER_TOKEN_ENABLED:true}
+      token: ${DEV_MASTER_TOKEN:dev-master-token}
       user-id: ${DEV_MASTER_TOKEN_USER_ID:0}
       username: ${DEV_MASTER_TOKEN_USERNAME:dev-master}

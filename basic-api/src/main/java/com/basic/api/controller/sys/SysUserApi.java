@@ -9,6 +9,7 @@ import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -101,4 +102,21 @@ public interface SysUserApi {
      */
     @PostMapping("/updatePwd")
     Result<?> updatePassword(@RequestParam String oldPassword, @RequestParam String newPassword);
+
+    /**
+     * 修改当前用户头像
+     *
+     * @param file 头像文件
+     * @return 头像访问路径
+     */
+    @PostMapping("/avatar")
+    Result<String> updateCurrentUserAvatar(@RequestParam("file") MultipartFile file);
+
+    /**
+     * 获取当前用户头像
+     *
+     * @return 头像访问路径
+     */
+    @GetMapping("/avatar")
+    Result<String> getCurrentUserAvatar();
 }

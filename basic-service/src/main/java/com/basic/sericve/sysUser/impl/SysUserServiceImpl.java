@@ -5,6 +5,7 @@ import com.basic.api.dto.sysUser.UserQueryDTO;
 import com.basic.api.dto.sysUser.UserUpdateDTO;
 import com.basic.api.vo.auth.InitResultVO;
 import com.basic.api.vo.sysPermission.PermissionTreeVO;
+import com.basic.api.vo.sysFile.FileVO;
 import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.api.vo.sysUser.UserVO;
 import com.basic.common.exception.BusinessException;
@@ -23,6 +24,7 @@ import com.basic.dao.sysUser.mapper.SysUserMapper;
 import com.basic.sericve.sysDept.service.ISysDeptService;
 import com.basic.sericve.sysPermission.service.ISysPermissionService;
 import com.basic.sericve.sysRole.service.ISysRoleService;
+import com.basic.sericve.sysFile.service.ISysFileService;
 import com.basic.sericve.sysUser.service.ISysUserService;
 import com.basic.sericve.sysUserDept.service.ISysUserDeptService;
 import com.basic.sericve.sysUserRole.service.ISysUserRoleService;
@@ -38,6 +40,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,6 +68,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysUserRoleMapper sysUserRoleMapper;
     private final SysRolePermissionMapper sysRolePermissionMapper;
     private final PasswordEncoder passwordEncoder;
+    private final ISysFileService sysFileService;
 
     private static final String DEFAULT_PASSWORD = "123456";
 
@@ -281,6 +285,29 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 更新密码
         user.setPassword(passwordEncoder.encode(newPassword));
         updateById(user);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String updateCurrentUserAvatar(Long userId, MultipartFile file) {
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultEnum.USER_NOT_EXIST);
+        }
+
+        FileVO fileVO = sysFileService.uploadFile(file, "avatar");
+        user.setAvatar(fileVO.getFilePath());
+        updateById(user);
+        return user.getAvatar();
+    }
+
+    @Override
+    public String getCurrentUserAvatar(Long userId) {
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultEnum.USER_NOT_EXIST);
+        }
+        return user.getAvatar();
     }
 
     @Override
