@@ -88,6 +88,8 @@ public class SecurityConfig {
 
                 // 权限规则
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(openApiRequestMatchers())
+                        .permitAll()
                         .requestMatchers(
                                 "/auth/login",
                                 "/auth/initAdmin",
@@ -118,5 +120,19 @@ public class SecurityConfig {
             prefix = prefix.substring(0, prefix.length() - 1);
         }
         return prefix + "/**";
+    }
+
+    /**
+     * OpenAPI 文档和 Swagger UI 的公开访问路径。
+     *
+     * @return 文档端点匹配规则
+     */
+    static String[] openApiRequestMatchers() {
+        return new String[] {
+                "/v3/api-docs/**",
+                "/v3/api-docs.yaml",
+                "/swagger-ui/**",
+                "/swagger-ui.html"
+        };
     }
 }

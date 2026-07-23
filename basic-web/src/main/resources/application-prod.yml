@@ -46,3 +46,9 @@ basic:
     dev-master-token:
       enabled: false
       token: ""
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

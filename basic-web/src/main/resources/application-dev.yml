@@ -48,3 +48,9 @@ basic:
       token: ${DEV_MASTER_TOKEN:dev-master-token}
       user-id: ${DEV_MASTER_TOKEN_USER_ID:0}
       username: ${DEV_MASTER_TOKEN_USERNAME:dev-master}
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
