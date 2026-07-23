@@ -10,6 +10,9 @@ import com.basic.api.vo.auth.OnlineUserVO;
 import com.basic.api.vo.auth.TokenVO;
 import com.basic.api.vo.sysPermission.PermissionTreeVO;
 import com.basic.common.result.Result;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -21,6 +24,7 @@ import java.util.List;
  *
  * @author Gas
  */
+@Tag(name = "认证管理", description = "用户注册、登录、登出、管理员初始化和当前用户认证信息接口")
 public interface AuthApi {
 
     /**
@@ -29,6 +33,7 @@ public interface AuthApi {
      * @param registerDTO 注册请求
      * @return 用户ID
      */
+    @Operation(summary = "注册账号", description = "注册新的系统账号并返回用户ID")
     Result<Long> register(RegisterDTO registerDTO);
 
     /**
@@ -37,6 +42,7 @@ public interface AuthApi {
      * @param resetDTO 重置请求
      * @return 操作结果
      */
+    @Operation(summary = "重置遗忘密码", description = "校验用户身份信息后重置登录密码")
     Result<?> resetForgottenPassword(ForgotPasswordResetDTO resetDTO);
 
     /**
@@ -45,6 +51,7 @@ public interface AuthApi {
      * @param loginDTO 登录请求
      * @return Token 信息
      */
+    @Operation(summary = "用户登录", description = "校验账号、密码和验证码并返回 JWT Token")
     Result<TokenVO> login(LoginDTO loginDTO, HttpServletRequest request);
 
     /**
@@ -52,6 +59,7 @@ public interface AuthApi {
      *
      * @return 用户信息
      */
+    @Operation(summary = "获取当前用户信息", description = "返回当前登录用户的基本信息、角色和权限")
     Result<LoginVO> getUserInfo();
 
     /**
@@ -59,13 +67,17 @@ public interface AuthApi {
      *
      * @return 登出结果
      */
-    Result<?> logout(@RequestHeader(value = "Authorization", required = false) String authorization);
+    @Operation(summary = "用户登出", description = "使当前 JWT Token 失效并退出登录")
+    Result<?> logout(
+            @Parameter(description = "Bearer JWT Token", example = "Bearer eyJhbGciOiJIUzI1NiJ9.example")
+            @RequestHeader(value = "Authorization", required = false) String authorization);
 
     /**
      * 获取当前在线用户列表
      *
      * @return 在线用户列表
      */
+    @Operation(summary = "查询在线用户", description = "返回当前仍处于登录状态的用户列表")
     Result<List<OnlineUserVO>> getOnlineUsers();
 
     /**
@@ -74,7 +86,10 @@ public interface AuthApi {
      * @param userId 用户ID
      * @return 操作结果
      */
-    Result<?> forceLogout(@PathVariable("userId") Long userId);
+    @Operation(summary = "强制用户下线", description = "使指定用户的当前登录 Token 失效")
+    Result<?> forceLogout(
+            @Parameter(description = "用户ID", example = "1", required = true)
+            @PathVariable("userId") Long userId);
 
     /**
      * 初始化管理员
@@ -82,6 +97,7 @@ public interface AuthApi {
      * @param initAdminDTO 初始化请求
      * @return 初始化结果
      */
+    @Operation(summary = "初始化管理员", description = "使用系统初始化密钥创建首个管理员账号")
     Result<InitResultVO> initAdmin(InitAdminDTO initAdminDTO);
 
     /**
@@ -89,5 +105,6 @@ public interface AuthApi {
      *
      * @return 路由权限树形列表
      */
+    @Operation(summary = "获取当前用户路由", description = "返回当前登录用户可访问的菜单路由权限树")
     Result<List<PermissionTreeVO>> getUserRoutes();
 }

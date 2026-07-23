@@ -1,5 +1,6 @@
 package com.basic.api.dto.auth;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -10,11 +11,13 @@ import lombok.Data;
  * @author Gas
  */
 @Data
+@Schema(description = "忘记密码重置请求")
 public class ForgotPasswordResetDTO {
 
     /**
      * 用户名
      */
+    @Schema(description = "需要重置密码的用户名", example = "admin", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "用户名不能为空")
     @Size(min = 3, max = 20, message = "用户名长度必须在3-20之间")
     private String username;
@@ -22,12 +25,14 @@ public class ForgotPasswordResetDTO {
     /**
      * 用户已绑定的手机号或邮箱
      */
+    @Schema(description = "用户已绑定的手机号或邮箱", example = "admin@example.com", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "联系方式不能为空")
     private String contact;
 
     /**
      * 新密码
      */
+    @Schema(description = "新的登录密码", example = "NewP@ssw0rd!", format = "password", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "新密码不能为空")
     @Size(min = 6, max = 20, message = "密码长度必须在6-20之间")
     private String newPassword;
