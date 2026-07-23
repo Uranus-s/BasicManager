@@ -129,6 +129,12 @@ INSERT IGNORE INTO sys_permission
 VALUES
 (121, NOW(), NOW(), 2, '菜单管理', 'MENU', '/system/menu', 'system/menu/index', 'system:menu:list', 'Menu', 3, 1, 1);
 
+-- 服务监控
+INSERT IGNORE INTO sys_permission
+(id, create_time, update_time, parent_id, name, type, path, component, permission, icon, sort, visible, status)
+VALUES
+(131, NOW(), NOW(), 2, '服务监控', 'MENU', '/system/monitor', 'system/monitor/index', 'system:monitor:view', 'Monitor', 4, 1, 1);
+
 -- =============================================
 -- 7 角色权限 sys_role_permission
 -- =============================================
