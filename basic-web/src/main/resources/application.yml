@@ -50,3 +50,14 @@ basic:
     local:
       base-path: ${BASIC_FILE_LOCAL_BASE_PATH:uploads}
       url-prefix: ${BASIC_FILE_LOCAL_URL_PREFIX:/uploads}
+  thread-pool:
+    shutdown:
+      await-termination: 30s
+    cpu:
+      # core-pool-size 与 maximum-pool-size 未配置时根据运行时 CPU 核数计算。
+      queue-capacity: 500
+      keep-alive: 60s
+    virtual:
+      concurrency-limit: 200
+    scheduled:
+      pool-size: 2

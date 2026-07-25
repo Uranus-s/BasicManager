@@ -199,6 +199,48 @@ public class SecurityConfig {
 
 ---
 
+### 4.4 统一线程池
+
+项目统一管理异步任务、阻塞 I/O 任务和定时任务，业务模块应按任务特性选择执行器，避免自行创建无监控、不可统一关闭的线程池。
+
+#### 执行器选择
+
+| 固定 Bean 名称 | 适用场景 | 说明 |
+|---|---|---|
+| `cpuTaskExecutor` | CPU 密集任务、需要有界队列削峰的任务 | 无名称 `@Async` 默认使用此执行器。 |
+| `virtualTaskExecutor` | 数据库、Redis、HTTP、文件等阻塞 I/O 任务 | 使用受并发上限约束的虚拟线程执行器。 |
+| `scheduledTaskScheduler` | `@Scheduled` 的触发和调度 | 仅负责调度，不应用于执行耗时业务逻辑。 |
+
+使用命名执行器时，通过 `ThreadPoolNames` 常量指定名称：
+
+```java
+@Async(ThreadPoolNames.CPU)
+public void calculateReport() {
+    // CPU 密集任务或需要有界队列削峰的任务
+}
+
+@Async(ThreadPoolNames.VIRTUAL)
+public void loadRemoteData() {
+    // 数据库、Redis、HTTP、文件等阻塞 I/O 任务
+}
+```
+
+#### 定时任务约束
+
+耗时 `@Scheduled` 方法只负责触发，实际工作必须转交给业务执行器（`cpuTaskExecutor` 或 `virtualTaskExecutor`）。这样可以避免调度线程被长任务占用，影响后续触发。
+
+CPU 和虚拟线程执行器会传播任务提交方的 `SecurityContext` 与 MDC；`scheduledTaskScheduler` 为保留调度任务的取消和移除策略，不传播这两类上下文。因此，定时任务不应依赖提交线程的登录态或 MDC；如需身份、租户或链路信息，应在任务业务参数或任务内部显式建立。
+
+禁止在业务模块自行调用 `Executors.newFixedThreadPool`、`Executors.newCachedThreadPool` 等方式创建线程池，统一使用上述受监控执行器。
+
+#### 实时监控
+
+通过 `GET /system/monitor/thread-pools` 查询平台线程池、虚拟线程执行器和调度器的实时快照。该接口统一归入系统监控 Controller；指标仅代表当前 JVM 进程，应用重启后会清零，多实例部署时需要分别采集每个实例的数据。
+
+线程池参数以 `basic.thread-pool` 为前缀配置，包括 CPU 线程数与队列容量、虚拟线程并发上限、调度器线程数和应用关闭等待时间。
+
+---
+
 ## 5. 模块依赖
 
 ```xml
