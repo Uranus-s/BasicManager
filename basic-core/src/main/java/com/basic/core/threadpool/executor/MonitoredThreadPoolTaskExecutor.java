@@ -33,6 +33,14 @@ public final class MonitoredThreadPoolTaskExecutor
     private final HardDeadlineThreadPoolTaskExecutor delegate;
     private final TaskExecutionMetrics metrics = new TaskExecutionMetrics();
 
+    /**
+     * 构造一个监控型平台线程池执行器。
+     *
+     * @param name             线程池名称，用于标识和监控
+     * @param properties       CPU 线程池配置属性，含核心/最大线程数、队列容量、存活时间等
+     * @param awaitTermination 优雅关闭时等待任务完成的超时时间
+     * @param taskDecorator    任务装饰器，用于在任务执行前后添加自定义逻辑
+     */
     public MonitoredThreadPoolTaskExecutor(String name, ThreadPoolProperties.Cpu properties,
                                            Duration awaitTermination, TaskDecorator taskDecorator) {
         this.name = name;
@@ -59,18 +67,36 @@ public final class MonitoredThreadPoolTaskExecutor
         delegate.destroy();
     }
 
+    /**
+     * 提交任务到线程池执行，自动记录提交指标并包装任务上下文。
+     *
+     * @param task 待执行的任务，不允许为 {@code null}
+     */
     @Override
     public void execute(Runnable task) {
         metrics.recordSubmitted();
         delegate.execute(metrics.wrap(ExecutorIdentityContext.wrap(name, task)));
     }
 
+    /**
+     * 提交一个 Runnable 任务并返回 Future，自动记录提交指标并包装任务上下文。
+     *
+     * @param task 待提交的任务，不允许为 {@code null}
+     * @return 表示任务异步执行结果的 Future
+     */
     @Override
     public Future<?> submit(Runnable task) {
         metrics.recordSubmitted();
         return delegate.submit(metrics.wrap(ExecutorIdentityContext.wrap(name, task)));
     }
 
+    /**
+     * 提交一个 Callable 任务并返回 Future，自动记录提交指标并包装任务上下文。
+     *
+     * @param task 待提交的带返回值任务，不允许为 {@code null}
+     * @param <T>  任务返回值的类型
+     * @return 表示任务异步执行结果的 Future
+     */
     @Override
     public <T> Future<T> submit(Callable<T> task) {
         metrics.recordSubmitted();
@@ -82,6 +108,11 @@ public final class MonitoredThreadPoolTaskExecutor
         return name;
     }
 
+    /**
+     * 采集当前线程池的快照数据，包含线程池大小、队列状态、任务统计等指标。
+     *
+     * @return 线程池快照，包含名称、类型、状态、线程数、队列容量及任务计数等完整信息
+     */
     @Override
     public ThreadPoolSnapshot snapshot() {
         ThreadPoolExecutor executor = delegate.getThreadPoolExecutor();
@@ -106,11 +137,20 @@ public final class MonitoredThreadPoolTaskExecutor
                 .build();
     }
 
+    /**
+     * 判断指定线程是否属于当前线程池管理。
+     *
+     * @param threadName 线程名称，可能为 {@code null}
+     * @return 若线程名以当前线程池的线程名前缀开头则返回 {@code true}，否则返回 {@code false}
+     */
     @Override
     public boolean ownsThread(String threadName) {
         return threadName != null && threadName.startsWith(threadNamePrefix);
     }
 
+    /**
+     * 记录一次外部提交的失败任务，用于链路追踪中透传失败计数。
+     */
     @Override
     public void recordExternalFailure() {
         metrics.recordExternalFailure();
@@ -137,6 +177,11 @@ public final class MonitoredThreadPoolTaskExecutor
 
         private final long awaitTerminationMillis;
 
+        /**
+         * 构造一个带硬截止时间的线程池任务执行器。
+         *
+         * @param awaitTermination 优雅关闭时等待任务完成的超时时间
+         */
         private HardDeadlineThreadPoolTaskExecutor(Duration awaitTermination) {
             this.awaitTerminationMillis = awaitTermination.toMillis();
         }

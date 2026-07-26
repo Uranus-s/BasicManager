@@ -39,6 +39,14 @@ public final class MonitoredVirtualTaskExecutor
     private int acceptedTaskCount;
     private boolean delegateCloseFinished;
 
+    /**
+     * 构造一个受限虚拟线程执行器，以虚拟线程执行 I/O 密集任务并通过准入信号量控制并发数。
+     *
+     * @param name             执行器名称，用于标识和监控
+     * @param concurrencyLimit 最大并发虚拟线程数，超出时提交者将被阻塞等待
+     * @param awaitTermination 优雅关闭时等待任务完成的超时时间
+     * @param taskDecorator    任务装饰器，用于在任务执行前后添加自定义逻辑
+     */
     public MonitoredVirtualTaskExecutor(String name, int concurrencyLimit,
                                         Duration awaitTermination, TaskDecorator taskDecorator) {
         this.name = name;
@@ -80,6 +88,11 @@ public final class MonitoredVirtualTaskExecutor
         }
     }
 
+    /**
+     * 提交任务到虚拟线程执行，自动记录提交指标、包装上下文并执行并发准入控制。
+     *
+     * @param task 待执行的任务，不允许为 {@code null}
+     */
     @Override
     public void execute(Runnable task) {
         metrics.recordSubmitted();
@@ -87,6 +100,12 @@ public final class MonitoredVirtualTaskExecutor
                 metrics.wrap(ExecutorIdentityContext.wrap(name, task))));
     }
 
+    /**
+     * 提交一个 Runnable 任务并返回 Future，自动记录提交指标、包装上下文并执行并发准入控制。
+     *
+     * @param task 待提交的任务，不允许为 {@code null}
+     * @return 表示任务异步执行结果的 Future
+     */
     @Override
     public Future<?> submit(Runnable task) {
         metrics.recordSubmitted();
@@ -96,6 +115,13 @@ public final class MonitoredVirtualTaskExecutor
         return future;
     }
 
+    /**
+     * 提交一个 Callable 任务并返回 Future，自动记录提交指标、包装上下文并执行并发准入控制。
+     *
+     * @param task 待提交的带返回值任务，不允许为 {@code null}
+     * @param <T>  任务返回值的类型
+     * @return 表示任务异步执行结果的 Future
+     */
     @Override
     public <T> Future<T> submit(Callable<T> task) {
         metrics.recordSubmitted();
@@ -110,6 +136,11 @@ public final class MonitoredVirtualTaskExecutor
         return name;
     }
 
+    /**
+     * 采集当前虚拟线程执行器的快照数据，包含并发限制、活跃任务数及任务统计等指标。
+     *
+     * @return 虚拟线程执行器快照，包含名称、类型、状态、并发限制及任务计数等完整信息
+     */
     @Override
     public ThreadPoolSnapshot snapshot() {
         return ThreadPoolSnapshot.builder()
@@ -133,11 +164,20 @@ public final class MonitoredVirtualTaskExecutor
                 .build();
     }
 
+    /**
+     * 判断指定线程是否属于当前虚拟线程执行器管理。
+     *
+     * @param threadName 线程名称，可能为 {@code null}
+     * @return 若线程名以虚拟线程名前缀开头则返回 {@code true}，否则返回 {@code false}
+     */
     @Override
     public boolean ownsThread(String threadName) {
         return threadName != null && threadName.startsWith(VIRTUAL_THREAD_NAME_PREFIX);
     }
 
+    /**
+     * 记录一次外部提交的虚拟任务执行失败，用于链路追踪中透传失败计数。
+     */
     @Override
     public void recordExternalFailure() {
         metrics.recordExternalFailure();

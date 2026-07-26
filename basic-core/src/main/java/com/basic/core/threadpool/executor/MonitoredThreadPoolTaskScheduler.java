@@ -54,6 +54,11 @@ public final class MonitoredThreadPoolTaskScheduler extends ThreadPoolTaskSchedu
         return name;
     }
 
+    /**
+     * 采集当前调度线程池的快照数据，包含线程池大小、队列状态及任务统计等指标。
+     *
+     * @return 调度线程池快照，包含名称、类型、状态、线程数及任务计数等完整信息
+     */
     @Override
     public ThreadPoolSnapshot snapshot() {
         ScheduledThreadPoolExecutor executor = getScheduledThreadPoolExecutor();
@@ -78,11 +83,20 @@ public final class MonitoredThreadPoolTaskScheduler extends ThreadPoolTaskSchedu
                 .build();
     }
 
+    /**
+     * 判断指定线程是否属于当前调度线程池管理。
+     *
+     * @param threadName 线程名称，可能为 {@code null}
+     * @return 若线程名以调度线程池的线程名前缀开头则返回 {@code true}，否则返回 {@code false}
+     */
     @Override
     public boolean ownsThread(String threadName) {
         return threadName != null && threadName.startsWith(SCHEDULED_THREAD_NAME_PREFIX);
     }
 
+    /**
+     * 记录一次外部提交的定时任务执行失败，用于链路追踪中透传失败计数。
+     */
     @Override
     public void recordExternalFailure() {
         metrics.recordExternalFailure();
