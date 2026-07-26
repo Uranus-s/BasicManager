@@ -251,6 +251,46 @@ public class UserImportService {
 }
 ```
 
+#### 业务虚拟线程隔离池
+
+默认虚拟线程池之外，可按下游资源或关键业务配置少量业务隔离池。业务标识使用小写字母、数字和单个短横线分段，例如 `order`、`file-storage`；不要按用户、租户或请求动态创建线程池。
+
+```yaml
+basic:
+  thread-pool:
+    virtual:
+      concurrency-limit: 200
+      total-concurrency-limit: 500
+      businesses:
+        order:
+          concurrency-limit: 80
+        file-storage:
+          concurrency-limit: 30
+```
+
+`@Async` 使用由业务标识生成的 Spring Bean 名；例如 `order` 对应 `orderVirtualTaskExecutor`。注解参数必须是编译期常量，建议在业务类中集中声明：
+
+```java
+public static final String ORDER_VIRTUAL_EXECUTOR =
+        "orderVirtualTaskExecutor";
+
+@Async(ORDER_VIRTUAL_EXECUTOR)
+public CompletableFuture<Void> processOrder() {
+    return CompletableFuture.completedFuture(null);
+}
+```
+
+`ThreadPoolTaskRunner` 则使用 YAML 中的业务标识，而不是 Bean 名：
+
+```java
+taskRunner.executeVirtual(
+        "order",
+        "OrderService.process",
+        this::processOrderInternal);
+```
+
+默认池与全部业务池的 `concurrency-limit` 之和不得超过 `total-concurrency-limit`，应用会在启动时校验。业务隔离仅提供独立的准入上限、线程命名和监控指标，并不提供 CPU、JVM 载体线程或容器级物理隔离。配置后的业务池会自动出现在现有实时线程池快照接口中。
+
 #### 定时任务约束
 
 耗时 `@Scheduled` 方法只负责触发，实际工作必须转交给业务执行器（`cpuTaskExecutor` 或 `virtualTaskExecutor`）。这样可以避免调度线程被长任务占用，影响后续触发。

@@ -14,9 +14,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.core.task.AsyncTaskExecutor;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 统一创建受监控执行器、上下文装饰器和异常指标注册表。
@@ -24,6 +27,15 @@ import java.util.List;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(ThreadPoolProperties.class)
 public class ThreadPoolConfiguration {
+
+    /**
+     * 静态注册 BeanFactory 后处理器，避免为创建后处理器而提前实例化配置类。
+     */
+    @Bean
+    static BusinessVirtualThreadPoolBeanDefinitionRegistrar
+            businessVirtualThreadPoolBeanDefinitionRegistrar(Environment environment) {
+        return new BusinessVirtualThreadPoolBeanDefinitionRegistrar(environment);
+    }
 
     @Bean
     ContextCopyingTaskDecorator contextCopyingTaskDecorator() {
@@ -66,8 +78,17 @@ public class ThreadPoolConfiguration {
     @Bean
     ThreadPoolTaskRunner threadPoolTaskRunner(
             @Qualifier(ThreadPoolNames.CPU) AsyncTaskExecutor cpuExecutor,
-            @Qualifier(ThreadPoolNames.VIRTUAL) AsyncTaskExecutor virtualExecutor) {
-        return new ThreadPoolTaskRunner(cpuExecutor, virtualExecutor);
+            @Qualifier(ThreadPoolNames.VIRTUAL) AsyncTaskExecutor virtualExecutor,
+            Map<String, MonitoredVirtualTaskExecutor> virtualExecutors) {
+        Map<String, MonitoredVirtualTaskExecutor> businessExecutors =
+                virtualExecutors.entrySet().stream()
+                        .filter(entry ->
+                                !ThreadPoolNames.VIRTUAL.equals(entry.getKey()))
+                        .collect(Collectors.toUnmodifiableMap(
+                                Map.Entry::getKey,
+                                Map.Entry::getValue));
+        return new ThreadPoolTaskRunner(
+                cpuExecutor, virtualExecutor, businessExecutors);
     }
 
     @Bean

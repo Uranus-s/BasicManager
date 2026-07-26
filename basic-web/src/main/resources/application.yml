@@ -59,5 +59,8 @@ basic:
       keep-alive: 60s
     virtual:
       concurrency-limit: 200
+      total-concurrency-limit: 1000
+      # 按下游资源或关键业务配置少量隔离池；未使用时保持为空。
+      businesses: {}
     scheduled:
       pool-size: 2

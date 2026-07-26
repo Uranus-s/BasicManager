@@ -13,12 +13,15 @@ import org.springframework.core.task.TaskDecorator;
 import org.springframework.core.task.TaskRejectedException;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Pattern;
 
 /**
  * 以受限虚拟线程执行 I/O 密集任务，并统一暴露任务指标和执行器生命周期。
@@ -26,12 +29,14 @@ import java.util.concurrent.locks.ReentrantLock;
 public final class MonitoredVirtualTaskExecutor
         implements AsyncTaskExecutor, DisposableBean, ManagedExecutorMonitor {
 
-    private static final String VIRTUAL_THREAD_NAME_PREFIX = "basic-virtual-";
+    private static final String DEFAULT_THREAD_NAME_PREFIX = "basic-virtual-";
 
     private final String name;
     private final int concurrencyLimit;
     private final SimpleAsyncTaskExecutor delegate;
     private final TaskDecorator taskDecorator;
+    private final String threadNamePrefix;
+    private final Pattern threadNamePattern;
     private final TaskExecutionMetrics metrics = new TaskExecutionMetrics();
     private final ReentrantLock admissionLock = new ReentrantLock();
     private final Condition admissionAvailable = admissionLock.newCondition();
@@ -49,12 +54,39 @@ public final class MonitoredVirtualTaskExecutor
      */
     public MonitoredVirtualTaskExecutor(String name, int concurrencyLimit,
                                         Duration awaitTermination, TaskDecorator taskDecorator) {
-        this.name = name;
+        this(name, concurrencyLimit, awaitTermination, taskDecorator,
+                DEFAULT_THREAD_NAME_PREFIX);
+    }
+
+    /**
+     * 构造一个具有独立线程名前缀的受限虚拟线程执行器，便于按业务识别线程归属。
+     *
+     * @param name             执行器名称，用于标识和监控
+     * @param concurrencyLimit 最大并发虚拟线程数，超出时提交者将被阻塞等待
+     * @param awaitTermination 优雅关闭时等待任务完成的超时时间
+     * @param taskDecorator    任务装饰器，用于在任务执行前后添加自定义逻辑
+     * @param threadNamePrefix 当前执行器创建的虚拟线程名称前缀，不允许为空白
+     */
+    public MonitoredVirtualTaskExecutor(
+            String name,
+            int concurrencyLimit,
+            Duration awaitTermination,
+            TaskDecorator taskDecorator,
+            String threadNamePrefix) {
+        this.name = Objects.requireNonNull(name, "name 不能为空");
         this.concurrencyLimit = concurrencyLimit;
-        this.taskDecorator = taskDecorator;
-        this.delegate = new SimpleAsyncTaskExecutor(VIRTUAL_THREAD_NAME_PREFIX);
+        this.taskDecorator = Objects.requireNonNull(taskDecorator, "taskDecorator 不能为空");
+        if (threadNamePrefix == null || threadNamePrefix.isBlank()) {
+            throw new IllegalArgumentException("线程名前缀不能为空");
+        }
+        this.threadNamePrefix = threadNamePrefix;
+        this.threadNamePattern = Pattern.compile(
+                Pattern.quote(threadNamePrefix)
+                        + "\\d+(?:\\[[^\\[\\]]*\\])*");
+        this.delegate = new SimpleAsyncTaskExecutor(threadNamePrefix);
         delegate.setVirtualThreads(true);
-        delegate.setTaskTerminationTimeout(awaitTermination.toMillis());
+        delegate.setTaskTerminationTimeout(
+                Objects.requireNonNull(awaitTermination, "awaitTermination 不能为空").toMillis());
     }
 
     /**
@@ -131,6 +163,63 @@ public final class MonitoredVirtualTaskExecutor
         return future;
     }
 
+    /**
+     * 以可观测的方式提交 {@link CompletableFuture} 异步任务。
+     * Spring {@code @Async} 方法声明为 {@code CompletableFuture} 时会走该入口；
+     * 若使用接口默认实现，异常会被 CompletableFuture 内部捕获，导致执行器指标无法记录失败。
+     * 此处在完成返回 Future 前记录失败，确保 Future 完成时失败指标已经可见，
+     * 并避免异常被 CompletableFuture 消费后再泄漏为虚拟线程未捕获异常。
+     *
+     * @param task 待提交的任务，不允许为 {@code null}
+     * @param <T> 任务结果类型
+     * @return 表示任务异步执行结果的 CompletableFuture
+     */
+    @Override
+    public <T> CompletableFuture<T> submitCompletable(Callable<T> task) {
+        Objects.requireNonNull(task, "task 不能为空");
+        CompletableFuture<T> future = new CompletableFuture<>();
+        execute(() -> {
+            if (future.isDone()) {
+                return;
+            }
+            try {
+                future.complete(task.call());
+            } catch (RuntimeException | Error exception) {
+                metrics.recordExternalFailure();
+                future.completeExceptionally(exception);
+            } catch (Exception exception) {
+                metrics.recordExternalFailure();
+                future.completeExceptionally(exception);
+            }
+        });
+        return future;
+    }
+
+    /**
+     * 以可观测的方式提交无返回值的 {@link CompletableFuture} 异步任务。
+     *
+     * @param task 待提交的任务，不允许为 {@code null}
+     * @return 表示任务异步执行结果的 CompletableFuture
+     */
+    @Override
+    public CompletableFuture<Void> submitCompletable(Runnable task) {
+        Objects.requireNonNull(task, "task 不能为空");
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        execute(() -> {
+            if (future.isDone()) {
+                return;
+            }
+            try {
+                task.run();
+                future.complete(null);
+            } catch (RuntimeException | Error exception) {
+                metrics.recordExternalFailure();
+                future.completeExceptionally(exception);
+            }
+        });
+        return future;
+    }
+
     @Override
     public String getName() {
         return name;
@@ -147,7 +236,7 @@ public final class MonitoredVirtualTaskExecutor
                 .name(name)
                 .type(ThreadPoolType.VIRTUAL)
                 .status(status)
-                .threadNamePrefix(VIRTUAL_THREAD_NAME_PREFIX)
+                .threadNamePrefix(threadNamePrefix)
                 .corePoolSize(null)
                 .maximumPoolSize(null)
                 .poolSize(null)
@@ -168,11 +257,11 @@ public final class MonitoredVirtualTaskExecutor
      * 判断指定线程是否属于当前虚拟线程执行器管理。
      *
      * @param threadName 线程名称，可能为 {@code null}
-     * @return 若线程名以虚拟线程名前缀开头则返回 {@code true}，否则返回 {@code false}
+     * @return 若线程名符合当前执行器的完整命名格式则返回 {@code true}，否则返回 {@code false}
      */
     @Override
     public boolean ownsThread(String threadName) {
-        return threadName != null && threadName.startsWith(VIRTUAL_THREAD_NAME_PREFIX);
+        return threadName != null && threadNamePattern.matcher(threadName).matches();
     }
 
     /**
