@@ -1,5 +1,6 @@
 package com.basic.core.threadpool.config;
 
+import com.basic.core.threadpool.aspect.AsyncTaskNamingAspect;
 import com.basic.core.threadpool.constant.ThreadPoolNames;
 import com.basic.core.threadpool.context.ContextCopyingTaskDecorator;
 import com.basic.core.threadpool.executor.MonitoredThreadPoolTaskExecutor;
@@ -8,9 +9,12 @@ import com.basic.core.threadpool.executor.MonitoredVirtualTaskExecutor;
 import com.basic.core.threadpool.handler.ThreadPoolAsyncExceptionHandler;
 import com.basic.core.threadpool.monitor.ManagedExecutorMonitor;
 import com.basic.core.threadpool.monitor.ThreadPoolMonitorRegistry;
+import com.basic.core.threadpool.support.ThreadPoolTaskRunner;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.AsyncTaskExecutor;
 
 import java.util.List;
 
@@ -57,6 +61,18 @@ public class ThreadPoolConfiguration {
                 ThreadPoolNames.SCHEDULED,
                 properties.getScheduled().getPoolSize(),
                 properties.getShutdown().getAwaitTermination());
+    }
+
+    @Bean
+    ThreadPoolTaskRunner threadPoolTaskRunner(
+            @Qualifier(ThreadPoolNames.CPU) AsyncTaskExecutor cpuExecutor,
+            @Qualifier(ThreadPoolNames.VIRTUAL) AsyncTaskExecutor virtualExecutor) {
+        return new ThreadPoolTaskRunner(cpuExecutor, virtualExecutor);
+    }
+
+    @Bean
+    AsyncTaskNamingAspect asyncTaskNamingAspect() {
+        return new AsyncTaskNamingAspect();
     }
 
     @Bean

@@ -225,6 +225,32 @@ public void loadRemoteData() {
 }
 ```
 
+`@Async` 方法会自动以“类名.方法名”作为任务名，在任务执行期间追加到线程名并写入 MDC。例如：
+
+```java
+@Async(ThreadPoolNames.VIRTUAL)
+public void syncUser() {
+    // 执行期间线程名：basic-virtual-N[SysUserService.syncUser]
+}
+```
+
+对于不适合使用 `@Async` 的业务代码，注入 `ThreadPoolTaskRunner` 提交具名任务。`executeCpu`、`executeVirtual` 不返回结果；`submitCpu`、`submitVirtual` 可提交 `Runnable` 或 `Callable`，并返回 `Future` 获取结果或异常。所有任务名都会同步写入 MDC 的 `taskName`，任务结束（含异常和嵌套调用）后自动恢复原有线程名和 MDC 值。
+
+```java
+@RequiredArgsConstructor
+@Service
+public class UserImportService {
+
+    private final ThreadPoolTaskRunner taskRunner;
+
+    public void importUser() {
+        taskRunner.executeVirtual("用户批量导入", () -> {
+            // 阻塞 I/O 任务
+        });
+    }
+}
+```
+
 #### 定时任务约束
 
 耗时 `@Scheduled` 方法只负责触发，实际工作必须转交给业务执行器（`cpuTaskExecutor` 或 `virtualTaskExecutor`）。这样可以避免调度线程被长任务占用，影响后续触发。
