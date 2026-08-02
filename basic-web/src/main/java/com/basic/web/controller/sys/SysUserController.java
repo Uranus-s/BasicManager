@@ -13,6 +13,7 @@ import com.basic.core.security.model.LoginUser;
 import com.basic.sericve.sysUser.service.ISysUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +40,7 @@ public class SysUserController implements SysUserApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:user:add')")
     @PostMapping
     @OperateLog(module = "用户管理", method = "新增用户")
     public Result<?> addUser(@Valid @RequestBody UserAddDTO dto) {
@@ -53,6 +55,7 @@ public class SysUserController implements SysUserApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:user:edit')")
     @PutMapping
     @OperateLog(module = "用户管理", method = "更新用户")
     public Result<?> updateUser(@Valid @RequestBody UserUpdateDTO dto) {
@@ -67,6 +70,7 @@ public class SysUserController implements SysUserApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:user:delete')")
     @DeleteMapping("/{id}")
     @OperateLog(module = "用户管理", method = "删除用户")
     public Result<?> deleteUser(@PathVariable("id") Long id) {
@@ -81,6 +85,7 @@ public class SysUserController implements SysUserApi {
      * @return 用户信息
      */
     @Override
+    @PreAuthorize("hasAuthority('system:user:query')")
     @GetMapping("/{id}")
     public Result<UserVO> getUserById(@PathVariable("id") Long id) {
         return Result.success(sysUserService.getUserById(id));
@@ -93,6 +98,7 @@ public class SysUserController implements SysUserApi {
      * @return 用户列表（分页）
      */
     @Override
+    @PreAuthorize("hasAuthority('system:user:query')")
     @GetMapping("/list")
     public Result<PageResult<UserListVO>> getUserList(UserQueryDTO dto) {
         return Result.success(sysUserService.getUserList(dto));
@@ -105,6 +111,7 @@ public class SysUserController implements SysUserApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:user:resetPwd')")
     @PostMapping("/resetPwd/{id}")
     @OperateLog(module = "用户管理", method = "重置密码")
     public Result<?> resetPassword(@PathVariable("id") Long id) {
@@ -120,6 +127,7 @@ public class SysUserController implements SysUserApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:user:assignRole')")
     @PostMapping("/assignRoles/{userId}")
     @OperateLog(module = "用户管理", method = "分配用户角色")
     public Result<?> assignRoles(@PathVariable("userId") Long userId, @RequestBody List<Long> roleIds) {
@@ -134,6 +142,7 @@ public class SysUserController implements SysUserApi {
      * @return 角色ID列表
      */
     @Override
+    @PreAuthorize("hasAuthority('system:user:query')")
     @GetMapping("/roles/{userId}")
     public Result<List<Long>> getUserRoles(@PathVariable("userId") Long userId) {
         return Result.success(sysUserService.getUserRoles(userId));

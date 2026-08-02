@@ -12,6 +12,7 @@ import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysPermission.service.ISysPermissionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,6 +36,7 @@ public class SysPermissionController implements SysPermissionApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:permission:add')")
     @PostMapping
     @OperateLog(module = "菜单权限管理", method = "新增权限")
     public Result<?> addPermission(@Valid @RequestBody PermissionAddDTO dto) {
@@ -49,6 +51,7 @@ public class SysPermissionController implements SysPermissionApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:permission:edit')")
     @PutMapping
     @OperateLog(module = "菜单权限管理", method = "更新权限")
     public Result<?> updatePermission(@Valid @RequestBody PermissionUpdateDTO dto) {
@@ -63,6 +66,7 @@ public class SysPermissionController implements SysPermissionApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:permission:delete')")
     @DeleteMapping("/{id}")
     @OperateLog(module = "菜单权限管理", method = "删除权限")
     public Result<?> deletePermission(@PathVariable("id") Long id) {
@@ -77,6 +81,7 @@ public class SysPermissionController implements SysPermissionApi {
      * @return 权限信息
      */
     @Override
+    @PreAuthorize("hasAuthority('system:permission:query')")
     @GetMapping("/{id}")
     public Result<PermissionVO> getPermissionById(@PathVariable("id") Long id) {
         return Result.success(sysPermissionService.getPermissionById(id));
@@ -89,6 +94,7 @@ public class SysPermissionController implements SysPermissionApi {
      * @return 权限列表（分页）
      */
     @Override
+    @PreAuthorize("hasAuthority('system:permission:query')")
     @GetMapping("/list")
     public Result<PageResult<PermissionVO>> getPermissionList(PermissionQueryDTO dto) {
         return Result.success(sysPermissionService.getPermissionList(dto));
@@ -100,6 +106,7 @@ public class SysPermissionController implements SysPermissionApi {
      * @return 权限树形列表
      */
     @Override
+    @PreAuthorize("hasAuthority('system:permission:query')")
     @GetMapping("/tree")
     public Result<List<PermissionTreeVO>> getPermissionTree() {
         return Result.success(sysPermissionService.getPermissionTree());
@@ -111,6 +118,7 @@ public class SysPermissionController implements SysPermissionApi {
      * @return 所有权限列表
      */
     @Override
+    @PreAuthorize("hasAuthority('system:permission:query')")
     @GetMapping("/all")
     public Result<List<PermissionVO>> getAllPermissions() {
         return Result.success(sysPermissionService.getAllPermissions());
@@ -123,6 +131,7 @@ public class SysPermissionController implements SysPermissionApi {
      * @return 权限标识列表
      */
     @Override
+    @PreAuthorize("hasAuthority('system:permission:query')")
     @GetMapping("/user/{userId}")
     public Result<List<String>> getUserPermissions(@PathVariable("userId") Long userId) {
         return Result.success(sysPermissionService.getUserPermissions(userId));

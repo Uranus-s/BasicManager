@@ -7,6 +7,7 @@ import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import com.basic.sericve.sysLoginLog.service.ISysLoginLogService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,6 +31,7 @@ public class SysLoginLogController implements SysLoginLogApi {
      * @return 登录日志信息
      */
     @Override
+    @PreAuthorize("hasAuthority('system:loginLog:query')")
     @GetMapping("/{id}")
     public Result<LoginLogVO> getLoginLogById(@PathVariable("id") Long id) {
         return Result.success(sysLoginLogService.getLoginLogById(id));
@@ -42,6 +44,7 @@ public class SysLoginLogController implements SysLoginLogApi {
      * @return 登录日志列表（分页）
      */
     @Override
+    @PreAuthorize("hasAuthority('system:loginLog:query')")
     @GetMapping("/list")
     public Result<PageResult<LoginLogVO>> getLoginLogList(LoginLogQueryDTO dto) {
         return Result.success(sysLoginLogService.getLoginLogList(dto));
@@ -54,6 +57,7 @@ public class SysLoginLogController implements SysLoginLogApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:loginLog:delete')")
     @DeleteMapping("/{id}")
     public Result<?> deleteLoginLog(@PathVariable("id") Long id) {
         sysLoginLogService.deleteLoginLog(id);
@@ -67,6 +71,7 @@ public class SysLoginLogController implements SysLoginLogApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:loginLog:batchDelete')")
     @DeleteMapping("/batch")
     public Result<?> deleteLoginLogs(@RequestBody List<Long> ids) {
         sysLoginLogService.deleteLoginLogs(ids);
@@ -79,6 +84,7 @@ public class SysLoginLogController implements SysLoginLogApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:loginLog:clear')")
     @DeleteMapping("/clear")
     public Result<?> clearLoginLog() {
         sysLoginLogService.clearLoginLog();

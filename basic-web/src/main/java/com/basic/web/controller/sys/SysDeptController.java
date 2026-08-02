@@ -13,6 +13,7 @@ import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysDept.service.ISysDeptService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,6 +37,7 @@ public class SysDeptController implements SysDeptApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dept:add')")
     @PostMapping
     @OperateLog(module = "部门管理", method = "新增部门")
     public Result<?> addDept(@Valid @RequestBody DeptAddDTO dto) {
@@ -50,6 +52,7 @@ public class SysDeptController implements SysDeptApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dept:edit')")
     @PutMapping
     @OperateLog(module = "部门管理", method = "更新部门")
     public Result<?> updateDept(@Valid @RequestBody DeptUpdateDTO dto) {
@@ -64,6 +67,7 @@ public class SysDeptController implements SysDeptApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dept:delete')")
     @DeleteMapping("/{id}")
     @OperateLog(module = "部门管理", method = "删除部门")
     public Result<?> deleteDept(@PathVariable("id") Long id) {
@@ -78,6 +82,7 @@ public class SysDeptController implements SysDeptApi {
      * @return 部门信息
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dept:query')")
     @GetMapping("/{id}")
     public Result<DeptVO> getDeptById(@PathVariable("id") Long id) {
         return Result.success(sysDeptService.getDeptById(id));
@@ -90,6 +95,7 @@ public class SysDeptController implements SysDeptApi {
      * @return 部门列表（分页）
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dept:query')")
     @GetMapping("/list")
     public Result<PageResult<DeptVO>> getDeptList(DeptQueryDTO dto) {
         return Result.success(sysDeptService.getDeptList(dto));
@@ -101,6 +107,7 @@ public class SysDeptController implements SysDeptApi {
      * @return 部门树形列表
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dept:query')")
     @GetMapping("/tree")
     public Result<List<DeptTreeVO>> getDeptTree() {
         return Result.success(sysDeptService.getDeptTree());
@@ -112,6 +119,7 @@ public class SysDeptController implements SysDeptApi {
      * @return 所有部门列表
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dept:query')")
     @GetMapping("/all")
     public Result<List<DeptVO>> getAllDepts() {
         return Result.success(sysDeptService.getAllDepts());
@@ -124,6 +132,7 @@ public class SysDeptController implements SysDeptApi {
      * @return 用户列表
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dept:query')")
     @GetMapping("/users/{deptId}")
     public Result<List<UserListVO>> getUsersByDeptId(@PathVariable("deptId") Long deptId) {
         return Result.success(sysDeptService.getUsersByDeptId(deptId));
@@ -137,6 +146,7 @@ public class SysDeptController implements SysDeptApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dept:assignUser')")
     @PostMapping("/users/{deptId}")
     @OperateLog(module = "部门管理", method = "新增部门用户")
     public Result<?> addUsersToDept(@PathVariable("deptId") Long deptId, @RequestBody List<Long> userIds) {
@@ -152,6 +162,7 @@ public class SysDeptController implements SysDeptApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dept:assignUser')")
     @DeleteMapping("/users/{deptId}")
     @OperateLog(module = "部门管理", method = "删除部门用户")
     public Result<?> removeUsersFromDept(@PathVariable("deptId") Long deptId, @RequestBody List<Long> userIds) {

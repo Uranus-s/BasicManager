@@ -11,6 +11,7 @@ import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysDictItem.service.ISysDictItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,6 +35,7 @@ public class SysDictItemController implements SysDictItemApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dict:item:add')")
     @PostMapping
     @OperateLog(module = "字典项管理", method = "新增字典项")
     public Result<?> addDictItem(@Valid @RequestBody DictItemAddDTO dto) {
@@ -48,6 +50,7 @@ public class SysDictItemController implements SysDictItemApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dict:item:edit')")
     @PutMapping
     @OperateLog(module = "字典项管理", method = "更新字典项")
     public Result<?> updateDictItem(@Valid @RequestBody DictItemUpdateDTO dto) {
@@ -62,6 +65,7 @@ public class SysDictItemController implements SysDictItemApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dict:item:delete')")
     @DeleteMapping("/{id}")
     @OperateLog(module = "字典项管理", method = "删除字典项")
     public Result<?> deleteDictItem(@PathVariable("id") Long id) {
@@ -76,6 +80,7 @@ public class SysDictItemController implements SysDictItemApi {
      * @return 字典项信息
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dict:item:query')")
     @GetMapping("/{id}")
     public Result<DictItemVO> getDictItemById(@PathVariable("id") Long id) {
         return Result.success(sysDictItemService.getDictItemById(id));
@@ -88,6 +93,7 @@ public class SysDictItemController implements SysDictItemApi {
      * @return 字典项列表（分页）
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dict:item:query')")
     @GetMapping("/list")
     public Result<PageResult<DictItemVO>> getDictItemList(DictItemQueryDTO dto) {
         return Result.success(sysDictItemService.getDictItemList(dto));
@@ -100,6 +106,7 @@ public class SysDictItemController implements SysDictItemApi {
      * @return 字典项列表
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dict:item:query')")
     @GetMapping("/dict/{dictId}")
     public Result<List<DictItemVO>> getDictItemsByDictId(@PathVariable("dictId") Long dictId) {
         return Result.success(sysDictItemService.getDictItemsByDictId(dictId));
@@ -112,6 +119,7 @@ public class SysDictItemController implements SysDictItemApi {
      * @return 字典项列表
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dict:item:query')")
     @GetMapping("/code/{dictCode}")
     public Result<List<DictItemVO>> getDictItemsByDictCode(@PathVariable String dictCode) {
         return Result.success(sysDictItemService.getDictItemsByDictCode(dictCode));

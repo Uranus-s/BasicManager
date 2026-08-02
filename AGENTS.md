@@ -41,11 +41,8 @@ cd basic-ui && pnpm run serve:rspack
 # 构建前端
 cd basic-ui && pnpm run build
 
-# 初始化数据库
-mysql -u root -p basic_project < initSql.sql
-
-# 导入初始数据（如需要）
-mysql -u root -p basic_project < initData.sql
+# 初始化数据库结构及演示数据（仅适用于全新环境）
+mysql -u root -p < initSql.sql
 ```
 
 ## 模块结构
@@ -168,7 +165,7 @@ Entity → VO → 响应
 2. 在 `basic-dao` 新增或修改 Entity、Mapper、Mapper XML。
 3. 在 `basic-service` 新增或修改 Service 接口和实现，处理业务校验、事务、转换。
 4. 在 `basic-web` 新增或修改 Controller，实现 api 接口并调用 service。
-5. 如涉及数据库结构，更新 `initSql.sql`；如涉及初始化业务数据，更新 `initData.sql`。
+5. 如涉及数据库结构或初始化业务数据，统一更新完整初始化脚本 `initSql.sql`。
 6. 如接口会改变认证、权限、菜单或日志行为，同步检查 Security、权限初始化和 `@OperateLog`。
 7. 运行最小必要验证命令，至少编译受影响模块。
 
@@ -185,8 +182,7 @@ Entity → VO → 响应
 - 服务端口：`8080`
 - 数据库：MySQL，库名 `basic_project`
 - Redis：集群模式
-- 初始化结构脚本：`initSql.sql`
-- 初始化数据脚本：`initData.sql`
+- 完整初始化脚本：`initSql.sql`，会创建数据库、重建项目表并写入演示数据，仅适用于全新环境
 
 不要在代码或文档中新增真实密码、生产密钥、私有 token。示例配置使用占位符。
 

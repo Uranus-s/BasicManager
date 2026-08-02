@@ -388,6 +388,16 @@ mvn spring-boot:run -pl basic-web
 mvn test -Dtest=TestClassName
 ```
 
+### 初始化数据库
+
+`initSql.sql` 是唯一的数据库初始化入口，会创建 `basic_project` 数据库、重建项目表并写入演示数据，仅适用于全新环境：
+
+```bash
+mysql -u root -p < initSql.sql
+```
+
+初始化账号为 `admin`、`dept_admin`、`demo`，默认密码均为 `123456`。这些账号仅用于本地开发和功能演示，部署到其他环境前必须修改密码。
+
 ### 前端命令
 
 ```bash

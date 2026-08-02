@@ -11,6 +11,7 @@ import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysDict.service.ISysDictService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,6 +35,7 @@ public class SysDictController implements SysDictApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dict:add')")
     @PostMapping
     @OperateLog(module = "字典管理", method = "新增字典")
     public Result<?> addDict(@Valid @RequestBody DictAddDTO dto) {
@@ -48,6 +50,7 @@ public class SysDictController implements SysDictApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dict:edit')")
     @PutMapping
     @OperateLog(module = "字典管理", method = "更新字典")
     public Result<?> updateDict(@Valid @RequestBody DictUpdateDTO dto) {
@@ -62,6 +65,7 @@ public class SysDictController implements SysDictApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dict:delete')")
     @DeleteMapping("/{id}")
     @OperateLog(module = "字典管理", method = "删除字典")
     public Result<?> deleteDict(@PathVariable("id") Long id) {
@@ -76,6 +80,7 @@ public class SysDictController implements SysDictApi {
      * @return 字典信息
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dict:query')")
     @GetMapping("/{id}")
     public Result<DictVO> getDictById(@PathVariable("id") Long id) {
         return Result.success(sysDictService.getDictById(id));
@@ -88,6 +93,7 @@ public class SysDictController implements SysDictApi {
      * @return 字典列表（分页）
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dict:query')")
     @GetMapping("/list")
     public Result<PageResult<DictVO>> getDictList(DictQueryDTO dto) {
         return Result.success(sysDictService.getDictList(dto));
@@ -99,6 +105,7 @@ public class SysDictController implements SysDictApi {
      * @return 所有字典列表
      */
     @Override
+    @PreAuthorize("hasAuthority('system:dict:query')")
     @GetMapping("/all")
     public Result<List<DictVO>> getAllDicts() {
         return Result.success(sysDictService.getAllDicts());

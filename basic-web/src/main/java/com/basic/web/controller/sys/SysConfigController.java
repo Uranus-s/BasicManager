@@ -11,6 +11,7 @@ import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysConfig.service.ISysConfigService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -32,6 +33,7 @@ public class SysConfigController implements SysConfigApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:config:add')")
     @PostMapping
     @OperateLog(module = "参数配置管理", method = "新增配置")
     public Result<?> addConfig(@Valid @RequestBody ConfigAddDTO dto) {
@@ -46,6 +48,7 @@ public class SysConfigController implements SysConfigApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:config:edit')")
     @PutMapping
     @OperateLog(module = "参数配置管理", method = "更新配置")
     public Result<?> updateConfig(@Valid @RequestBody ConfigUpdateDTO dto) {
@@ -60,6 +63,7 @@ public class SysConfigController implements SysConfigApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:config:delete')")
     @DeleteMapping("/{id}")
     @OperateLog(module = "参数配置管理", method = "删除配置")
     public Result<?> deleteConfig(@PathVariable("id") Long id) {
@@ -74,6 +78,7 @@ public class SysConfigController implements SysConfigApi {
      * @return 配置信息
      */
     @Override
+    @PreAuthorize("hasAuthority('system:config:query')")
     @GetMapping("/{id}")
     public Result<ConfigVO> getConfigById(@PathVariable("id") Long id) {
         return Result.success(sysConfigService.getConfigById(id));
@@ -86,6 +91,7 @@ public class SysConfigController implements SysConfigApi {
      * @return 配置列表（分页）
      */
     @Override
+    @PreAuthorize("hasAuthority('system:config:query')")
     @GetMapping("/list")
     public Result<PageResult<ConfigVO>> getConfigList(ConfigQueryDTO dto) {
         return Result.success(sysConfigService.getConfigList(dto));
@@ -98,6 +104,7 @@ public class SysConfigController implements SysConfigApi {
      * @return 配置值
      */
     @Override
+    @PreAuthorize("hasAuthority('system:config:query')")
     @GetMapping("/key/{configKey}")
     public Result<String> getConfigByKey(@PathVariable String configKey) {
         return Result.success(sysConfigService.getConfigByKey(configKey));

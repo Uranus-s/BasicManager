@@ -7,6 +7,7 @@ import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import com.basic.sericve.sysLog.service.ISysLogService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,6 +31,7 @@ public class SysLogController implements SysLogApi {
      * @return 统一日志列表（分页）
      */
     @Override
+    @PreAuthorize("hasAuthority('system:log:query')")
     @GetMapping("/list")
     public Result<PageResult<SysLogVO>> getLogList(SysLogQueryDTO dto) {
         return Result.success(sysLogService.getLogList(dto));

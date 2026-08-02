@@ -8,6 +8,7 @@ import com.basic.common.result.Result;
 import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysFile.service.ISysFileService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,6 +37,7 @@ public class SysFileController implements SysFileApi {
      * @return 文件ID
      */
     @Override
+    @PreAuthorize("hasAuthority('system:file:upload')")
     @PostMapping
     @OperateLog(module = "文件管理", method = "上传文件记录")
     public Result<Long> uploadFile(@RequestParam("fileName") String fileName, @RequestParam("filePath") String filePath,
@@ -53,6 +55,7 @@ public class SysFileController implements SysFileApi {
      * @return 文件信息
      */
     @Override
+    @PreAuthorize("hasAuthority('system:file:upload')")
     @PostMapping("/upload")
     @OperateLog(module = "文件管理", method = "上传文件")
     public Result<FileVO> upload(@RequestParam("file") MultipartFile file, @RequestParam("bizType") String bizType) {
@@ -66,6 +69,7 @@ public class SysFileController implements SysFileApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:file:delete')")
     @DeleteMapping("/{id}")
     @OperateLog(module = "文件管理", method = "删除文件")
     public Result<?> deleteFile(@PathVariable("id") Long id) {
@@ -80,6 +84,7 @@ public class SysFileController implements SysFileApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:file:delete')")
     @DeleteMapping("/batch")
     @OperateLog(module = "文件管理", method = "批量删除文件")
     public Result<?> deleteFiles(@RequestBody List<Long> ids) {
@@ -94,6 +99,7 @@ public class SysFileController implements SysFileApi {
      * @return 文件信息
      */
     @Override
+    @PreAuthorize("hasAuthority('system:file:query')")
     @GetMapping("/{id}")
     public Result<FileVO> getFileById(@PathVariable("id") Long id) {
         return Result.success(sysFileService.getFileById(id));
@@ -106,6 +112,7 @@ public class SysFileController implements SysFileApi {
      * @return 文件列表（分页）
      */
     @Override
+    @PreAuthorize("hasAuthority('system:file:query')")
     @GetMapping("/list")
     public Result<PageResult<FileVO>> getFileList(FileQueryDTO dto) {
         return Result.success(sysFileService.getFileList(dto));

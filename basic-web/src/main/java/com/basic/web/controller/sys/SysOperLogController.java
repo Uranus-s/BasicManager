@@ -7,6 +7,7 @@ import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import com.basic.sericve.sysOperLog.service.ISysOperLogService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,6 +31,7 @@ public class SysOperLogController implements SysOperLogApi {
      * @return 操作日志信息
      */
     @Override
+    @PreAuthorize("hasAuthority('system:operLog:query')")
     @GetMapping("/{id}")
     public Result<OperLogVO> getOperLogById(@PathVariable("id") Long id) {
         return Result.success(sysOperLogService.getOperLogById(id));
@@ -42,6 +44,7 @@ public class SysOperLogController implements SysOperLogApi {
      * @return 操作日志列表（分页）
      */
     @Override
+    @PreAuthorize("hasAuthority('system:operLog:query')")
     @GetMapping("/list")
     public Result<PageResult<OperLogVO>> getOperLogList(OperLogQueryDTO dto) {
         return Result.success(sysOperLogService.getOperLogList(dto));
@@ -54,6 +57,7 @@ public class SysOperLogController implements SysOperLogApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:operLog:delete')")
     @DeleteMapping("/{id}")
     public Result<?> deleteOperLog(@PathVariable("id") Long id) {
         sysOperLogService.deleteOperLog(id);
@@ -67,6 +71,7 @@ public class SysOperLogController implements SysOperLogApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:operLog:batchDelete')")
     @DeleteMapping("/batch")
     public Result<?> deleteOperLogs(@RequestBody List<Long> ids) {
         sysOperLogService.deleteOperLogs(ids);
@@ -79,6 +84,7 @@ public class SysOperLogController implements SysOperLogApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:operLog:clear')")
     @DeleteMapping("/clear")
     public Result<?> clearOperLog() {
         sysOperLogService.clearOperLog();

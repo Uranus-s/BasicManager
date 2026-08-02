@@ -14,6 +14,7 @@ import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysRole.service.ISysRoleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,6 +38,7 @@ public class SysRoleController implements SysRoleApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:role:add')")
     @PostMapping
     @OperateLog(module = "角色管理", method = "新增角色")
     public Result<?> addRole(@Valid @RequestBody RoleAddDTO dto) {
@@ -51,6 +53,7 @@ public class SysRoleController implements SysRoleApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:role:edit')")
     @PutMapping
     @OperateLog(module = "角色管理", method = "更新角色")
     public Result<?> updateRole(@Valid @RequestBody RoleUpdateDTO dto) {
@@ -65,6 +68,7 @@ public class SysRoleController implements SysRoleApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:role:delete')")
     @DeleteMapping("/{id}")
     @OperateLog(module = "角色管理", method = "删除角色")
     public Result<?> deleteRole(@PathVariable("id") Long id) {
@@ -79,6 +83,7 @@ public class SysRoleController implements SysRoleApi {
      * @return 角色信息
      */
     @Override
+    @PreAuthorize("hasAuthority('system:role:query')")
     @GetMapping("/{id}")
     public Result<RoleVO> getRoleById(@PathVariable("id") Long id) {
         return Result.success(sysRoleService.getRoleById(id));
@@ -91,6 +96,7 @@ public class SysRoleController implements SysRoleApi {
      * @return 角色列表（分页）
      */
     @Override
+    @PreAuthorize("hasAuthority('system:role:query')")
     @GetMapping("/list")
     public Result<PageResult<RoleListVO>> getRoleList(RoleQueryDTO dto) {
         return Result.success(sysRoleService.getRoleList(dto));
@@ -102,6 +108,7 @@ public class SysRoleController implements SysRoleApi {
      * @return 所有角色列表
      */
     @Override
+    @PreAuthorize("hasAuthority('system:role:query')")
     @GetMapping("/all")
     public Result<List<RoleListVO>> getAllRoles() {
         return Result.success(sysRoleService.getAllRoles());
@@ -115,6 +122,7 @@ public class SysRoleController implements SysRoleApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:role:assignPermission')")
     @PostMapping("/assignPermissions/{roleId}")
     @OperateLog(module = "角色管理", method = "分配角色权限")
     public Result<?> assignPermissions(@PathVariable("roleId") Long roleId, @RequestBody List<Long> permissionIds) {
@@ -129,6 +137,7 @@ public class SysRoleController implements SysRoleApi {
      * @return 权限ID列表
      */
     @Override
+    @PreAuthorize("hasAuthority('system:role:query')")
     @GetMapping("/permissions/{roleId}")
     public Result<List<Long>> getRolePermissions(@PathVariable("roleId") Long roleId) {
         return Result.success(sysRoleService.getRolePermissions(roleId));
@@ -141,6 +150,7 @@ public class SysRoleController implements SysRoleApi {
      * @return 用户列表
      */
     @Override
+    @PreAuthorize("hasAuthority('system:role:query')")
     @GetMapping("/users/{roleId}")
     public Result<List<UserListVO>> getUsersByRoleId(@PathVariable("roleId") Long roleId) {
         return Result.success(sysRoleService.getUsersByRoleId(roleId));
@@ -154,6 +164,7 @@ public class SysRoleController implements SysRoleApi {
      * @return 操作结果
      */
     @Override
+    @PreAuthorize("hasAuthority('system:role:assignUser')")
     @PostMapping("/users/{roleId}")
     @OperateLog(module = "角色管理", method = "管理角色用户")
     public Result<?> manageRoleUsers(@PathVariable("roleId") Long roleId,

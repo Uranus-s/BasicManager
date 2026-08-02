@@ -32,7 +32,7 @@ public class SysMonitorController implements SysMonitorApi {
      */
     @Override
     @GetMapping("/status")
-//    @PreAuthorize("hasAuthority('system:monitor:view')")
+    @PreAuthorize("hasAuthority('system:monitor:view')")
     public Result<MonitorVO> getStatus() {
         return Result.success(sysMonitorService.getStatus());
     }
@@ -44,6 +44,7 @@ public class SysMonitorController implements SysMonitorApi {
      */
     @Override
     @GetMapping("/thread-pools")
+    @PreAuthorize("hasAuthority('system:monitor:view')")
     public Result<ThreadPoolMonitorVO> getThreadPoolStatus() {
         return Result.success(sysThreadPoolService.getStatus());
     }
