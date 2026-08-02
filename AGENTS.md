@@ -4,7 +4,7 @@
 
 ## 项目概览
 
-这是一个 Spring Boot 多模块项目，设计目标是支持单体演进或后续拆分为微服务。项目使用 Java 23、Spring Boot 4.0.0、MyBatis-Plus、Spring Security、JWT、Redis 和 MySQL。
+这是一个前后端一体的管理系统项目。后端采用 Spring Boot 多模块架构，设计目标是支持单体演进或后续拆分为微服务，使用 Java 23、Spring Boot 4.0.0、MyBatis-Plus、Spring Security、JWT、Redis 和 MySQL；配套前端位于 `basic-ui`，使用 Vue 3、Rspack、Element Plus、Vuex、Vue Router 和 Axios。
 
 当前工程以 `basic-web` 作为启动模块，业务能力按 `api`、`service`、`dao`、`core`、`common` 分层组织。
 
@@ -32,6 +32,15 @@ mvn spring-boot:run -pl basic-web
 # 只编译指定模块及其依赖
 mvn -pl basic-web -am compile
 
+# 安装前端依赖
+cd basic-ui && pnpm install
+
+# 启动前端开发服务器（默认端口 8091）
+cd basic-ui && pnpm run serve:rspack
+
+# 构建前端
+cd basic-ui && pnpm run build
+
 # 初始化数据库
 mysql -u root -p basic_project < initSql.sql
 
@@ -49,7 +58,8 @@ basic-parent
 ├─ basic-api              # 对外接口契约：Controller 接口、DTO、VO
 ├─ basic-service          # 业务逻辑：Service 接口与实现、领域编排、存储策略
 ├─ basic-dao              # 数据访问：Entity、Mapper、Mapper XML
-└─ basic-web              # 应用入口：启动类、Controller 实现、Web 配置
+├─ basic-web              # 后端应用入口：启动类、Controller 实现、Web 配置
+└─ basic-ui               # 配套前端：Vue 3、Rspack、Element Plus
 ```
 
 ## 依赖与调用方向

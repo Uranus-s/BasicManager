@@ -2,7 +2,7 @@
 
 ## 一、项目简介
 
-本项目是一个 **标准的 Spring Boot 多模块架构项目**，通过模块拆分实现 **职责清晰、解耦良好、便于扩展和维护**。项目同时包含 `api` 与 `web` 模块，适用于 **单体演进型项目或微服务架构**。
+本项目是一个前后端一体的管理系统。后端采用 **Spring Boot 多模块架构**，通过模块拆分实现 **职责清晰、解耦良好、便于扩展和维护**；配套前端位于 `basic-ui`，基于 Vue 3、Rspack 和 Element Plus 构建。
 
 ---
 
@@ -17,10 +17,11 @@ basic-parent (pom)
 ├─ basic-api                     接口定义模块（Controller 接口）
 ├─ basic-service                 业务逻辑模块
 ├─ basic-dao                     数据访问模块（Entity / Mapper）
-└─ basic-web                     Web入口模块（启动类）
+├─ basic-web                     后端 Web 入口模块（启动类）
+└─ basic-ui                      配套前端项目（Vue 3 / Rspack / Element Plus）
 ```
 
-**模块数量**：7 个（无 basic-job 模块）
+**后端 Maven 模块数量**：7 个（无 basic-job 模块），另包含 1 个独立前端项目 `basic-ui`。
 
 ---
 
@@ -386,6 +387,16 @@ mvn spring-boot:run -pl basic-web
 mvn test -Dtest=TestClassName
 ```
 
+### 前端命令
+
+```bash
+cd basic-ui
+pnpm install
+pnpm run serve:rspack
+```
+
+前端开发服务器默认地址为 `http://localhost:8091`。
+
 ### 配置信息
 
 | 配置项 | 值 |
@@ -409,6 +420,7 @@ mvn test -Dtest=TestClassName
 | basic-service | [README.md](./basic-service/README.md) |
 | basic-dao | [README.md](./basic-dao/README.md) |
 | basic-web | [README.md](./basic-web/README.md) |
+| basic-ui | [README.md](./basic-ui/README.md) |
 
 ---
 

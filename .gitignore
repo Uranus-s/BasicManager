@@ -45,3 +45,6 @@ build/
 ### Tests ###
 **/src/test/
 /uploads/
+
+### Superpowers Development Docs ###
+**/docs/superpowers/
