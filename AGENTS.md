@@ -52,8 +52,9 @@ mysql -u root -p basic_project < initData.sql
 
 ```text
 basic-parent
-├─ basic-common-core      # 通用能力：result、exception、utils、validate 等
-├─ basic-common-web       # Web 通用能力：advice、web exception、Jackson 配置等
+├─ basic-common           # 公共模块分组目录（非 Maven 模块）
+│  ├─ basic-common-core   # 通用能力：result、exception、utils、validate 等
+│  └─ basic-common-web    # Web 通用能力：advice、web exception、Jackson 配置等
 ├─ basic-core             # 项目核心能力：MyBatis、Redis、Security、AOP、日志等
 ├─ basic-api              # 对外接口契约：Controller 接口、DTO、VO
 ├─ basic-service          # 业务逻辑：Service 接口与实现、领域编排、存储策略

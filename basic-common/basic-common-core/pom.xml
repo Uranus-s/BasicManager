@@ -7,9 +7,10 @@
         <groupId>com.basic</groupId>
         <artifactId>basic</artifactId>
         <version>4.0.0</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>basic-common-web</artifactId>
+    <artifactId>basic-common-core</artifactId>
 
     <properties>
         <maven.compiler.source>23</maven.compiler.source>
@@ -18,23 +19,24 @@
     </properties>
 
     <dependencies>
-        <!-- Spring Web -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
         </dependency>
 
-        <!-- 依赖 common-core -->
         <dependency>
-            <groupId>com.basic</groupId>
-            <artifactId>basic-common-core</artifactId>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
         </dependency>
 
-        <!-- Test -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
     </dependencies>
 

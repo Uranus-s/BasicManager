@@ -142,8 +142,8 @@
         <module>basic-dao</module>
         <module>basic-api</module>
         <module>basic-core</module>
-        <module>basic-common-core</module>
-        <module>basic-common-web</module>
+        <module>basic-common/basic-common-core</module>
+        <module>basic-common/basic-common-web</module>
     </modules>
     <packaging>pom</packaging>
 

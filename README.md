@@ -11,8 +11,9 @@
 ```text
 basic-parent (pom)
 │
-├─ basic-common-core             公共工具模块
-├─ basic-common-web              Web层公共模块
+├─ basic-common                  公共模块分组目录
+│  ├─ basic-common-core          公共工具模块
+│  └─ basic-common-web           Web层公共模块
 ├─ basic-core                    核心能力模块（MyBatis-Plus / Redis / Security）
 ├─ basic-api                     接口定义模块（Controller 接口）
 ├─ basic-service                 业务逻辑模块
@@ -413,8 +414,8 @@ pnpm run serve:rspack
 
 | 模块 | 文档 |
 |------|------|
-| basic-common-core | [README.md](./basic-common-core/README.md) |
-| basic-common-web | [README.md](./basic-common-web/README.md) |
+| basic-common-core | [README.md](./basic-common/basic-common-core/README.md) |
+| basic-common-web | [README.md](./basic-common/basic-common-web/README.md) |
 | basic-core | [README.md](./basic-core/README.md) |
 | basic-api | [README.md](./basic-api/README.md) |
 | basic-service | [README.md](./basic-service/README.md) |
