@@ -39,7 +39,7 @@
             style="width: 120px"
           >
             <el-option
-              v-for="option in $dictOptions('user_status')"
+              v-for="option in $dictOptions('sys_user_status')"
               :key="option.value"
               :label="option.label"
               :value="Number(option.value)"
@@ -69,7 +69,13 @@
         <el-table-column label="类型" width="90">
           <template #default="{ row }">
             <el-tag :type="getTypeTag(row.type)">
-              {{ $dictLabel("menu_type", row.type, getTypeText(row.type)) }}
+              {{
+                $dictLabel(
+                  "sys_permission_type",
+                  row.type,
+                  getTypeText(row.type)
+                )
+              }}
             </el-tag>
           </template>
         </el-table-column>
@@ -117,8 +123,8 @@
         </el-table-column>
         <el-table-column label="状态" width="90">
           <template #default="{ row }">
-            <el-tag :type="$dictTagType('user_status', row.status)">
-              {{ $dictLabel("user_status", row.status) }}
+            <el-tag :type="$dictTagType('sys_user_status', row.status)">
+              {{ $dictLabel("sys_user_status", row.status) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -261,7 +267,7 @@
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
             <el-radio
-              v-for="option in $dictOptions('user_status')"
+              v-for="option in $dictOptions('sys_user_status')"
               :key="option.value"
               :label="Number(option.value)"
             >
@@ -376,7 +382,7 @@ export default {
     },
     permissionTypeOptions() {
       const options = this.$dictOptions(
-        "menu_type",
+        "sys_permission_type",
         permissionTypeFallbackOptions
       );
       const optionValues = new Set(options.map((option) => option.value));
@@ -387,7 +393,7 @@ export default {
     },
   },
   created() {
-    this.$loadDicts(["user_status", "menu_type"]);
+    this.$loadDicts(["sys_user_status", "sys_permission_type"]);
     this.getTree();
   },
   methods: {

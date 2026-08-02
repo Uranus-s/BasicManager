@@ -32,7 +32,7 @@
             style="width: 120px"
           >
             <el-option
-              v-for="option in $dictOptions('user_status')"
+              v-for="option in $dictOptions('sys_user_status')"
               :key="option.value"
               :label="option.label"
               :value="Number(option.value)"
@@ -92,8 +92,8 @@
         </el-table-column>
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="$dictTagType('user_status', row.status)">
-              {{ $dictLabel("user_status", row.status) }}
+            <el-tag :type="$dictTagType('sys_user_status', row.status)">
+              {{ $dictLabel("sys_user_status", row.status) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -188,7 +188,7 @@
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
             <el-radio
-              v-for="option in $dictOptions('user_status')"
+              v-for="option in $dictOptions('sys_user_status')"
               :key="option.value"
               :label="Number(option.value)"
             >
@@ -461,7 +461,7 @@ export default {
     },
   },
   created() {
-    this.$loadDict("user_status");
+    this.$loadDict("sys_user_status");
     this.getList();
   },
   methods: {

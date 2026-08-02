@@ -44,7 +44,7 @@ const getters = {
     }));
   },
   tagType: () => (code, value) => {
-    if (code === "user_status") {
+    if (code === "sys_user_status") {
       const status = normalizeValue(value);
       if (status === "1") return "success";
       if (status === "0") return "info";
