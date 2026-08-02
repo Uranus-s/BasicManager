@@ -37,6 +37,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.basic.core.security.service.AuthTokenService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -69,8 +70,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysRolePermissionMapper sysRolePermissionMapper;
     private final PasswordEncoder passwordEncoder;
     private final ISysFileService sysFileService;
-
-    private static final String DEFAULT_PASSWORD = "123456";
+    private final AuthTokenService authTokenService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -238,13 +238,17 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void resetPassword(Long id) {
+    public void resetPassword(Long id, String newPassword) {
         SysUser user = getById(id);
         if (user == null) {
             throw new BusinessException(ResultEnum.USER_NOT_EXIST);
         }
-        user.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
-        updateById(user);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        if (!updateById(user)) {
+            // 仅在密码真实落库后注销登录态，避免更新冲突却提示重置成功。
+            throw new BusinessException(ResultEnum.DATA_VERSION_EXPIRED);
+        }
+        authTokenService.forceLogout(id);
     }
 
     @Override
@@ -461,7 +465,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             {"菜单管理", "/system/permission", "system:permission:list", "menu", "3"},
             {"部门管理", "/system/dept", "system:dept:list", "office", "4"},
             {"字典管理", "/system/dict", "system:dict:list", "dict", "5"},
-            {"参数配置", "/system/config", "system:config:list", "config", "6"},
+            {"系统设置", "/system/config", "system:config:query", "Tools", "6", "system/config/index.vue"},
         };
 
         // 日志管理菜单
@@ -493,11 +497,28 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             perm.setPath(menu[1]);
             perm.setPermission(menu[2]);
             perm.setIcon(menu[3]);
+            if (menu.length > 5) {
+                perm.setComponent(menu[5]);
+            }
             perm.setSort(sort++);
             perm.setVisible((byte) 1);
             perm.setStatus((byte) 1);
             sysPermissionService.save(perm);
             permissionIds.add(perm.getId());
+
+            // 系统设置不开放任意键值管理，只为预定义设置补充修改权限。
+            if ("system:config:query".equals(perm.getPermission())) {
+                SysPermission editPermission = new SysPermission();
+                editPermission.setParentId(perm.getId());
+                editPermission.setName("修改系统设置");
+                editPermission.setType("BUTTON");
+                editPermission.setPermission("system:config:edit");
+                editPermission.setSort(1);
+                editPermission.setVisible((byte) 0);
+                editPermission.setStatus((byte) 1);
+                sysPermissionService.save(editPermission);
+                permissionIds.add(editPermission.getId());
+            }
         }
 
         // 保存日志子菜单

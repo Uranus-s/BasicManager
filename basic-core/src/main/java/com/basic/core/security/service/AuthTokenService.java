@@ -40,11 +40,24 @@ public class AuthTokenService {
     }
 
     public void saveLoginSession(LoginSession session) {
+        saveLoginSession(session, JwtUtil.getExpireMillis());
+    }
+
+    /**
+     * 按指定有效期保存登录会话，使 Redis TTL 与对应 JWT 保持一致。
+     *
+     * @param session      登录会话
+     * @param expireMillis 有效期毫秒数
+     */
+    public void saveLoginSession(LoginSession session, long expireMillis) {
         if (session == null) {
             throw new IllegalArgumentException("Login session cannot be null");
         }
+        if (expireMillis <= 0) {
+            throw new IllegalArgumentException("Login session expiration must be positive");
+        }
         redisUtils.set(buildLoginSessionKey(session.getUserId()), writeSession(session),
-                JwtUtil.getExpireMillis(), TimeUnit.MILLISECONDS);
+                expireMillis, TimeUnit.MILLISECONDS);
     }
 
     public void saveLoginToken(Long userId, String token) {

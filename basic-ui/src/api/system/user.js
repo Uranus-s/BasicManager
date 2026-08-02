@@ -59,3 +59,12 @@ export function assignUserRoles(userId, roleIds) {
     data: roleIds,
   });
 }
+
+export function resetUserPassword(id, data) {
+  return request({
+    baseURL: "",
+    url: `/system/user/resetPwd/${id}`,
+    method: "post",
+    data,
+  });
+}

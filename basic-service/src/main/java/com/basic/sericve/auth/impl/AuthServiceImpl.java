@@ -15,6 +15,7 @@ import com.basic.dao.sysUser.entity.SysUser;
 import com.basic.sericve.auth.service.IAuthService;
 import com.basic.sericve.auth.util.LoginRequestUtils;
 import com.basic.sericve.sysUser.service.ISysUserService;
+import com.basic.sericve.sysConfig.service.ISysConfigService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,6 +32,7 @@ public class AuthServiceImpl implements IAuthService {
     private final ISysUserService sysUserService;
     private final PasswordEncoder passwordEncoder;
     private final AuthTokenService authTokenService;
+    private final ISysConfigService sysConfigService;
 
     @Override
     public Long register(RegisterDTO registerDTO) {
@@ -93,8 +95,9 @@ public class AuthServiceImpl implements IAuthService {
         List<String> deptNames = userVO == null || userVO.getDeptNames() == null
                 ? List.of()
                 : userVO.getDeptNames();
-        String token = JwtUtil.generateToken(user.getId(), user.getUsername(), deptNames);
-        authTokenService.saveLoginSession(buildLoginSession(user, token, request));
+        long expireMillis = sysConfigService.getTokenExpireMillis();
+        String token = JwtUtil.generateToken(user.getId(), user.getUsername(), deptNames, expireMillis);
+        authTokenService.saveLoginSession(buildLoginSession(user, token, request), expireMillis);
 
         TokenVO tokenVO = new TokenVO();
         tokenVO.setToken(token);

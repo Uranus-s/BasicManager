@@ -4,8 +4,10 @@
  */
 
 import defaultSettings from '@/config'
+import { getPublicSystemSettings } from '@/api/system/config'
+import { normalizeSystemName } from '@/utils/systemName'
 
-const { tabsBar, logo, layout, header, themeBar } = defaultSettings
+const { tabsBar, logo, layout, header, themeBar, title } = defaultSettings
 const theme = JSON.parse(localStorage.getItem('basic-manage-theme')) || ''
 const state = () => ({
   tabsBar: theme.tabsBar || tabsBar,
@@ -15,6 +17,7 @@ const state = () => ({
   header: theme.header || header,
   device: 'desktop',
   themeBar,
+  systemName: title,
 })
 const getters = {
   collapse: (state) => state.collapse,
@@ -24,8 +27,12 @@ const getters = {
   logo: (state) => state.logo,
   tabsBar: (state) => state.tabsBar,
   themeBar: (state) => state.themeBar,
+  systemName: (state) => state.systemName,
 }
 const mutations = {
+  setSystemName: (state, systemName) => {
+    state.systemName = normalizeSystemName(systemName, title)
+  },
   changeLayout: (state, layout) => {
     if (layout) state.layout = layout
   },
@@ -49,6 +56,16 @@ const mutations = {
   },
 }
 const actions = {
+  async loadPublicSettings({ commit }) {
+    try {
+      const { data } = await getPublicSystemSettings()
+      commit('setSystemName', data?.systemName)
+    } catch (error) {
+      // 公开配置不可用不应阻塞登录，保留静态标题并记录诊断信息。
+      commit('setSystemName', title)
+      console.warn('获取公开系统设置失败，已使用静态配置。', error)
+    }
+  },
   changeLayout({ commit }, layout) {
     commit('changeLayout', layout)
   },

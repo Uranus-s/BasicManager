@@ -8,14 +8,14 @@
     <footer v-show="footerCopyright" class="footer-copyright">
       Copyright
       <el-icon><CopyDocument /></el-icon>
-      BasicManage {{ fullYear }}
+      {{ systemName }} {{ fullYear }}
     </footer>
   </div>
 </template>
 
 <script>
 import { mapActions, mapGetters } from "vuex";
-import { copyright, footerCopyright, keepAliveMaxNum, title } from "@/config";
+import { copyright, footerCopyright, keepAliveMaxNum } from "@/config";
 import { CopyDocument } from "@element-plus/icons-vue";
 import eventBus from "@/utils/eventBus";
 
@@ -29,7 +29,6 @@ export default {
       show: false,
       fullYear: new Date().getFullYear(),
       copyright,
-      title,
       keepAliveMaxNum,
       routerView: true,
       footerCopyright,
@@ -39,6 +38,7 @@ export default {
     ...mapGetters({
       visitedRoutes: "tabsBar/visitedRoutes",
       device: "settings/device",
+      systemName: "settings/systemName",
     }),
     cachedRoutes() {
       const cachedRoutesArr = [];

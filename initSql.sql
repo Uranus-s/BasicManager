@@ -191,7 +191,7 @@ CREATE TABLE sys_config
     config_value VARCHAR(255) NULL COMMENT '参数值',
     remark       VARCHAR(255) NULL COMMENT '备注',
     PRIMARY KEY (id),
-    KEY idx_sys_config_key_deleted (config_key, deleted)
+    UNIQUE KEY uk_sys_config_key_deleted (config_key, deleted)
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1000
   DEFAULT CHARSET = utf8mb4
@@ -458,15 +458,11 @@ VALUES
     (800, NOW(), NOW(), 1, 1, 0, 0, 1, '系统监控', 'MENU', '/system/monitor',
      'system/monitor/index.vue', 'system:monitor:view', 'Monitor', 8, 1, 1),
 
-    -- 暂无前端页面的后端模块，仅初始化接口权限，不生成动态菜单。
-    (900, NOW(), NOW(), 1, 1, 0, 0, 1, '查询参数配置', 'BUTTON', NULL, NULL,
-     'system:config:query', NULL, 90, 0, 1),
-    (901, NOW(), NOW(), 1, 1, 0, 0, 1, '新增参数配置', 'BUTTON', NULL, NULL,
-     'system:config:add', NULL, 91, 0, 1),
-    (902, NOW(), NOW(), 1, 1, 0, 0, 1, '修改参数配置', 'BUTTON', NULL, NULL,
-     'system:config:edit', NULL, 92, 0, 1),
-    (903, NOW(), NOW(), 1, 1, 0, 0, 1, '删除参数配置', 'BUTTON', NULL, NULL,
-     'system:config:delete', NULL, 93, 0, 1),
+    -- 系统设置只允许查看和修改预定义业务设置。
+    (900, NOW(), NOW(), 1, 1, 0, 0, 1, '系统设置', 'MENU', '/system/config',
+     'system/config/index.vue', 'system:config:query', 'Tools', 9, 1, 1),
+    (901, NOW(), NOW(), 1, 1, 0, 0, 900, '修改系统设置', 'BUTTON', NULL, NULL,
+     'system:config:edit', NULL, 1, 0, 1),
     (910, NOW(), NOW(), 1, 1, 0, 0, 1, '查询文件', 'BUTTON', NULL, NULL,
      'system:file:query', NULL, 94, 0, 1),
     (911, NOW(), NOW(), 1, 1, 0, 0, 1, '上传文件', 'BUTTON', NULL, NULL,
@@ -537,8 +533,7 @@ INSERT INTO sys_config
      config_key, config_value, remark)
 VALUES
     (1, NOW(), NOW(), 1, 1, 0, 0, 'sys.title', '基础管理系统', '系统名称'),
-    (2, NOW(), NOW(), 1, 1, 0, 0, 'sys.user.initPassword', '123456', '新用户默认密码'),
-    (3, NOW(), NOW(), 1, 1, 0, 0, 'sys.login.tokenExpire', '720', 'Token 有效期，单位分钟');
+    (2, NOW(), NOW(), 1, 1, 0, 0, 'sys.login.tokenExpireHours', '24', 'Token 有效期，单位小时');
 
 SET FOREIGN_KEY_CHECKS = 1;
 

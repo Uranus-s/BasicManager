@@ -74,7 +74,7 @@ public interface ISysUserService extends IService<SysUser> {
      *
      * @param id 用户ID
      */
-    void resetPassword(Long id);
+    void resetPassword(Long id, String newPassword);
 
     /**
      * 分配角色

@@ -52,15 +52,31 @@ public class JwtUtil {
      * @throws IllegalArgumentException 当用户ID或用户名为空时抛出异常
      */
     public static String generateToken(Long userId, String username, List<String> deptNames) {
+        return generateToken(userId, username, deptNames, EXPIRE);
+    }
+
+    /**
+     * 使用指定有效期生成 JWT，保证认证编排可与 Redis 会话使用同一时长。
+     *
+     * @param userId      用户ID
+     * @param username    用户名
+     * @param deptNames   部门名称列表
+     * @param expireMillis 有效期毫秒数
+     * @return JWT字符串
+     */
+    public static String generateToken(Long userId, String username, List<String> deptNames, long expireMillis) {
         if (userId == null || username == null) {
             throw new IllegalArgumentException("User ID and username cannot be null");
+        }
+        if (expireMillis <= 0) {
+            throw new IllegalArgumentException("Token expiration must be positive");
         }
         return Jwts.builder()
                 .subject(username)
                 .claim("uid", userId)
                 .claim("deptNames", deptNames == null ? List.of() : deptNames)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + EXPIRE))
+                .expiration(new Date(System.currentTimeMillis() + expireMillis))
                 .signWith(KEY, Jwts.SIG.HS256)
                 .compact();
     }

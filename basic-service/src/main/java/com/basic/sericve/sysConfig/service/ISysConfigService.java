@@ -1,65 +1,51 @@
 package com.basic.sericve.sysConfig.service;
 
-import com.basic.api.dto.sysConfig.ConfigAddDTO;
-import com.basic.api.dto.sysConfig.ConfigQueryDTO;
-import com.basic.api.dto.sysConfig.ConfigUpdateDTO;
-import com.basic.api.vo.sysConfig.ConfigVO;
-import com.basic.common.result.PageResult;
+import com.basic.api.dto.sysConfig.ConfigBasicUpdateDTO;
+import com.basic.api.dto.sysConfig.ConfigSecurityUpdateDTO;
+import com.basic.api.vo.sysConfig.ConfigSettingsVO;
+import com.basic.api.vo.sysConfig.PublicConfigVO;
 import com.basic.dao.sysConfig.entity.SysConfig;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
- * <p>
- * 系统参数表 服务类
- * </p>
+ * 系统设置服务，只暴露具有明确业务语义的预定义设置。
  *
  * @author Gas
  */
 public interface ISysConfigService extends IService<SysConfig> {
 
     /**
-     * 新增参数配置
+     * 获取管理端完整系统设置。
      *
-     * @param dto 参数配置新增DTO
-     * @return 参数ID
+     * @return 当前实际生效的系统设置
      */
-    Long addConfig(ConfigAddDTO dto);
+    ConfigSettingsVO getSettings();
 
     /**
-     * 更新参数配置
+     * 获取无需登录即可展示的基础设置。
      *
-     * @param dto 参数配置更新DTO
+     * @return 公开系统设置
      */
-    void updateConfig(ConfigUpdateDTO dto);
+    PublicConfigVO getPublicSettings();
 
     /**
-     * 删除参数配置
+     * 更新基础设置。
      *
-     * @param id 参数ID
+     * @param dto 基础设置
      */
-    void deleteConfig(Long id);
+    void updateBasicSettings(ConfigBasicUpdateDTO dto);
 
     /**
-     * 获取参数配置详情
+     * 更新账号安全设置。
      *
-     * @param id 参数ID
-     * @return 参数配置详情
+     * @param dto 账号安全设置
      */
-    ConfigVO getConfigById(Long id);
+    void updateSecuritySettings(ConfigSecurityUpdateDTO dto);
 
     /**
-     * 分页查询参数配置列表
+     * 获取 Token 有效期毫秒数，异常配置自动使用安全默认值。
      *
-     * @param dto 查询条件
-     * @return 分页结果
+     * @return Token 有效期毫秒数
      */
-    PageResult<ConfigVO> getConfigList(ConfigQueryDTO dto);
-
-    /**
-     * 根据参数键获取参数值
-     *
-     * @param configKey 参数键
-     * @return 参数值
-     */
-    String getConfigByKey(String configKey);
+    long getTokenExpireMillis();
 }

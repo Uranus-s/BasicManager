@@ -10,7 +10,7 @@ import {
   setAccessToken,
 } from "@/utils/accessToken";
 import { resetRouter } from "@/router";
-import { title, tokenName } from "@/config";
+import { tokenName } from "@/config";
 import { ElMessage } from "element-plus";
 
 const state = () => ({
@@ -69,7 +69,7 @@ const actions = {
     commit("setAvatar", data || "");
     return data;
   },
-  async login({ commit }, userInfo) {
+  async login({ commit, rootGetters }, userInfo) {
     const { data } = await login(userInfo);
     const accessToken = data[tokenName] || data.token;
     if (accessToken) {
@@ -85,7 +85,9 @@ const actions = {
           : hour < 18
           ? "下午好"
           : "晚上好";
-      ElMessage.success(`欢迎登录${title}，${thisTime}！`);
+      ElMessage.success(
+        `欢迎登录${rootGetters["settings/systemName"]}，${thisTime}！`
+      );
     } else {
       ElMessage.error(`登录接口异常，未正确返回${tokenName}...`);
     }

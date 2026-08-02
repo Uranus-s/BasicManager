@@ -303,6 +303,7 @@ module.exports = {
 
       [
         "/auth",
+        "/public",
         "/system",
         "/uploads",
         "/menu",

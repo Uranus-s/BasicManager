@@ -89,7 +89,6 @@
 import { reactive, ref, toRefs, onMounted, computed, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { title } from "@/config";
 import { isPassword } from "@/utils/validate";
 import { ElMessage } from "element-plus";
 import { Hide, View, User, Lock } from "@element-plus/icons-vue";
@@ -97,6 +96,7 @@ import { Hide, View, User, Lock } from "@element-plus/icons-vue";
 // 创建路由实例
 const router = useRouter();
 const store = useStore();
+const title = computed(() => store.getters["settings/systemName"]);
 
 // 响应式状态
 const state = reactive({

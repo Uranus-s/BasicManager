@@ -1,21 +1,23 @@
 package com.basic.web.controller.sys;
 
 import com.basic.api.controller.sys.SysConfigApi;
-import com.basic.api.dto.sysConfig.ConfigAddDTO;
-import com.basic.api.dto.sysConfig.ConfigQueryDTO;
-import com.basic.api.dto.sysConfig.ConfigUpdateDTO;
-import com.basic.api.vo.sysConfig.ConfigVO;
-import com.basic.common.result.PageResult;
+import com.basic.api.dto.sysConfig.ConfigBasicUpdateDTO;
+import com.basic.api.dto.sysConfig.ConfigSecurityUpdateDTO;
+import com.basic.api.vo.sysConfig.ConfigSettingsVO;
 import com.basic.common.result.Result;
 import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysConfig.service.ISysConfigService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 参数配置管理 Controller
+ * 系统设置管理入口。
  *
  * @author Gas
  */
@@ -26,87 +28,28 @@ public class SysConfigController implements SysConfigApi {
 
     private final ISysConfigService sysConfigService;
 
-    /**
-     * 新增配置
-     *
-     * @param dto 配置信息
-     * @return 操作结果
-     */
     @Override
-    @PreAuthorize("hasAuthority('system:config:add')")
-    @PostMapping
-    @OperateLog(module = "参数配置管理", method = "新增配置")
-    public Result<?> addConfig(@Valid @RequestBody ConfigAddDTO dto) {
-        sysConfigService.addConfig(dto);
-        return Result.success();
+    @PreAuthorize("hasAuthority('system:config:query')")
+    @GetMapping("/settings")
+    public Result<ConfigSettingsVO> getSettings() {
+        return Result.success(sysConfigService.getSettings());
     }
 
-    /**
-     * 更新配置信息
-     *
-     * @param dto 配置信息
-     * @return 操作结果
-     */
     @Override
     @PreAuthorize("hasAuthority('system:config:edit')")
-    @PutMapping
-    @OperateLog(module = "参数配置管理", method = "更新配置")
-    public Result<?> updateConfig(@Valid @RequestBody ConfigUpdateDTO dto) {
-        sysConfigService.updateConfig(dto);
+    @PutMapping("/settings/basic")
+    @OperateLog(module = "系统设置", method = "更新基础设置")
+    public Result<?> updateBasicSettings(@Valid @RequestBody ConfigBasicUpdateDTO dto) {
+        sysConfigService.updateBasicSettings(dto);
         return Result.success();
     }
 
-    /**
-     * 删除配置
-     *
-     * @param id 配置ID
-     * @return 操作结果
-     */
     @Override
-    @PreAuthorize("hasAuthority('system:config:delete')")
-    @DeleteMapping("/{id}")
-    @OperateLog(module = "参数配置管理", method = "删除配置")
-    public Result<?> deleteConfig(@PathVariable("id") Long id) {
-        sysConfigService.deleteConfig(id);
+    @PreAuthorize("hasAuthority('system:config:edit')")
+    @PutMapping("/settings/security")
+    @OperateLog(module = "系统设置", method = "更新账号安全设置")
+    public Result<?> updateSecuritySettings(@Valid @RequestBody ConfigSecurityUpdateDTO dto) {
+        sysConfigService.updateSecuritySettings(dto);
         return Result.success();
-    }
-
-    /**
-     * 根据ID获取配置详情
-     *
-     * @param id 配置ID
-     * @return 配置信息
-     */
-    @Override
-    @PreAuthorize("hasAuthority('system:config:query')")
-    @GetMapping("/{id}")
-    public Result<ConfigVO> getConfigById(@PathVariable("id") Long id) {
-        return Result.success(sysConfigService.getConfigById(id));
-    }
-
-    /**
-     * 获取配置列表（分页）
-     *
-     * @param dto 查询条件
-     * @return 配置列表（分页）
-     */
-    @Override
-    @PreAuthorize("hasAuthority('system:config:query')")
-    @GetMapping("/list")
-    public Result<PageResult<ConfigVO>> getConfigList(ConfigQueryDTO dto) {
-        return Result.success(sysConfigService.getConfigList(dto));
-    }
-
-    /**
-     * 根据配置键获取配置值
-     *
-     * @param configKey 配置键
-     * @return 配置值
-     */
-    @Override
-    @PreAuthorize("hasAuthority('system:config:query')")
-    @GetMapping("/key/{configKey}")
-    public Result<String> getConfigByKey(@PathVariable String configKey) {
-        return Result.success(sysConfigService.getConfigByKey(configKey));
     }
 }

@@ -1,6 +1,7 @@
 package com.basic.api.controller.sys;
 
 import com.basic.api.dto.sysUser.UserAddDTO;
+import com.basic.api.dto.sysUser.UserResetPasswordDTO;
 import com.basic.api.dto.sysUser.UserQueryDTO;
 import com.basic.api.dto.sysUser.UserUpdateDTO;
 import com.basic.api.vo.sysUser.UserListVO;
@@ -84,11 +85,12 @@ public interface SysUserApi {
      * @param id 用户ID
      * @return 操作结果
      */
-    @Operation(summary = "重置用户密码", description = "将指定用户密码重置为系统默认密码")
+    @Operation(summary = "重置用户密码", description = "管理员为指定用户设置临时密码并使现有会话失效")
     @PostMapping("/resetPwd/{id}")
     Result<?> resetPassword(
             @Parameter(description = "用户ID", example = "1", required = true)
-            @PathVariable Long id);
+            @PathVariable Long id,
+            @Valid @RequestBody UserResetPasswordDTO dto);
 
     /**
      * 分配角色

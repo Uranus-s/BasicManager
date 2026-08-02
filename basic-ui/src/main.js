@@ -7,36 +7,28 @@ import plugins from "./plugins";
 import { registerLayoutComponents } from "@/layouts/export";
 // 导入事件总线
 import eventBus from "@/utils/eventBus";
-// 导入配置
-import { title } from "@/config";
 
 /**
  * @author https://github.com/zxwk1998/vue-admin-better （不想保留author可删除）
  */
 
-// 创建应用实例
-const app = createApp(App);
+async function bootstrap() {
+  // 登录页需要在首次渲染前取得公开系统名称，接口不可用时 action 会自动回退。
+  await store.dispatch("settings/loadPublicSettings");
 
-// 使用Vuex
-app.use(store);
+  const app = createApp(App);
 
-app.use(router);
+  app.use(store);
+  app.use(router);
 
-// 初始化所有插件
-plugins(app);
+  plugins(app);
 
-// 注册所有布局组件
-registerLayoutComponents(app);
+  registerLayoutComponents(app);
 
-// 添加事件总线到全局属性
-app.config.globalProperties.$eventBus = eventBus;
+  app.config.globalProperties.$eventBus = eventBus;
+  window.$eventBus = eventBus;
 
-// 添加全局标题
-app.config.globalProperties.$baseTitle = title;
+  app.mount("#vue-admin-better");
+}
 
-// 使全局属性在window上也可用
-window.$eventBus = eventBus;
-window.$baseTitle = title;
-
-// 挂载应用
-app.mount("#vue-admin-better");
+bootstrap();

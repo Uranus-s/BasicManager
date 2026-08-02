@@ -2,6 +2,7 @@ package com.basic.web.controller.sys;
 
 import com.basic.api.controller.sys.SysUserApi;
 import com.basic.api.dto.sysUser.UserAddDTO;
+import com.basic.api.dto.sysUser.UserResetPasswordDTO;
 import com.basic.api.dto.sysUser.UserQueryDTO;
 import com.basic.api.dto.sysUser.UserUpdateDTO;
 import com.basic.api.vo.sysUser.UserListVO;
@@ -114,8 +115,9 @@ public class SysUserController implements SysUserApi {
     @PreAuthorize("hasAuthority('system:user:resetPwd')")
     @PostMapping("/resetPwd/{id}")
     @OperateLog(module = "用户管理", method = "重置密码")
-    public Result<?> resetPassword(@PathVariable("id") Long id) {
-        sysUserService.resetPassword(id);
+    public Result<?> resetPassword(@PathVariable("id") Long id,
+                                   @Valid @RequestBody UserResetPasswordDTO dto) {
+        sysUserService.resetPassword(id, dto.getNewPassword());
         return Result.success();
     }
 

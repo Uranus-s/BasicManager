@@ -103,11 +103,19 @@
           min-width="170"
           show-overflow-tooltip
         />
-        <el-table-column fixed="right" label="操作" width="220">
+        <el-table-column fixed="right" label="操作" width="300">
           <template #default="{ row }">
             <el-button type="text" @click="handleEdit(row)">编辑</el-button>
             <el-button type="text" @click="handleAssignRoles(row)">
               分配角色
+            </el-button>
+            <el-button
+              v-if="canResetPassword"
+              type="text"
+              @click="handleResetPassword(row)"
+            >
+              <el-icon><Key /></el-icon>
+              重置密码
             </el-button>
             <el-button type="text" @click="handleDelete(row)">删除</el-button>
           </template>
@@ -247,10 +255,69 @@
         </span>
       </template>
     </el-dialog>
+
+    <el-dialog
+      v-model="passwordDialogVisible"
+      destroy-on-close
+      :title="passwordDialogTitle"
+      width="480px"
+      @closed="resetPasswordForm"
+    >
+      <el-alert
+        class="password-alert"
+        :closable="false"
+        show-icon
+        title="保存后该用户的现有会话将立即失效"
+        type="warning"
+      />
+      <el-form
+        ref="passwordFormRef"
+        autocomplete="off"
+        label-position="top"
+        :model="passwordForm"
+        :rules="passwordRules"
+      >
+        <el-form-item label="临时密码" prop="newPassword">
+          <el-input
+            v-model="passwordForm.newPassword"
+            autocomplete="new-password"
+            maxlength="20"
+            placeholder="请输入 6 至 20 个字符"
+            show-password
+            type="password"
+          />
+        </el-form-item>
+        <el-form-item label="确认临时密码" prop="confirmPassword">
+          <el-input
+            v-model="passwordForm.confirmPassword"
+            autocomplete="new-password"
+            maxlength="20"
+            placeholder="请再次输入临时密码"
+            show-password
+            type="password"
+            @keyup.enter="submitPasswordReset"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="passwordDialogVisible = false">取消</el-button>
+          <el-button
+            type="primary"
+            :loading="passwordSubmitLoading"
+            @click="submitPasswordReset"
+          >
+            <el-icon><Check /></el-icon>
+            确认重置
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+import { Check, Key } from "@element-plus/icons-vue";
 import { getAllRoles } from "@/api/system/role";
 import {
   assignUserRoles,
@@ -259,8 +326,13 @@ import {
   getUserDetail,
   getUserList,
   getUserRoles,
+  resetUserPassword,
   updateUser,
 } from "@/api/system/user";
+import {
+  canManage,
+  validateTemporaryPasswords,
+} from "@/utils/systemSettings";
 
 const defaultForm = () => ({
   id: undefined,
@@ -273,8 +345,14 @@ const defaultForm = () => ({
   status: 1,
 });
 
+const defaultPasswordForm = () => ({
+  newPassword: "",
+  confirmPassword: "",
+});
+
 export default {
   name: "SystemUser",
+  components: { Check, Key },
   data() {
     const validatePhone = (rule, value, callback) => {
       if (this.dialogType === "create" && !value) {
@@ -297,6 +375,17 @@ export default {
       }
       callback();
     };
+    const validateConfirmPassword = (rule, value, callback) => {
+      const message = validateTemporaryPasswords(
+        this.passwordForm.newPassword,
+        value
+      );
+      if (message) {
+        callback(new Error(message));
+        return;
+      }
+      callback();
+    };
 
     return {
       list: [],
@@ -305,10 +394,13 @@ export default {
       submitLoading: false,
       roleLoading: false,
       roleSubmitLoading: false,
+      passwordSubmitLoading: false,
       dialogVisible: false,
       roleDialogVisible: false,
+      passwordDialogVisible: false,
       dialogType: "create",
       currentRoleUser: {},
+      passwordUser: {},
       checkedRoleIds: [],
       roleOptions: [],
       listQuery: {
@@ -319,6 +411,7 @@ export default {
         status: undefined,
       },
       form: defaultForm(),
+      passwordForm: defaultPasswordForm(),
       rules: {
         username: [
           { required: true, message: "请输入登录账号", trigger: "blur" },
@@ -331,14 +424,40 @@ export default {
         phone: [{ validator: validatePhone, trigger: "blur" }],
         email: [{ validator: validateEmail, trigger: "blur" }],
       },
+      passwordRules: {
+        newPassword: [
+          { required: true, message: "请输入临时密码", trigger: "blur" },
+          {
+            min: 6,
+            max: 20,
+            message: "临时密码长度必须在 6 到 20 个字符之间",
+            trigger: "blur",
+          },
+        ],
+        confirmPassword: [
+          { required: true, message: "请再次输入临时密码", trigger: "blur" },
+          { validator: validateConfirmPassword, trigger: "blur" },
+        ],
+      },
     };
   },
   computed: {
+    canResetPassword() {
+      return canManage(
+        this.$store.getters["user/permissions"],
+        this.$store.getters["user/roles"],
+        "system:user:resetPwd"
+      );
+    },
     dialogTitle() {
       return this.dialogType === "create" ? "新增用户" : "编辑用户";
     },
     roleDialogTitle() {
       return `分配角色${this.currentRoleUser.nickname ? ` - ${this.currentRoleUser.nickname}` : ""}`;
+    },
+    passwordDialogTitle() {
+      const name = this.passwordUser.nickname || this.passwordUser.username;
+      return name ? `重置密码 - ${name}` : "重置密码";
     },
   },
   created() {
@@ -414,6 +533,11 @@ export default {
         this.roleLoading = false;
       }
     },
+    handleResetPassword(row) {
+      this.passwordUser = { ...row };
+      this.passwordForm = defaultPasswordForm();
+      this.passwordDialogVisible = true;
+    },
     async submitRoleForm() {
       this.roleSubmitLoading = true;
       try {
@@ -423,6 +547,22 @@ export default {
         this.getList();
       } finally {
         this.roleSubmitLoading = false;
+      }
+    },
+    async submitPasswordReset() {
+      if (!this.canResetPassword || !this.passwordUser.id) return;
+      const valid = await this.$refs.passwordFormRef.validate().catch(() => false);
+      if (!valid) return;
+
+      this.passwordSubmitLoading = true;
+      try {
+        await resetUserPassword(this.passwordUser.id, {
+          newPassword: this.passwordForm.newPassword,
+        });
+        this.$message.success("密码已重置，该用户的现有会话已失效");
+        this.passwordDialogVisible = false;
+      } finally {
+        this.passwordSubmitLoading = false;
       }
     },
     submitForm() {
@@ -454,6 +594,13 @@ export default {
       this.currentRoleUser = {};
       this.checkedRoleIds = [];
       this.roleOptions = [];
+    },
+    resetPasswordForm() {
+      // 对话框关闭后立即清空敏感信息，避免密码留存在页面状态中。
+      this.passwordUser = {};
+      this.passwordForm = defaultPasswordForm();
+      this.passwordSubmitLoading = false;
+      this.$refs.passwordFormRef && this.$refs.passwordFormRef.clearValidate();
     },
     formatNames(names) {
       return names && names.length ? names.join("、") : "-";
@@ -487,6 +634,16 @@ export default {
   .pagination-container {
     margin-top: 20px;
     text-align: center;
+  }
+
+  .password-alert {
+    margin-bottom: 20px;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  :deep(.el-dialog) {
+    width: calc(100% - 32px) !important;
   }
 }
 </style>
