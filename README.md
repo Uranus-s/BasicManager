@@ -2,7 +2,7 @@
 
 ## 一、项目简介
 
-本项目是一个前后端一体的管理系统。后端采用 **Spring Boot 多模块架构**，通过模块拆分实现 **职责清晰、解耦良好、便于扩展和维护**；配套前端位于 `basic-ui`，基于 Vue 3、Rspack 和 Element Plus 构建。
+本项目是一个前后端一体的管理系统。后端采用 **Spring Boot 多模块架构**，通过模块拆分实现 **职责清晰、解耦良好、便于扩展和维护**；配套前端位于 `basic-ui`，基于 Vue 3、Rspack 和 Element Plus 构建。项目内置基于 Spring AI 与 DeepSeek 的桌面端流式 AI 助手。
 
 ---
 
@@ -15,6 +15,7 @@ basic-parent (pom)
 │  ├─ basic-common-core          公共工具模块
 │  └─ basic-common-web           Web层公共模块
 ├─ basic-core                    核心能力模块（MyBatis-Plus / Redis / Security）
+├─ basic-ai                      AI 基础设施模块（Spring AI / DeepSeek / ChatMemory）
 ├─ basic-api                     接口定义模块（Controller 接口）
 ├─ basic-service                 业务逻辑模块
 ├─ basic-dao                     数据访问模块（Entity / Mapper）
@@ -22,7 +23,7 @@ basic-parent (pom)
 └─ basic-ui                      配套前端项目（Vue 3 / Rspack / Element Plus）
 ```
 
-**后端 Maven 模块数量**：7 个（无 basic-job 模块），另包含 1 个独立前端项目 `basic-ui`。
+**后端 Maven 模块数量**：8 个（无 basic-job 模块），另包含 1 个独立前端项目 `basic-ui`。
 
 ---
 
@@ -110,7 +111,31 @@ basic-core
 
 ---
 
-### 5. basic-api（接口定义模块）
+### 5. basic-ai（AI 基础设施模块）
+
+**职责：** 隔离模型提供商、Spring AI 客户端和聊天记忆的具体实现，为业务层提供稳定的模型调用网关。
+
+**当前能力：**
+
+* 使用 Spring AI 2.0.0 对接 DeepSeek `DEEPSEEK_V4_FLASH`
+* 使用 `MessageChatMemoryAdvisor` 自动编排上下文
+* 使用 `MessageWindowChatMemory` 保留每个会话最近 20 条模型消息
+* 使用 `JdbcChatMemoryRepository` 将模型上下文持久化到 MySQL
+* 独立保存完整业务聊天历史，支持游标分页和未完成回答标记
+
+**依赖原则：**
+
+```text
+basic-service → basic-ai → basic-dao → basic-core
+```
+
+`basic-ai` 不依赖 `basic-service`、`basic-api` 或 `basic-web`。登录用户鉴权、SSE 事件包装和业务编排仍由 service/web 层负责。
+
+详细配置和接口说明见 [basic-ai/README.md](./basic-ai/README.md)。
+
+---
+
+### 6. basic-api（接口定义模块）
 
 **职责：** 定义系统对外提供的能力（接口契约），实现 Controller 与 Service 解耦
 
@@ -145,7 +170,7 @@ public interface UserApi {
 
 ---
 
-### 6. basic-service（业务逻辑模块）
+### 7. basic-service（业务逻辑模块）
 
 **职责：** 核心业务逻辑实现
 
@@ -163,6 +188,7 @@ basic-service
     ├── sysFile/           文件服务
     ├── sysLoginLog/       登录日志服务
     ├── sysOperLog/        操作日志服务
+    ├── ai/                AI 聊天业务编排
     ├── sysUserRole/       用户角色关联
     ├── sysUserDept/       用户部门关联
     ├── sysRolePermission/ 角色权限关联
@@ -177,14 +203,15 @@ basic-service
 **依赖关系：**
 
 ```text
-basic-service → basic-api → basic-core → basic-dao
-                    ↓
-              basic-common-core
+basic-service → basic-api
+      │
+      ├─→ basic-ai → basic-dao → basic-core
+      └─→ basic-common-core
 ```
 
 ---
 
-### 7. basic-dao（数据访问模块）
+### 8. basic-dao（数据访问模块）
 
 **职责：** 数据持久化
 
@@ -223,7 +250,7 @@ basic-dao → basic-core
 
 ---
 
-### 8. basic-web（Web入口模块）
+### 9. basic-web（Web入口模块）
 
 **职责：** 对外 HTTP 接口 & 应用启动
 
@@ -264,12 +291,14 @@ public class TestController implements TestApi {
 
 ---
 
-### 9. 技术栈
+### 10. 技术栈
 
 | 技术 | 版本 |
 |------|------|
 | Java | 23 |
 | Spring Boot | 4.0.0 |
+| Spring AI | 2.0.0 |
+| DeepSeek | V4 Flash |
 | MyBatis-Plus | 3.5.x |
 | MySQL | 8.0 |
 | Redis | Cluster (Lettuce) |
@@ -284,11 +313,10 @@ public class TestController implements TestApi {
 **依赖方向（单向）：**
 
 ```text
-web → api → service → dao → core
-                    ↓
-              common-core
-                   ↑
-              common-web
+basic-web → basic-api → basic-common-core
+     │
+     ├─→ basic-service → basic-ai → basic-dao → basic-core
+     └─→ basic-common-web
 ```
 
 📌 **禁止反向依赖**（如 common 依赖 service）
@@ -308,6 +336,8 @@ dao（数据访问）
 ```
 
 `api` 在整个过程中仅作为 **接口契约存在**。
+
+AI 聊天请求在 service 层完成用户级并发控制、SSE 事件编排和历史持久化，再通过 `basic-ai` 网关调用 DeepSeek。
 
 ---
 
@@ -408,6 +438,14 @@ pnpm run serve:rspack
 
 前端开发服务器默认地址为 `http://localhost:8091`。
 
+### 启用 AI 聊天
+
+1. 使用 `initSql.sql` 初始化数据库，确保已创建 `SPRING_AI_CHAT_MEMORY` 和 `ai_chat_message` 表。
+2. 登录管理端，在“系统设置 → AI 设置”中填写 DeepSeek API Key；密钥保存在 `sys_config` 的 `ai.deepseek.apiKey` 配置项中，不要写入源码或 YAML。
+3. 桌面端登录后，页面右下角会显示 AI 助手入口。当前移动端不加载该功能。
+
+开发环境允许 Spring AI 校验并初始化聊天记忆表；生产环境设置为 `initialize-schema: never`，部署前必须通过数据库脚本完成建表。
+
 ### 配置信息
 
 | 配置项 | 值 |
@@ -427,6 +465,7 @@ pnpm run serve:rspack
 | basic-common-core | [README.md](./basic-common/basic-common-core/README.md) |
 | basic-common-web | [README.md](./basic-common/basic-common-web/README.md) |
 | basic-core | [README.md](./basic-core/README.md) |
+| basic-ai | [README.md](./basic-ai/README.md) |
 | basic-api | [README.md](./basic-api/README.md) |
 | basic-service | [README.md](./basic-service/README.md) |
 | basic-dao | [README.md](./basic-dao/README.md) |
