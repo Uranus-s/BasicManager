@@ -10,6 +10,13 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+  ai:
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: never
+            platform: mysql
   data:
     redis:
       mode: ${PROD_REDIS_MODE:cluster} # cluster/single

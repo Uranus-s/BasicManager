@@ -1,6 +1,7 @@
 package com.basic.api.controller.sys;
 
 import com.basic.api.dto.sysConfig.ConfigBasicUpdateDTO;
+import com.basic.api.dto.sysConfig.ConfigAiUpdateDTO;
 import com.basic.api.dto.sysConfig.ConfigSecurityUpdateDTO;
 import com.basic.api.vo.sysConfig.ConfigSettingsVO;
 import com.basic.common.result.Result;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 /**
@@ -30,4 +32,12 @@ public interface SysConfigApi {
     @Operation(summary = "更新账号安全设置")
     @PutMapping("/settings/security")
     Result<?> updateSecuritySettings(@Valid @RequestBody ConfigSecurityUpdateDTO dto);
+
+    @Operation(summary = "更新 AI 设置")
+    @PutMapping("/settings/ai")
+    Result<?> updateAiSettings(@Valid @RequestBody ConfigAiUpdateDTO dto);
+
+    @Operation(summary = "测试 DeepSeek 连接")
+    @PostMapping("/settings/ai/test")
+    Result<?> testAiConnection();
 }

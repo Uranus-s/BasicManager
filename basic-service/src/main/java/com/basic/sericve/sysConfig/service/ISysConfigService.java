@@ -1,6 +1,7 @@
 package com.basic.sericve.sysConfig.service;
 
 import com.basic.api.dto.sysConfig.ConfigBasicUpdateDTO;
+import com.basic.api.dto.sysConfig.ConfigAiUpdateDTO;
 import com.basic.api.dto.sysConfig.ConfigSecurityUpdateDTO;
 import com.basic.api.vo.sysConfig.ConfigSettingsVO;
 import com.basic.api.vo.sysConfig.PublicConfigVO;
@@ -41,6 +42,20 @@ public interface ISysConfigService extends IService<SysConfig> {
      * @param dto 账号安全设置
      */
     void updateSecuritySettings(ConfigSecurityUpdateDTO dto);
+
+    /**
+     * 更新 DeepSeek API Key。空输入保留已有值，避免掩码回填覆盖真实密钥。
+     *
+     * @param dto AI 设置
+     */
+    void updateAiSettings(ConfigAiUpdateDTO dto);
+
+    /**
+     * 获取供模型客户端使用的 DeepSeek API Key，不得用于接口响应或日志输出。
+     *
+     * @return 已去除首尾空白的密钥，未配置时返回 null
+     */
+    String getDeepSeekApiKey();
 
     /**
      * 获取 Token 有效期毫秒数，异常配置自动使用安全默认值。

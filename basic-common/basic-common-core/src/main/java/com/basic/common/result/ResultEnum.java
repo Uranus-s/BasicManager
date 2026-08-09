@@ -34,6 +34,8 @@ public enum ResultEnum implements IResult {
     REPEAT_SUBMIT(40003, "请勿重复提交"),
     REQUEST_TOO_FREQUENT(40004, "请求过于频繁"),
     IDEMPOTENT_CHECK_FAILED(40005, "幂等校验失败"),
+    AI_CONFIG_MISSING(40006, "AI 服务尚未配置"),
+    AI_CHAT_BUSY(40007, "当前已有回答生成中"),
 
     /* ===================== 5xxxx 数据 / 资源 ===================== */
     DATA_NOT_EXIST(50001, "数据不存在"),

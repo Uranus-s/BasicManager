@@ -51,32 +51,6 @@ build/
 **/*.spec.*
 /uploads/
 
-# 系统设置功能回归测试：测试目录默认忽略，仅纳入本功能直接覆盖的文件。
-!basic-core/src/test/
-basic-core/src/test/**
-!basic-core/src/test/**/
-!basic-core/src/test/**/OperateLogAspectTest.java
-!basic-core/src/test/**/AuthTokenServiceTest.java
-!basic-core/src/test/**/JwtUtilTest.java
-
-!basic-service/src/test/
-basic-service/src/test/**
-!basic-service/src/test/**/
-!basic-service/src/test/**/AuthServiceImplTest.java
-!basic-service/src/test/**/SysConfigServiceImplTest.java
-!basic-service/src/test/**/SysUserServiceImplTest.java
-
-!basic-web/src/test/
-basic-web/src/test/**
-!basic-web/src/test/**/
-!basic-web/src/test/**/ControllerPermissionContractTest.java
-
-!basic-ui/tests/
-basic-ui/tests/**
-!basic-ui/tests/**/
-!basic-ui/tests/systemSettings.test.mjs
-!basic-ui/tests/dictCodeAlignment.test.mjs
-
 ### Superpowers Development Docs ###
 **/docs/superpowers/
 /.superpowers/

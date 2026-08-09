@@ -23,6 +23,8 @@ DROP TABLE IF EXISTS sys_dict_item;
 DROP TABLE IF EXISTS sys_oper_log;
 DROP TABLE IF EXISTS sys_login_log;
 DROP TABLE IF EXISTS sys_file;
+DROP TABLE IF EXISTS SPRING_AI_CHAT_MEMORY;
+DROP TABLE IF EXISTS ai_chat_message;
 DROP TABLE IF EXISTS sys_config;
 DROP TABLE IF EXISTS sys_permission;
 DROP TABLE IF EXISTS sys_dept;
@@ -197,6 +199,40 @@ CREATE TABLE sys_config
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci
   COMMENT = '系统参数表';
+
+CREATE TABLE ai_chat_message
+(
+    id          BIGINT      NOT NULL AUTO_INCREMENT COMMENT '主键',
+    create_time DATETIME    NULL COMMENT '创建时间',
+    update_time DATETIME    NULL COMMENT '更新时间',
+    create_by   BIGINT      NULL COMMENT '创建人',
+    update_by   BIGINT      NULL COMMENT '更新人',
+    version     INT         NOT NULL DEFAULT 0 COMMENT '乐观锁版本号',
+    deleted     TINYINT     NOT NULL DEFAULT 0 COMMENT '逻辑删除 0=未删除 1=已删除',
+    user_id     BIGINT      NOT NULL COMMENT '所属用户ID',
+    role        VARCHAR(16) NOT NULL COMMENT '消息角色 USER/ASSISTANT',
+    content     LONGTEXT    NOT NULL COMMENT '消息正文',
+    partial     TINYINT     NOT NULL DEFAULT 0 COMMENT '是否为停止或异常后的部分回答',
+    PRIMARY KEY (id),
+    KEY idx_ai_chat_message_user_deleted_id (user_id, deleted, id)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci
+  COMMENT = 'AI聊天消息表';
+
+CREATE TABLE SPRING_AI_CHAT_MEMORY
+(
+    `conversation_id` VARCHAR(36)                                      NOT NULL,
+    `content`         TEXT                                             NOT NULL,
+    `type`            ENUM('USER', 'ASSISTANT', 'SYSTEM', 'TOOL')      NOT NULL,
+    `timestamp`       TIMESTAMP                                        NOT NULL,
+    `sequence_id`     BIGINT                                           NOT NULL,
+    INDEX `SPRING_AI_CHAT_MEMORY_CONVERSATION_ID_TIMESTAMP_IDX` (`conversation_id`, `timestamp`),
+    INDEX `SPRING_AI_CHAT_MEMORY_CONVERSATION_ID_SEQUENCE_ID_IDX` (`conversation_id`, `sequence_id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci
+  COMMENT = 'Spring AI JDBC 聊天记忆表';
 
 CREATE TABLE sys_file
 (
@@ -533,7 +569,8 @@ INSERT INTO sys_config
      config_key, config_value, remark)
 VALUES
     (1, NOW(), NOW(), 1, 1, 0, 0, 'sys.title', '基础管理系统', '系统名称'),
-    (2, NOW(), NOW(), 1, 1, 0, 0, 'sys.login.tokenExpireHours', '24', 'Token 有效期，单位小时');
+    (2, NOW(), NOW(), 1, 1, 0, 0, 'sys.login.tokenExpireHours', '24', 'Token 有效期，单位小时'),
+    (3, NOW(), NOW(), 1, 1, 0, 0, 'ai.deepseek.apiKey', NULL, 'DeepSeek API Key，运行时由管理员配置');
 
 SET FOREIGN_KEY_CHECKS = 1;
 

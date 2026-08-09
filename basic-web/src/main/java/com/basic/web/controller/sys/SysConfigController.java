@@ -2,16 +2,19 @@ package com.basic.web.controller.sys;
 
 import com.basic.api.controller.sys.SysConfigApi;
 import com.basic.api.dto.sysConfig.ConfigBasicUpdateDTO;
+import com.basic.api.dto.sysConfig.ConfigAiUpdateDTO;
 import com.basic.api.dto.sysConfig.ConfigSecurityUpdateDTO;
 import com.basic.api.vo.sysConfig.ConfigSettingsVO;
 import com.basic.common.result.Result;
 import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysConfig.service.ISysConfigService;
+import com.basic.sericve.ai.service.IAiChatService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SysConfigController implements SysConfigApi {
 
     private final ISysConfigService sysConfigService;
+    private final IAiChatService aiChatService;
 
     @Override
     @PreAuthorize("hasAuthority('system:config:query')")
@@ -50,6 +54,23 @@ public class SysConfigController implements SysConfigApi {
     @OperateLog(module = "系统设置", method = "更新账号安全设置")
     public Result<?> updateSecuritySettings(@Valid @RequestBody ConfigSecurityUpdateDTO dto) {
         sysConfigService.updateSecuritySettings(dto);
+        return Result.success();
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('system:config:edit')")
+    @PutMapping("/settings/ai")
+    @OperateLog(module = "系统设置", method = "更新AI设置")
+    public Result<?> updateAiSettings(@Valid @RequestBody ConfigAiUpdateDTO dto) {
+        sysConfigService.updateAiSettings(dto);
+        return Result.success();
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('system:config:query')")
+    @PostMapping("/settings/ai/test")
+    public Result<?> testAiConnection() {
+        aiChatService.testConnection();
         return Result.success();
     }
 }

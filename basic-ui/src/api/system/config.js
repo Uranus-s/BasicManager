@@ -35,3 +35,21 @@ export function updateSecuritySettings(data) {
     data,
   });
 }
+
+export function updateAiSettings(data) {
+  return request({
+    baseURL: "",
+    url: "/system/config/settings/ai",
+    method: "put",
+    data,
+  });
+}
+
+export function testAiConnection() {
+  return request({
+    baseURL: "",
+    url: "/system/config/settings/ai/test",
+    method: "post",
+    retry: 0,
+  });
+}

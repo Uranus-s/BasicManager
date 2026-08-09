@@ -120,11 +120,11 @@ final class LogRequestUtils {
             return "";
         }
         String masked = text.replaceAll(
-                "(?i)(\"[^\"]*(?:password|token|secret)[^\"]*\"\\s*:\\s*\")((?:\\\\.|[^\"\\\\])*)(\")",
+                "(?i)(\"[^\"]*(?:password|token|secret|apiKey|api_key)[^\"]*\"\\s*:\\s*\")((?:\\\\.|[^\"\\\\])*)(\")",
                 "$1******$3");
         // 日志参数来自 DTO 的 toString()，密码本身可能包含逗号，因此只能以当前对象的闭合符号作为边界。
         // 即使敏感字段后还有普通字段也一并遮盖，避免把密码的一部分误判为下一个字段而泄露。
-        return masked.replaceAll("(?i)(password|token|secret)=([^}\\]]*)", "$1=******");
+        return masked.replaceAll("(?i)(password|token|secret|apiKey|api_key)=([^}\\]]*)", "$1=******");
     }
 
     private static String limit(String text) {

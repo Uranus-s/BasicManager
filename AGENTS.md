@@ -53,6 +53,7 @@ basic-parent
 │  ├─ basic-common-core   # 通用能力：result、exception、utils、validate 等
 │  └─ basic-common-web    # Web 通用能力：advice、web exception、Jackson 配置等
 ├─ basic-core             # 项目核心能力：MyBatis、Redis、Security、AOP、日志等
+├─ basic-ai               # AI 基础设施：模型网关、DeepSeek 适配、ChatMemory
 ├─ basic-api              # 对外接口契约：Controller 接口、DTO、VO
 ├─ basic-service          # 业务逻辑：Service 接口与实现、领域编排、存储策略
 ├─ basic-dao              # 数据访问：Entity、Mapper、Mapper XML
@@ -66,9 +67,9 @@ basic-parent
 
 ```text
 basic-web → basic-api → basic-common-core
-basic-web → basic-service → basic-dao → basic-core
+basic-web → basic-service → basic-ai → basic-dao → basic-core
 basic-web → basic-common-web
-basic-service → basic-api / basic-dao / basic-core / basic-common-core
+basic-service → basic-api / basic-ai / basic-dao / basic-core / basic-common-core
 ```
 
 请求调用链：
@@ -111,6 +112,13 @@ Entity → VO → 响应
 - 业务校验、事务、跨表编排、缓存使用、文件存储选择等逻辑放在 service。
 - 需要事务的方法使用 `@Transactional(rollbackFor = Exception.class)`。
 - 业务异常优先使用 `BusinessException` 和 `ResultEnum`，不要直接向 Controller 抛裸 RuntimeException。
+
+### basic-ai
+
+- 放模型客户端、提供商适配、模型调用网关、ChatMemory 和 AI 内部模型。
+- 可以依赖 `basic-dao`、`basic-core` 和 `basic-common-core`，不得依赖 `basic-service`、`basic-api` 或 `basic-web`。
+- 聊天业务编排、登录用户权限、SSE 事件包装和 API VO 转换仍放在 `basic-service`。
+- 新增模型提供商时通过网关或配置端口扩展，不要让业务 Service 直接构建第三方模型客户端。
 
 ### basic-dao
 

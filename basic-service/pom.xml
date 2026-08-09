@@ -25,6 +25,11 @@
 
         <dependency>
             <groupId>com.basic</groupId>
+            <artifactId>basic-ai</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.basic</groupId>
             <artifactId>basic-api</artifactId>
         </dependency>
 

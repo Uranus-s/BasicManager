@@ -35,6 +35,21 @@ export function isSecuritySettingsValid(tokenExpireHours) {
 }
 
 /**
+ * 空 Key 代表保留服务端已有配置；只有管理员输入新值时才校验长度。
+ */
+export function isAiApiKeyValid(apiKey) {
+  if (typeof apiKey !== "string") return false;
+  return apiKey.trim().length <= 255;
+}
+
+/**
+ * AI 表单不保存原 Key，因此仅新输入的非空值构成未保存修改。
+ */
+export function hasAiSettingChanges(form) {
+  return typeof form?.apiKey === "string" && form.apiKey.trim().length > 0;
+}
+
+/**
  * 校验管理员输入的临时密码，返回空字符串表示校验通过。
  */
 export function validateTemporaryPasswords(newPassword, confirmPassword) {

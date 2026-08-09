@@ -70,7 +70,7 @@
           </div>
         </template>
 
-        <template v-else>
+        <template v-else-if="activeSection === 'security'">
           <div class="section-heading">
             <div>
               <h2>账号安全</h2>
@@ -113,47 +113,113 @@
             </el-button>
           </div>
         </template>
+
+        <template v-else>
+          <div class="section-heading">
+            <div>
+              <h2>AI 服务</h2>
+              <p>配置 DeepSeek V4 Flash 的服务凭证。</p>
+            </div>
+            <el-tag :type="deepSeekApiKeyConfigured ? 'success' : 'warning'" effect="plain">
+              {{ deepSeekApiKeyConfigured ? "已配置" : "未配置" }}
+            </el-tag>
+          </div>
+
+          <el-form
+            ref="aiFormRef"
+            class="settings-form"
+            label-position="top"
+            :model="aiForm"
+            :rules="aiRules"
+          >
+            <el-form-item label="DeepSeek API Key" prop="apiKey">
+              <el-input
+                v-model="aiForm.apiKey"
+                :disabled="!canEdit"
+                type="password"
+                maxlength="255"
+                show-password
+                autocomplete="new-password"
+                placeholder="输入新的 API Key"
+              />
+              <p class="field-help">
+                当前凭证：{{ deepSeekApiKeyMasked || "尚未配置" }}。留空不会覆盖已保存的凭证。
+              </p>
+            </el-form-item>
+          </el-form>
+
+          <div class="section-actions ai-actions">
+            <el-button
+              :disabled="!canEdit || aiDirty || !deepSeekApiKeyConfigured"
+              :loading="aiTesting"
+              @click="testConnection"
+            >
+              <el-icon><Connection /></el-icon>
+              测试连接
+            </el-button>
+            <el-button
+              type="primary"
+              :disabled="!canEdit || !aiDirty || !aiValid"
+              :loading="aiSaving"
+              @click="saveAiSettings"
+            >
+              <el-icon><Check /></el-icon>
+              保存 AI 设置
+            </el-button>
+          </div>
+        </template>
       </section>
     </div>
   </main>
 </template>
 
 <script>
-import { Check, Lock, Setting } from "@element-plus/icons-vue";
+import { Check, Connection, Cpu, Lock, Setting } from "@element-plus/icons-vue";
 import {
   getSystemSettings,
+  testAiConnection,
   updateBasicSettings,
+  updateAiSettings,
   updateSecuritySettings,
 } from "@/api/system/config";
 import getPageTitle from "@/utils/pageTitle";
 import {
   canManage,
+  hasAiSettingChanges,
   hasSettingChanges,
+  isAiApiKeyValid,
   isBasicSettingsValid,
   isSecuritySettingsValid,
 } from "@/utils/systemSettings";
 
 const defaultBasicForm = () => ({ systemName: "" });
 const defaultSecurityForm = () => ({ tokenExpireHours: 24 });
+const defaultAiForm = () => ({ apiKey: "" });
 
 export default {
   name: "SystemConfig",
-  components: { Check, Lock, Setting },
+  components: { Check, Connection, Cpu, Lock, Setting },
   data() {
     return {
       sections: [
         { key: "basic", label: "基础设置", icon: "Setting" },
         { key: "security", label: "账号安全", icon: "Lock" },
+        { key: "ai", label: "AI 服务", icon: "Cpu" },
       ],
       activeSection: "basic",
       loading: false,
       loadFailed: false,
       basicSaving: false,
       securitySaving: false,
+      aiSaving: false,
+      aiTesting: false,
       basicForm: defaultBasicForm(),
       securityForm: defaultSecurityForm(),
       savedBasic: defaultBasicForm(),
       savedSecurity: defaultSecurityForm(),
+      aiForm: defaultAiForm(),
+      deepSeekApiKeyConfigured: false,
+      deepSeekApiKeyMasked: "",
       basicRules: {
         systemName: [
           { required: true, message: "请输入系统名称", trigger: "blur" },
@@ -170,6 +236,11 @@ export default {
             message: "Token 有效期必须在 1 至 168 小时之间",
             trigger: "change",
           },
+        ],
+      },
+      aiRules: {
+        apiKey: [
+          { max: 255, message: "API Key 不能超过 255 个字符", trigger: "blur" },
         ],
       },
     };
@@ -194,8 +265,14 @@ export default {
     securityValid() {
       return isSecuritySettingsValid(this.securityForm.tokenExpireHours);
     },
+    aiDirty() {
+      return hasAiSettingChanges(this.aiForm);
+    },
+    aiValid() {
+      return isAiApiKeyValid(this.aiForm.apiKey);
+    },
     hasUnsavedChanges() {
-      return this.basicDirty || this.securityDirty;
+      return this.basicDirty || this.securityDirty || this.aiDirty;
     },
   },
   created() {
@@ -227,6 +304,9 @@ export default {
         this.savedBasic = { ...basic };
         this.securityForm = { ...security };
         this.savedSecurity = { ...security };
+        this.aiForm = defaultAiForm();
+        this.deepSeekApiKeyConfigured = Boolean(data?.deepSeekApiKeyConfigured);
+        this.deepSeekApiKeyMasked = data?.deepSeekApiKeyMasked || "";
       } catch (error) {
         this.loadFailed = true;
       } finally {
@@ -247,13 +327,17 @@ export default {
       this.activeSection = section;
     },
     isSectionDirty(section) {
-      return section === "basic" ? this.basicDirty : this.securityDirty;
+      if (section === "basic") return this.basicDirty;
+      if (section === "security") return this.securityDirty;
+      return this.aiDirty;
     },
     restoreSection(section) {
       if (section === "basic") {
         this.basicForm = { ...this.savedBasic };
-      } else {
+      } else if (section === "security") {
         this.securityForm = { ...this.savedSecurity };
+      } else {
+        this.aiForm = defaultAiForm();
       }
     },
     confirmDiscard() {
@@ -300,6 +384,30 @@ export default {
         this.$message.success("账号安全设置已保存，将应用于新签发的登录凭证");
       } finally {
         this.securitySaving = false;
+      }
+    },
+    async saveAiSettings() {
+      if (!this.canEdit || !this.aiDirty) return;
+      const valid = await this.$refs.aiFormRef.validate().catch(() => false);
+      if (!valid) return;
+
+      this.aiSaving = true;
+      try {
+        await updateAiSettings({ apiKey: this.aiForm.apiKey.trim() });
+        await this.loadSettings();
+        this.$message.success("AI 设置已保存");
+      } finally {
+        this.aiSaving = false;
+      }
+    },
+    async testConnection() {
+      if (!this.canEdit || this.aiDirty || !this.deepSeekApiKeyConfigured) return;
+      this.aiTesting = true;
+      try {
+        await testAiConnection();
+        this.$message.success("DeepSeek 连接正常");
+      } finally {
+        this.aiTesting = false;
       }
     },
   },
@@ -405,6 +513,10 @@ export default {
 }
 
 .section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
   padding-bottom: 20px;
   border-bottom: 1px solid #ebeef5;
 
@@ -421,6 +533,10 @@ export default {
     color: #606266;
     line-height: 22px;
   }
+}
+
+.ai-actions {
+  gap: 12px;
 }
 
 .settings-form {

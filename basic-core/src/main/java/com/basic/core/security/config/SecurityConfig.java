@@ -4,6 +4,7 @@ import com.basic.core.security.filter.JwtAuthenticationFilter;
 import com.basic.core.security.handler.AuthenticationEntryPointImpl;
 import com.basic.core.security.handler.AccessDeniedHandlerImpl;
 import jakarta.annotation.Resource;
+import jakarta.servlet.DispatcherType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -88,6 +89,9 @@ public class SecurityConfig {
 
                 // 权限规则
                 .authorizeHttpRequests(auth -> auth
+                        // SSE 的异步/错误派发发生在原始 REQUEST 认证之后，不得在响应提交后重复触发认证入口。
+                        .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR)
+                        .permitAll()
                         .requestMatchers(openApiRequestMatchers())
                         .permitAll()
                         .requestMatchers(

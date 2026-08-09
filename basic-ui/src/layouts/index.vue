@@ -45,6 +45,7 @@
         <vab-app-main />
       </div>
     </div>
+    <ai-chat-float v-if="device === 'desktop'" />
     <el-backtop />
   </div>
 </template>
@@ -53,6 +54,7 @@
 import { ref, computed, onBeforeMount, onBeforeUnmount, onMounted, nextTick } from "vue";
 import { useStore } from "vuex";
 import { tokenName } from "@/config";
+import AiChatFloat from "@/components/AiChatFloat/index.vue";
 
 const store = useStore();
 

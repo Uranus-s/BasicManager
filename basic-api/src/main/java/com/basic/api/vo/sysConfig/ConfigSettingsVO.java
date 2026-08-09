@@ -23,4 +23,16 @@ public class ConfigSettingsVO {
      */
     @Schema(description = "Token 有效期，单位：小时", example = "24")
     private Integer tokenExpireHours;
+
+    /**
+     * 是否已经保存 DeepSeek API Key，不暴露密钥原值。
+     */
+    @Schema(description = "是否已配置 DeepSeek API Key")
+    private Boolean deepSeekApiKeyConfigured;
+
+    /**
+     * DeepSeek API Key 掩码，仅用于帮助管理员确认当前配置。
+     */
+    @Schema(description = "DeepSeek API Key 掩码")
+    private String deepSeekApiKeyMasked;
 }

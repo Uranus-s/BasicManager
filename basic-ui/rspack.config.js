@@ -302,6 +302,7 @@ module.exports = {
       };
 
       [
+        "/ai",
         "/auth",
         "/public",
         "/system",
