@@ -1,28 +1,48 @@
 <template>
-  <section class="dashboard-panel notice-panel">
+  <section v-loading="loading" class="dashboard-panel notice-panel">
     <div class="dashboard-panel-header">
       <h3>最新公告</h3>
-      <button type="button">查看更多</button>
+      <el-button text type="primary" @click="$emit('more')">查看更多</el-button>
     </div>
-    <div class="notice-list">
-      <div v-for="item in items" :key="item.title" class="notice-item">
-        <el-tag size="small" type="primary" effect="light">
-          {{ item.type }}
+    <div v-if="items.length" class="notice-list">
+      <router-link
+        v-for="item in items"
+        :key="item.id || item.title"
+        :to="`/notice/${item.id}`"
+        class="notice-item"
+      >
+        <el-tag effect="light" size="small" type="warning">
+          {{ typeLabel(item.noticeType) }}
         </el-tag>
         <span class="notice-title">{{ item.title }}</span>
-        <time>{{ item.date }}</time>
-      </div>
+        <time :datetime="item.publishTime">{{ formatPublishDate(item.publishTime) }}</time>
+      </router-link>
     </div>
+    <el-empty v-else-if="!loading" :image-size="56" description="暂无公告" />
   </section>
 </template>
 
 <script>
 export default {
   name: "NoticePanel",
+  emits: ["more"],
   props: {
     items: {
       type: Array,
       required: true,
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  methods: {
+    typeLabel(value) {
+      return this.$dictLabel("sys_notice_type", value) || value || "公告";
+    },
+    /** 首页列表只展示日期，完整发布时间保留在 time 元素中。 */
+    formatPublishDate(value) {
+      return String(value || "").slice(0, 10);
     },
   },
 };
@@ -52,19 +72,6 @@ export default {
     font-size: 16px;
     font-weight: 800;
   }
-
-  button {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    height: 32px;
-    padding: 0 12px;
-    color: #2f7cf6;
-    cursor: pointer;
-    background: #fff;
-    border: 1px solid #dfe7f2;
-    border-radius: 6px;
-  }
 }
 
 .notice-list {
@@ -77,17 +84,30 @@ export default {
   align-items: center;
   gap: 14px;
   min-height: 44px;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
   border-bottom: 1px solid #edf1f7;
+  text-decoration: none;
 
   &:last-child {
     border-bottom: 0;
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--el-color-primary);
+    outline-offset: 2px;
+  }
 }
 
 .notice-title {
+  min-width: 0;
   overflow: hidden;
   color: #253044;
   font-size: 14px;
+  text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -95,6 +115,12 @@ export default {
 time {
   color: #7b8ba3;
   font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+:deep(.el-empty) {
+  padding: 12px 0;
 }
 
 @media (max-width: 640px) {
@@ -107,6 +133,7 @@ time {
 
     time {
       grid-column: 2;
+      text-align: left;
     }
   }
 }

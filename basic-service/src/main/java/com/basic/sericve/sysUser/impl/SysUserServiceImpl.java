@@ -466,6 +466,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             {"部门管理", "/system/dept", "system:dept:list", "office", "4"},
             {"字典管理", "/system/dict", "system:dict:list", "dict", "5"},
             {"系统设置", "/system/config", "system:config:query", "Tools", "6", "system/config/index.vue"},
+            {"通知公告", "/system/notice", "system:notice:list", "Bell", "10", "system/notice/index.vue"},
         };
 
         // 日志管理菜单
@@ -500,7 +501,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             if (menu.length > 5) {
                 perm.setComponent(menu[5]);
             }
-            perm.setSort(sort++);
+            perm.setSort(Integer.parseInt(menu[4]));
             perm.setVisible((byte) 1);
             perm.setStatus((byte) 1);
             sysPermissionService.save(perm);
@@ -518,6 +519,31 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 editPermission.setStatus((byte) 1);
                 sysPermissionService.save(editPermission);
                 permissionIds.add(editPermission.getId());
+            }
+
+            // 公告菜单下的按钮权限与管理端接口保持一一对应。
+            if ("system:notice:list".equals(perm.getPermission())) {
+                String[][] noticeActions = {
+                    {"查询公告", "system:notice:query"},
+                    {"新增公告", "system:notice:add"},
+                    {"修改公告", "system:notice:edit"},
+                    {"删除公告", "system:notice:delete"},
+                    {"发布公告", "system:notice:publish"},
+                    {"撤回公告", "system:notice:withdraw"},
+                };
+                int actionSort = 1;
+                for (String[] action : noticeActions) {
+                    SysPermission button = new SysPermission();
+                    button.setParentId(perm.getId());
+                    button.setName(action[0]);
+                    button.setType("BUTTON");
+                    button.setPermission(action[1]);
+                    button.setSort(actionSort++);
+                    button.setVisible((byte) 0);
+                    button.setStatus((byte) 1);
+                    sysPermissionService.save(button);
+                    permissionIds.add(button.getId());
+                }
             }
         }
 

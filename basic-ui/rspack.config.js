@@ -306,6 +306,7 @@ module.exports = {
         "/auth",
         "/public",
         "/system",
+        "/notice",
         "/uploads",
         "/menu",
         "/userInfo",

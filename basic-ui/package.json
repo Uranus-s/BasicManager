@@ -8,6 +8,7 @@
     "serve:rspack": "node --no-deprecation rspack.js serve",
     "build": "rimraf dist && node --no-deprecation rspack.js build",
     "build:zip": "rimraf dist && node --no-deprecation rspack.js build && node build-zip.cjs",
+    "check:notice": "node scripts/check-notice-module.cjs",
     "clear": "rimraf node_modules&&npm install  --registry=--registry=https://registry.npmmirror.com",
     "update": "ncu -u --reject sass,sass-loader --registry=https://registry.npmmirror.com&&pnpm i --no-frozen-lockfile",
     "module:update": "ncu -u --reject sass,sass-loader --registry=https://registry.npmmirror.com&&pnpm i --no-frozen-lockfile",

@@ -19,6 +19,8 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS sys_role_permission;
 DROP TABLE IF EXISTS sys_user_role;
 DROP TABLE IF EXISTS sys_user_dept;
+DROP TABLE IF EXISTS sys_notice_target;
+DROP TABLE IF EXISTS sys_notice;
 DROP TABLE IF EXISTS sys_dict_item;
 DROP TABLE IF EXISTS sys_oper_log;
 DROP TABLE IF EXISTS sys_login_log;
@@ -179,6 +181,42 @@ CREATE TABLE sys_dict_item
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci
   COMMENT = '字典项表';
+
+CREATE TABLE sys_notice
+(
+    id           BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+    create_time  DATETIME     NOT NULL COMMENT '创建时间',
+    update_time  DATETIME     NOT NULL COMMENT '更新时间',
+    create_by    BIGINT       NULL COMMENT '创建人',
+    update_by    BIGINT       NULL COMMENT '更新人',
+    version      INT          NOT NULL DEFAULT 0 COMMENT '乐观锁版本号',
+    deleted      TINYINT      NOT NULL DEFAULT 0 COMMENT '逻辑删除 0=未删除 1=已删除',
+    title        VARCHAR(200) NOT NULL COMMENT '公告标题',
+    notice_type  VARCHAR(64)  NOT NULL COMMENT '公告类型字典项值',
+    content      LONGTEXT     NOT NULL COMMENT 'Markdown 公告正文',
+    scope_type   VARCHAR(16)  NOT NULL COMMENT '接收范围 ALL/TARGETED',
+    status       VARCHAR(16)  NOT NULL COMMENT '状态 DRAFT/PUBLISHED/WITHDRAWN',
+    publish_time DATETIME     NULL COMMENT '最近一次发布时间',
+    PRIMARY KEY (id),
+    KEY idx_sys_notice_status_publish_time (status, publish_time, deleted),
+    KEY idx_sys_notice_type_status (notice_type, status, deleted)
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 1000
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci
+  COMMENT = '通知公告表';
+
+CREATE TABLE sys_notice_target
+(
+    notice_id  BIGINT      NOT NULL COMMENT '公告ID',
+    target_type VARCHAR(16) NOT NULL COMMENT '目标类型 ROLE/DEPT',
+    target_id   BIGINT      NOT NULL COMMENT '角色或部门ID',
+    PRIMARY KEY (notice_id, target_type, target_id),
+    KEY idx_sys_notice_target_lookup (target_type, target_id, notice_id)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci
+  COMMENT = '公告接收目标关联表';
 
 CREATE TABLE sys_config
 (
@@ -506,6 +544,22 @@ VALUES
     (912, NOW(), NOW(), 1, 1, 0, 0, 1, '删除文件', 'BUTTON', NULL, NULL,
      'system:file:delete', NULL, 96, 0, 1),
 
+    -- 通知公告
+    (1000, NOW(), NOW(), 1, 1, 0, 0, 1, '通知公告', 'MENU', '/system/notice',
+     'system/notice/index.vue', 'system:notice:list', 'Bell', 10, 1, 1),
+    (1001, NOW(), NOW(), 1, 1, 0, 0, 1000, '查询公告', 'BUTTON', NULL, NULL,
+     'system:notice:query', NULL, 1, 0, 1),
+    (1002, NOW(), NOW(), 1, 1, 0, 0, 1000, '新增公告', 'BUTTON', NULL, NULL,
+     'system:notice:add', NULL, 2, 0, 1),
+    (1003, NOW(), NOW(), 1, 1, 0, 0, 1000, '修改公告', 'BUTTON', NULL, NULL,
+     'system:notice:edit', NULL, 3, 0, 1),
+    (1004, NOW(), NOW(), 1, 1, 0, 0, 1000, '删除公告', 'BUTTON', NULL, NULL,
+     'system:notice:delete', NULL, 4, 0, 1),
+    (1005, NOW(), NOW(), 1, 1, 0, 0, 1000, '发布公告', 'BUTTON', NULL, NULL,
+     'system:notice:publish', NULL, 5, 0, 1),
+    (1006, NOW(), NOW(), 1, 1, 0, 0, 1000, '撤回公告', 'BUTTON', NULL, NULL,
+     'system:notice:withdraw', NULL, 6, 0, 1),
+
     -- 普通用户基础权限用于保证登录后的权限集合非空，不参与动态路由生成。
     (999, NOW(), NOW(), 1, 1, 0, 0, 0, '个人基础功能', 'BUTTON', NULL, NULL,
      'system:profile:view', NULL, 999, 0, 1);
@@ -548,7 +602,8 @@ VALUES
     (1, NOW(), NOW(), 1, 1, 0, 0, 'sys_user_status', '用户状态', 1),
     (2, NOW(), NOW(), 1, 1, 0, 0, 'sys_common_status', '通用状态', 1),
     (3, NOW(), NOW(), 1, 1, 0, 0, 'sys_permission_type', '权限类型', 1),
-    (4, NOW(), NOW(), 1, 1, 0, 0, 'sys_log_type', '日志类型', 1);
+    (4, NOW(), NOW(), 1, 1, 0, 0, 'sys_log_type', '日志类型', 1),
+    (5, NOW(), NOW(), 1, 1, 0, 0, 'sys_notice_type', '公告类型', 1);
 
 INSERT INTO sys_dict_item
     (id, create_time, update_time, create_by, update_by, version, deleted,
@@ -562,7 +617,25 @@ VALUES
     (6, NOW(), NOW(), 1, 1, 0, 0, 3, 'BUTTON', '按钮', 2, 1),
     (7, NOW(), NOW(), 1, 1, 0, 0, 3, 'API', '接口', 3, 1),
     (8, NOW(), NOW(), 1, 1, 0, 0, 4, 'LOGIN', '登录日志', 1, 1),
-    (9, NOW(), NOW(), 1, 1, 0, 0, 4, 'OPER', '操作日志', 2, 1);
+    (9, NOW(), NOW(), 1, 1, 0, 0, 4, 'OPER', '操作日志', 2, 1),
+    (10, NOW(), NOW(), 1, 1, 0, 0, 5, 'system', '系统公告', 1, 1),
+    (11, NOW(), NOW(), 1, 1, 0, 0, 5, 'work', '工作通知', 2, 1),
+    (12, NOW(), NOW(), 1, 1, 0, 0, 5, 'activity', '活动通知', 3, 1);
+
+-- 演示公告用于全新环境验证全员与部门定向可见性。
+INSERT INTO sys_notice
+    (id, create_time, update_time, create_by, update_by, version, deleted,
+     title, notice_type, content, scope_type, status, publish_time)
+VALUES
+    (1, NOW(), NOW(), 1, 1, 0, 0, '欢迎使用基础管理系统', 'system',
+     '## 欢迎使用\n\n系统已完成初始化，请及时修改演示账号密码。', 'ALL', 'PUBLISHED', NOW()),
+    (2, NOW(), NOW(), 1, 1, 0, 0, '本周工作安排', 'work',
+     '## 工作安排\n\n请各部门按计划完成本周任务并及时更新进度。', 'ALL', 'PUBLISHED', DATE_SUB(NOW(), INTERVAL 1 DAY)),
+    (3, NOW(), NOW(), 1, 1, 0, 0, '研发环境维护通知', 'system',
+     '## 维护说明\n\n研发环境将进行例行维护，请提前保存工作。', 'TARGETED', 'PUBLISHED', DATE_SUB(NOW(), INTERVAL 2 DAY));
+
+INSERT INTO sys_notice_target (notice_id, target_type, target_id)
+VALUES (3, 'DEPT', 2);
 
 INSERT INTO sys_config
     (id, create_time, update_time, create_by, update_by, version, deleted,

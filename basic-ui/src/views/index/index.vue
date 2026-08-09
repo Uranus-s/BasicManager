@@ -20,14 +20,20 @@
           :rows="systemOverview"
           :storage="storageUsage"
         />
-        <notice-panel :items="notices" />
+        <notice-panel
+          :items="notices"
+          :loading="noticesLoading"
+          @more="openNoticeCenter"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { getVisibleNoticeList } from "@/api/notice";
 import { getSystemMonitorStatus } from "@/api/system/monitor";
+import eventBus from "@/utils/eventBus";
 import DashboardMetricCard from "./components/DashboardMetricCard.vue";
 import NoticePanel from "./components/NoticePanel.vue";
 import QuickEntryPanel from "./components/QuickEntryPanel.vue";
@@ -148,17 +154,18 @@ export default {
         free: "0 B",
       },
       systemOverviewLoading: true,
-      notices: [
-        { type: "系统", title: "系统升级维护通知", date: "2024-05-15" },
-        { type: "系统", title: "关于加强账号安全的通知", date: "2024-05-14" },
-        { type: "系统", title: "新增功能上线说明", date: "2024-05-13" },
-        { type: "系统", title: "五一假期安排通知", date: "2024-04-28" },
-        { type: "系统", title: "数据备份优化完成公告", date: "2024-04-20" },
-      ],
+      notices: [],
+      noticesLoading: true,
     };
   },
   created() {
+    this.$loadDict("sys_notice_type");
+    this.loadLatestNotices();
     this.loadSystemOverview();
+    eventBus.on("notice-updated", this.loadLatestNotices);
+  },
+  beforeUnmount() {
+    eventBus.off("notice-updated", this.loadLatestNotices);
   },
   methods: {
     formatBytes(bytes) {
@@ -238,6 +245,21 @@ export default {
       } finally {
         this.systemOverviewLoading = false;
       }
+    },
+    /** 获取当前用户最新可见公告，失败时由公告面板显示空状态。 */
+    async loadLatestNotices() {
+      this.noticesLoading = true;
+      try {
+        const { data } = await getVisibleNoticeList({ pageNum: 1, pageSize: 5 });
+        this.notices = Array.isArray(data?.list) ? data.list : [];
+      } catch (_error) {
+        this.notices = [];
+      } finally {
+        this.noticesLoading = false;
+      }
+    },
+    openNoticeCenter() {
+      if (this.$route.path !== "/notice") this.$router.push("/notice");
     },
     handleQuickOpen(path) {
       if (!path || path === this.$route.path) return;

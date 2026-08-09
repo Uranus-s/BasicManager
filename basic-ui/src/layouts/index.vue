@@ -20,6 +20,7 @@
         </div>
       </div>
       <div class="vab-main main-padding">
+        <vab-notice @visibility-change="handleNoticeVisibility" />
         <vab-app-main />
       </div>
     </div>
@@ -42,6 +43,7 @@
           <vab-nav />
           <vab-tabs v-if="tabsBar === 'true' || tabsBar === true" />
         </div>
+        <vab-notice @visibility-change="handleNoticeVisibility" />
         <vab-app-main />
       </div>
     </div>
@@ -59,6 +61,7 @@ import AiChatFloat from "@/components/AiChatFloat/index.vue";
 const store = useStore();
 
 const oldLayout = ref("");
+const noticeVisible = ref(false);
 const controller = ref(new window.AbortController());
 let timeOutID = null;
 
@@ -71,8 +74,14 @@ const device = computed(() => store.getters["settings/device"]);
 const classObj = computed(() => {
   return {
     mobile: device.value === "mobile",
+    "has-notice": noticeVisible.value,
   };
 });
+
+/** 根据公告数据动态调整主内容高度，无公告时不预留空白。 */
+const handleNoticeVisibility = (visible) => {
+  noticeVisible.value = visible;
+};
 
 const handleFoldSideBar = () => {
   store.dispatch("settings/foldSideBar");
@@ -193,6 +202,12 @@ nextTick(() => {
   width: 100%;
   height: 100%;
 
+  &.has-notice {
+    :deep(.app-main-height) {
+      min-height: calc(#{$base-app-main-height} - 30px - #{$base-padding});
+    }
+  }
+
   .layout-container-horizontal {
     position: relative;
 
@@ -226,6 +241,11 @@ nextTick(() => {
       }
 
       .main-padding {
+        > .vab-notice {
+          width: 100%;
+          margin: $base-padding auto 0;
+        }
+
         .app-main-container {
           margin-top: $base-padding;
           margin-bottom: $base-padding;
@@ -268,6 +288,11 @@ nextTick(() => {
       transition: $base-transition;
 
       :deep() {
+        > .vab-notice {
+          width: calc(100% - #{$base-padding} - #{$base-padding});
+          margin: $base-padding - 10px auto 0;
+        }
+
         .fixed-header {
           @include fix-header;
 
@@ -288,7 +313,7 @@ nextTick(() => {
 
         .app-main-container {
           width: calc(100% - #{$base-padding} - #{$base-padding});
-          margin: $base-padding auto;
+          margin: $base-padding - 10px auto;
           background: $base-color-white;
           border-radius: $base-border-radius;
         }

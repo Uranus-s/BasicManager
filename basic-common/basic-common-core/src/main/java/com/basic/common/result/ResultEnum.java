@@ -36,6 +36,10 @@ public enum ResultEnum implements IResult {
     IDEMPOTENT_CHECK_FAILED(40005, "幂等校验失败"),
     AI_CONFIG_MISSING(40006, "AI 服务尚未配置"),
     AI_CHAT_BUSY(40007, "当前已有回答生成中"),
+    NOTICE_STATUS_INVALID(41001, "当前公告状态不允许该操作"),
+    NOTICE_TARGET_REQUIRED(41002, "定向公告至少需要选择一个角色或部门"),
+    NOTICE_TARGET_INVALID(41003, "公告接收目标不存在或已失效"),
+    NOTICE_TYPE_INVALID(41004, "公告类型不存在或已停用"),
 
     /* ===================== 5xxxx 数据 / 资源 ===================== */
     DATA_NOT_EXIST(50001, "数据不存在"),
@@ -43,6 +47,7 @@ public enum ResultEnum implements IResult {
     DATA_NOT_UNIQUE(50003, "数据不唯一"),
     DATA_STATUS_ERROR(50004, "数据状态异常"),
     RELATION_DATA_NOT_EXIST(50005, "关联数据不存在"),
+    NOTICE_NOT_FOUND_OR_INACTIVE(51001, "公告不存在或已失效"),
 
     /* ===================== 6xxxx 第三方 / 远程调用 ===================== */
     REMOTE_SERVICE_ERROR(60001, "远程服务异常"),

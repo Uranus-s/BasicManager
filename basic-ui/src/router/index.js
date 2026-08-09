@@ -67,6 +67,25 @@ export const constantRoutes = [
     ],
   },
   {
+    path: "/notice",
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: "",
+        name: "NoticeCenter",
+        component: () => import("@/views/notice/index.vue"),
+        meta: { title: "公告中心" },
+      },
+      {
+        path: ":id",
+        name: "NoticeDetail",
+        component: () => import("@/views/notice/detail.vue"),
+        meta: { title: "公告详情" },
+      },
+    ],
+  },
+  {
     path: "/401",
     name: "401",
     component: () => import("@/views/401.vue"),

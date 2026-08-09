@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.basic.dao.sysNotice.mapper.SysNoticeMapper">
+
+    <sql id="noticeColumns">
+        n.id,
+        n.title,
+        n.notice_type AS noticeType,
+        n.content,
+        n.scope_type AS scopeType,
+        n.status,
+        n.publish_time AS publishTime,
+        n.create_by AS createBy,
+        n.create_time AS createTime,
+        n.update_by AS updateBy,
+        n.update_time AS updateTime,
+        n.version,
+        n.deleted
+    </sql>
+
+    <sql id="visibleCondition">
+        n.deleted = 0
+        AND n.status = 'PUBLISHED'
+        AND (
+            n.scope_type = 'ALL'
+            <if test="(roleIds != null and !roleIds.isEmpty()) or (deptIds != null and !deptIds.isEmpty())">
+                OR EXISTS (
+                    SELECT 1
+                    FROM sys_notice_target nt
+                    WHERE nt.notice_id = n.id
+                    AND (
+                        1 = 0
+                        <if test="roleIds != null and !roleIds.isEmpty()">
+                            OR (nt.target_type = 'ROLE' AND nt.target_id IN
+                            <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
+                                #{roleId}
+                            </foreach>
+                            )
+                        </if>
+                        <if test="deptIds != null and !deptIds.isEmpty()">
+                            OR (nt.target_type = 'DEPT' AND nt.target_id IN
+                            <foreach collection="deptIds" item="deptId" open="(" separator="," close=")">
+                                #{deptId}
+                            </foreach>
+                            )
+                        </if>
+                    )
+                )
+            </if>
+        )
+    </sql>
+
+    <update id="deleteDraftOrWithdrawnByIdAndVersion">
+        UPDATE sys_notice
+        SET deleted = 1,
+            version = version + 1,
+            update_time = NOW()
+        WHERE id = #{id}
+          AND version = #{version}
+          AND deleted = 0
+          AND status IN ('DRAFT', 'WITHDRAWN')
+    </update>
+
+    <select id="selectVisiblePage" resultType="com.basic.dao.sysNotice.entity.SysNotice">
+        SELECT <include refid="noticeColumns" />
+        FROM sys_notice n
+        WHERE <include refid="visibleCondition" />
+        <if test="title != null and title != ''">
+            AND n.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="noticeType != null and noticeType != ''">
+            AND n.notice_type = #{noticeType}
+        </if>
+        ORDER BY n.publish_time DESC, n.id DESC
+    </select>
+
+    <select id="selectLatestVisible" resultType="com.basic.dao.sysNotice.entity.SysNotice">
+        SELECT <include refid="noticeColumns" />
+        FROM sys_notice n
+        WHERE <include refid="visibleCondition" />
+        ORDER BY n.publish_time DESC, n.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectVisibleById" resultType="com.basic.dao.sysNotice.entity.SysNotice">
+        SELECT <include refid="noticeColumns" />
+        FROM sys_notice n
+        WHERE n.id = #{id}
+        AND <include refid="visibleCondition" />
+    </select>
+</mapper>
