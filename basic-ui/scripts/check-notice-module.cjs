@@ -69,7 +69,15 @@ assertIncludes("src/views/index/components/NoticePanel.vue", 'emits: ["more"]');
 assertIncludes("src/views/index/components/NoticePanel.vue", "暂无公告");
 assertIncludes("src/views/system/notice/index.vue", "system:notice:publish");
 assertIncludes("src/views/system/notice/index.vue", "check-strictly");
-assertIncludes("src/views/system/notice/index.vue", ':fixed="operationColumnFixed"');
+assertIncludes(
+  "src/views/system/notice/index.vue",
+  '<el-table-column :fixed="operationColumnFixed" label="操作" width="300">'
+);
+assertIncludes("src/views/system/notice/index.vue", "operationColumnFixed() {");
+assertIncludes(
+  "src/views/system/notice/index.vue",
+  'return this.$store.getters["settings/device"] === "mobile" ? false : "right";'
+);
 assertIncludes("src/views/system/notice/index.vue", "catch (_error)");
 assertIncludes("src/views/system/notice/index.vue", "this.total = 0;");
 assertIncludes(

@@ -81,7 +81,7 @@
         </el-table-column>
         <el-table-column label="发布时间" min-width="170" prop="publishTime" show-overflow-tooltip />
         <el-table-column label="更新时间" min-width="170" prop="updateTime" show-overflow-tooltip />
-        <el-table-column :fixed="operationColumnFixed" label="操作" min-width="300">
+        <el-table-column fixed="right" label="操作" width="300">
           <template #default="{ row }">
             <el-button type="text" @click="handleView(row)">查看</el-button>
             <el-button
@@ -344,9 +344,6 @@ export default {
     },
     drawerSize() {
       return this.$store.getters["settings/device"] === "mobile" ? "100%" : "760px";
-    },
-    operationColumnFixed() {
-      return this.$store.getters["settings/device"] === "mobile" ? false : "right";
     },
     drawerTitle() {
       if (this.drawerMode === "create") return "新增公告";
