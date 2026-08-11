@@ -139,6 +139,18 @@ export const clampWindowRect = (rect, viewport, margin = 16) => {
 }
 
 /**
+ * 重新打开浮窗时保留用户设置的尺寸，但将位置统一停靠到当前视口右下角。
+ */
+export const dockBottomRightRect = (rect, viewport, margin = 16) => {
+  const bounded = clampWindowRect(rect, viewport, margin)
+  return {
+    ...bounded,
+    x: viewport.width - bounded.width - margin,
+    y: viewport.height - bounded.height - margin,
+  }
+}
+
+/**
  * 渲染模型 Markdown。原始 HTML 始终作为文本处理，防止聊天内容注入脚本。
  */
 export const renderMarkdown = (content = "") => markdown.render(String(content))

@@ -149,6 +149,7 @@ import {
   clampWindowRect,
   createRequestCoalescer,
   defaultBottomRightRect,
+  dockBottomRightRect,
   hasPersistedRound,
   loadStoredRect,
   mergeHistory,
@@ -164,6 +165,7 @@ const HISTORY_FOCUS_REFRESH_INTERVAL = 5_000
 
 const viewport = () => ({ width: window.innerWidth, height: window.innerHeight })
 const initialRect = defaultBottomRightRect(viewport())
+const storedRect = loadStoredRect(localStorage.getItem(RECT_STORAGE_KEY), initialRect, viewport())
 
 const open = ref(localStorage.getItem(OPEN_STORAGE_KEY) !== "false")
 const minimized = ref(false)
@@ -175,7 +177,7 @@ const messages = ref([])
 const input = ref("")
 const errorMessage = ref("")
 const lastFailedQuestion = ref("")
-const rect = ref(loadStoredRect(localStorage.getItem(RECT_STORAGE_KEY), initialRect, viewport()))
+const rect = ref(dockBottomRightRect(storedRect, viewport()))
 const messageListRef = ref(null)
 const abortController = shallowRef(null)
 const activeRound = shallowRef(null)
@@ -437,6 +439,8 @@ const handleResize = () => {
 }
 
 const openChat = async () => {
+  rect.value = dockBottomRightRect(rect.value, viewport())
+  persistRect()
   open.value = true
   minimized.value = false
   localStorage.setItem(OPEN_STORAGE_KEY, "true")
