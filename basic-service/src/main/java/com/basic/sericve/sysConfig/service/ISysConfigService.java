@@ -58,6 +58,11 @@ public interface ISysConfigService extends IService<SysConfig> {
     String getDeepSeekApiKey();
 
     /**
+     * 判断站内网页代理是否启用，缺失或非法配置一律按关闭处理。
+     */
+    boolean isAiAgentEnabled();
+
+    /**
      * 获取 Token 有效期毫秒数，异常配置自动使用安全默认值。
      *
      * @return Token 有效期毫秒数

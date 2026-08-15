@@ -36,6 +36,12 @@ public enum ResultEnum implements IResult {
     IDEMPOTENT_CHECK_FAILED(40005, "幂等校验失败"),
     AI_CONFIG_MISSING(40006, "AI 服务尚未配置"),
     AI_CHAT_BUSY(40007, "当前已有回答生成中"),
+    AI_AGENT_BUSY(40008, "当前已有网页代理任务运行中"),
+    AI_AGENT_STATE_INVALID(40009, "AI代理任务状态不允许该操作"),
+    AI_AGENT_ACTION_INVALID(40010, "AI代理动作不可用"),
+    AI_AGENT_CONFIRMATION_REQUIRED(40011, "该AI代理操作需要确认"),
+    AI_AGENT_CLIENT_MISMATCH(40012, "AI代理任务已绑定其他页面"),
+    AI_AGENT_DISABLED(40013, "AI网页代理尚未启用"),
     NOTICE_STATUS_INVALID(41001, "当前公告状态不允许该操作"),
     NOTICE_TARGET_REQUIRED(41002, "定向公告至少需要选择一个角色或部门"),
     NOTICE_TARGET_INVALID(41003, "公告接收目标不存在或已失效"),
@@ -47,6 +53,7 @@ public enum ResultEnum implements IResult {
     DATA_NOT_UNIQUE(50003, "数据不唯一"),
     DATA_STATUS_ERROR(50004, "数据状态异常"),
     RELATION_DATA_NOT_EXIST(50005, "关联数据不存在"),
+    AI_AGENT_TASK_NOT_FOUND(50006, "AI代理任务不存在"),
     NOTICE_NOT_FOUND_OR_INACTIVE(51001, "公告不存在或已失效"),
 
     /* ===================== 6xxxx 第三方 / 远程调用 ===================== */

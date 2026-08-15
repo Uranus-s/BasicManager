@@ -8,7 +8,9 @@
     "serve:rspack": "node --no-deprecation rspack.js serve",
     "build": "rimraf dist && node --no-deprecation rspack.js build",
     "build:zip": "rimraf dist && node --no-deprecation rspack.js build && node build-zip.cjs",
+    "check:ai-agent": "node scripts/check-ai-agent-core.cjs && node scripts/check-ai-agent-pages.cjs",
     "check:notice": "node scripts/check-notice-module.cjs",
+    "test:e2e:ai-agent": "playwright test e2e/ai-agent-notice-dict.spec.cjs",
     "clear": "rimraf node_modules&&npm install  --registry=--registry=https://registry.npmmirror.com",
     "update": "ncu -u --reject sass,sass-loader --registry=https://registry.npmmirror.com&&pnpm i --no-frozen-lockfile",
     "module:update": "ncu -u --reject sass,sass-loader --registry=https://registry.npmmirror.com&&pnpm i --no-frozen-lockfile",
@@ -48,6 +50,7 @@
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.2",
+    "@playwright/test": "^1.62.1",
     "@rspack/core": "^1.7.11",
     "@rspack/dev-server": "^1.2.1",
     "@vue/compiler-sfc": "^3.5.32",

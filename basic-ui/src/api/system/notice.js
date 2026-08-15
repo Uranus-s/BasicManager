@@ -25,8 +25,9 @@ export function getNoticeTargetOptions() {
   });
 }
 
-export function createNotice(data) {
+export function createNotice(data, options = {}) {
   return request({
+    ...options,
     baseURL: "",
     url: "/system/notice",
     method: "post",
@@ -35,8 +36,9 @@ export function createNotice(data) {
   });
 }
 
-export function updateNotice(data) {
+export function updateNotice(data, options = {}) {
   return request({
+    ...options,
     baseURL: "",
     url: "/system/notice",
     method: "put",
@@ -45,24 +47,27 @@ export function updateNotice(data) {
   });
 }
 
-export function deleteNotice(id) {
+export function deleteNotice(id, options = {}) {
   return request({
+    ...options,
     baseURL: "",
     url: `/system/notice/${id}`,
     method: "delete",
   });
 }
 
-export function publishNotice(id) {
+export function publishNotice(id, options = {}) {
   return request({
+    ...options,
     baseURL: "",
     url: `/system/notice/${id}/publish`,
     method: "post",
   });
 }
 
-export function withdrawNotice(id) {
+export function withdrawNotice(id, options = {}) {
   return request({
+    ...options,
     baseURL: "",
     url: `/system/notice/${id}/withdraw`,
     method: "post",

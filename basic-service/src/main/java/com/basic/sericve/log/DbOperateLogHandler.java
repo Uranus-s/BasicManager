@@ -25,7 +25,10 @@ public class DbOperateLogHandler implements LogHandler<OperateLogRecord> {
                 record.getRequestParams(),
                 record.getResponseResult(),
                 record.getStatus(),
-                record.getCostTime()
+                record.getCostTime(),
+                record.getAiAgentTaskId(),
+                record.getAiAgentActionId(),
+                record.getOperationSource()
         );
     }
 }

@@ -27,4 +27,13 @@ public class OperateLogRecord {
     private Byte status;
 
     private Long costTime;
+
+    /** 通过服务端校验的 AI 代理任务 ID。 */
+    private Long aiAgentTaskId;
+
+    /** 通过服务端校验的 AI 代理动作 ID。 */
+    private String aiAgentActionId;
+
+    /** 操作来源：MANUAL 或 AI_AGENT。 */
+    private String operationSource;
 }

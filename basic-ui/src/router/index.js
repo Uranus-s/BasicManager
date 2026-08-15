@@ -4,8 +4,11 @@
  */
 
 import { createRouter, createWebHashHistory } from "vue-router";
-import Layout from "@/layouts/index.vue";
 import { publicPath } from "@/config";
+
+// Layout 会加载 AI Agent runtime，而 runtime 的请求层又依赖 router。
+// 在实际路由导航时再加载 Layout，避免应用启动阶段形成循环依赖并捕获未初始化的 router。
+const Layout = () => import("@/layouts/index.vue");
 
 export const constantRoutes = [
   {

@@ -35,6 +35,7 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
     private static final String SYSTEM_NAME_KEY = "sys.title";
     private static final String TOKEN_EXPIRE_HOURS_KEY = "sys.login.tokenExpireHours";
     private static final String AI_DEEPSEEK_API_KEY = "ai.deepseek.apiKey";
+    private static final String AI_AGENT_ENABLED = "ai.agent.enabled";
     private static final String DEFAULT_SYSTEM_NAME = "基础管理系统";
     private static final int DEFAULT_TOKEN_EXPIRE_HOURS = 24;
     private static final int MAX_TOKEN_EXPIRE_HOURS = 168;
@@ -46,6 +47,7 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
         ConfigSettingsVO settings = new ConfigSettingsVO();
         settings.setSystemName(resolveSystemName(readValue(SYSTEM_NAME_KEY)));
         settings.setTokenExpireHours(resolveTokenExpireHours(readValue(TOKEN_EXPIRE_HOURS_KEY)));
+        settings.setAgentEnabled(isAiAgentEnabled());
         String apiKey = getDeepSeekApiKey();
         settings.setDeepSeekApiKeyConfigured(StringUtils.hasText(apiKey));
         settings.setDeepSeekApiKeyMasked(maskApiKey(apiKey));
@@ -87,25 +89,30 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
     @Transactional(rollbackFor = Exception.class)
     public void updateAiSettings(ConfigAiUpdateDTO dto) {
         String input = dto == null ? null : dto.getApiKey();
-        String current = readValue(AI_DEEPSEEK_API_KEY);
-        if (!StringUtils.hasText(input)) {
-            if (!StringUtils.hasText(current)) {
-                throw new BusinessException(ResultEnum.AI_CONFIG_MISSING);
+        // 空 API Key 表示保持现有密钥不变，使管理员可以只切换 Agent 开关而无需重新提交敏感配置。
+        if (StringUtils.hasText(input)) {
+            String normalized = input.trim();
+            if (normalized.length() > 255) {
+                throw new BusinessException(ResultEnum.PARAM_OUT_OF_RANGE);
             }
-            return;
+            upsert(AI_DEEPSEEK_API_KEY, normalized, "DeepSeek API Key，运行时由管理员配置");
+            applicationEventPublisher.publishEvent(new AiConfigChangedEvent(this));
         }
-        String normalized = input.trim();
-        if (normalized.length() > 255) {
-            throw new BusinessException(ResultEnum.PARAM_OUT_OF_RANGE);
-        }
-        upsert(AI_DEEPSEEK_API_KEY, normalized, "DeepSeek API Key，运行时由管理员配置");
-        applicationEventPublisher.publishEvent(new AiConfigChangedEvent(this));
+        // 功能开关独立持久化；关闭 Agent 不删除模型密钥，后续重新启用无需再次录入。
+        upsert(AI_AGENT_ENABLED, String.valueOf(dto != null && Boolean.TRUE.equals(dto.getAgentEnabled())),
+                "是否启用AI站内网页代理");
     }
 
     @Override
     public String getDeepSeekApiKey() {
         String value = readValue(AI_DEEPSEEK_API_KEY);
         return StringUtils.hasText(value) ? value.trim() : null;
+    }
+
+    @Override
+    public boolean isAiAgentEnabled() {
+        String value = readValue(AI_AGENT_ENABLED);
+        return StringUtils.hasText(value) && Boolean.parseBoolean(value.trim());
     }
 
     @Override

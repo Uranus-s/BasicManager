@@ -18,6 +18,7 @@ import router from "@/router";
 import { isArray } from "@/utils/validate";
 import { ElLoading, ElMessage } from "element-plus";
 import { pickBy, identity } from "lodash-es";
+import { consumeAgentTrace } from "@/utils/aiAgent/traceContext";
 
 let loadingInstance;
 
@@ -75,6 +76,10 @@ const handleCode = (code, msg) => {
   }
 };
 
+// 仅允许具体请求声明可由调用方恢复的业务错误码，其他错误仍走全局提示。
+const shouldSilenceError = (config, code) =>
+  Array.isArray(config?.silentErrorCodes) && config.silentErrorCodes.includes(code);
+
 const localDateTimePattern =
   /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})(?:\.\d+)?$/;
 
@@ -127,6 +132,16 @@ instance.interceptors.request.use(
       config.headers = config.headers || {};
       config.headers[tokenName] = store.state.user.accessToken;
       config.headers.Authorization = `Bearer ${store.state.user.accessToken}`;
+    }
+
+    // 页面可显式传入追踪对象；通用页面代理自动把当前动作关联到第一笔业务请求。
+    const agentTrace = config.aiAgentTrace || consumeAgentTrace();
+    if (agentTrace) {
+      config.headers = config.headers || {};
+      config.headers["X-AI-Agent-Task-Id"] = String(agentTrace.taskId);
+      config.headers["X-AI-Agent-Action-Id"] = agentTrace.actionId;
+      // 代理动作的业务请求必须保持单次执行，避免重试造成重复写入。
+      config.retry = 0;
     }
 
     //这里会过滤普通对象中为空、0、false的key，如果不需要请自行注释
@@ -185,7 +200,7 @@ instance.interceptors.response.use(
     if (code !== null && codeVerificationArray.includes(code)) {
       return normalizeDateTimeFields(data);
     } else {
-      handleCode(code, msg);
+      if (!shouldSilenceError(config, code)) handleCode(code, msg);
       return Promise.reject(
         `vue-admin-better请求异常拦截:${JSON.stringify({
           url: config.url,
@@ -234,7 +249,9 @@ instance.interceptors.response.use(
     if (response && response.data) {
       const { status, data } = response;
       const code = data && data.code !== undefined ? data.code : status;
-      handleCode(code, data.msg || data.message || message || "未知错误");
+      if (!shouldSilenceError(config, code)) {
+        handleCode(code, data.msg || data.message || message || "未知错误");
+      }
       return Promise.reject(error);
     } else {
       let errorMsg = "后端接口未知异常";

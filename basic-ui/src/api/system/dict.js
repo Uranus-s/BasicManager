@@ -27,8 +27,9 @@ export function getDictDetail(id) {
   });
 }
 
-export function createDict(data) {
+export function createDict(data, options = {}) {
   return request({
+    ...options,
     baseURL: "",
     url: "/system/dict",
     method: "post",
@@ -37,8 +38,9 @@ export function createDict(data) {
   });
 }
 
-export function updateDict(data) {
+export function updateDict(data, options = {}) {
   return request({
+    ...options,
     baseURL: "",
     url: "/system/dict",
     method: "put",
@@ -47,8 +49,9 @@ export function updateDict(data) {
   });
 }
 
-export function deleteDict(id) {
+export function deleteDict(id, options = {}) {
   return request({
+    ...options,
     baseURL: "",
     url: `/system/dict/${id}`,
     method: "delete",
@@ -80,8 +83,9 @@ export function getDictItemDetail(id) {
   });
 }
 
-export function createDictItem(data) {
+export function createDictItem(data, options = {}) {
   return request({
+    ...options,
     baseURL: "",
     url: "/system/dict/item",
     method: "post",
@@ -90,8 +94,9 @@ export function createDictItem(data) {
   });
 }
 
-export function updateDictItem(data) {
+export function updateDictItem(data, options = {}) {
   return request({
+    ...options,
     baseURL: "",
     url: "/system/dict/item",
     method: "put",
@@ -100,8 +105,9 @@ export function updateDictItem(data) {
   });
 }
 
-export function deleteDictItem(id) {
+export function deleteDictItem(id, options = {}) {
   return request({
+    ...options,
     baseURL: "",
     url: `/system/dict/item/${id}`,
     method: "delete",

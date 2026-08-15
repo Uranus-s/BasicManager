@@ -25,6 +25,12 @@ public class ConfigSettingsVO {
     private Integer tokenExpireHours;
 
     /**
+     * 是否启用站内网页代理；未配置时默认关闭。
+     */
+    @Schema(description = "是否启用站内网页代理")
+    private Boolean agentEnabled;
+
+    /**
      * 是否已经保存 DeepSeek API Key，不暴露密钥原值。
      */
     @Schema(description = "是否已配置 DeepSeek API Key")

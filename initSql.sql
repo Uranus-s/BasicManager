@@ -26,6 +26,8 @@ DROP TABLE IF EXISTS sys_oper_log;
 DROP TABLE IF EXISTS sys_login_log;
 DROP TABLE IF EXISTS sys_file;
 DROP TABLE IF EXISTS SPRING_AI_CHAT_MEMORY;
+DROP TABLE IF EXISTS ai_agent_action;
+DROP TABLE IF EXISTS ai_agent_task;
 DROP TABLE IF EXISTS ai_chat_message;
 DROP TABLE IF EXISTS sys_config;
 DROP TABLE IF EXISTS sys_permission;
@@ -258,6 +260,64 @@ CREATE TABLE ai_chat_message
   COLLATE = utf8mb4_unicode_ci
   COMMENT = 'AI聊天消息表';
 
+CREATE TABLE ai_agent_task
+(
+    id                 BIGINT        NOT NULL AUTO_INCREMENT COMMENT '主键',
+    create_time        DATETIME      NULL COMMENT '创建时间',
+    update_time        DATETIME      NULL COMMENT '更新时间',
+    create_by          BIGINT        NULL COMMENT '创建人',
+    update_by          BIGINT        NULL COMMENT '更新人',
+    version            INT           NOT NULL DEFAULT 0 COMMENT '乐观锁版本号',
+    deleted            TINYINT       NOT NULL DEFAULT 0 COMMENT '逻辑删除',
+    user_id            BIGINT        NOT NULL COMMENT '任务所属用户ID',
+    client_instance_id VARCHAR(64)   NOT NULL COMMENT '任务所属浏览器标签页实例',
+    active_key         VARCHAR(80)   NULL COMMENT '活动任务唯一键，终态置空',
+    goal_summary       VARCHAR(1000) NOT NULL COMMENT '脱敏后的用户目标',
+    status             VARCHAR(32)   NOT NULL COMMENT '任务状态',
+    route_name         VARCHAR(100)  NULL COMMENT '当前前端路由名称',
+    page_version       VARCHAR(128)  NULL COMMENT '当前页面版本摘要',
+    current_step       INT           NOT NULL DEFAULT 0 COMMENT '当前步骤序号',
+    active_action_id   VARCHAR(64)   NULL COMMENT '当前动作ID',
+    planning_token     VARCHAR(64)   NULL COMMENT '当前异步规划租约令牌',
+    failure_code       VARCHAR(64)   NULL COMMENT '稳定失败代码',
+    started_at         DATETIME      NULL COMMENT '开始时间',
+    finished_at        DATETIME      NULL COMMENT '结束时间',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_ai_agent_task_active_key (active_key),
+    KEY idx_ai_agent_task_user_deleted_id (user_id, deleted, id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'AI网页代理任务表';
+
+CREATE TABLE ai_agent_action
+(
+    id                BIGINT        NOT NULL AUTO_INCREMENT COMMENT '主键',
+    create_time       DATETIME      NULL COMMENT '创建时间',
+    update_time       DATETIME      NULL COMMENT '更新时间',
+    create_by         BIGINT        NULL COMMENT '创建人',
+    update_by         BIGINT        NULL COMMENT '更新人',
+    version           INT           NOT NULL DEFAULT 0 COMMENT '乐观锁版本号',
+    deleted           TINYINT       NOT NULL DEFAULT 0 COMMENT '逻辑删除',
+    task_id           BIGINT        NOT NULL COMMENT '代理任务ID',
+    action_id         VARCHAR(64)   NOT NULL COMMENT '幂等动作ID',
+    sequence_no       INT           NOT NULL COMMENT '任务内动作顺序',
+    route_name        VARCHAR(100)  NOT NULL COMMENT '动作所属路由',
+    page_version      VARCHAR(128)  NOT NULL COMMENT '动作生成时页面版本',
+    action_type       VARCHAR(32)   NOT NULL COMMENT '动作类型',
+    target            VARCHAR(160)  NOT NULL COMMENT '语义目标',
+    risk_level        VARCHAR(16)   NOT NULL COMMENT 'LOW/MEDIUM/HIGH',
+    arguments_json    TEXT          NULL COMMENT '脱敏动作参数JSON',
+    status            VARCHAR(32)   NOT NULL COMMENT '动作状态',
+    result_summary    VARCHAR(1000) NULL COMMENT '脱敏执行结果',
+    confirmation_summary VARCHAR(1000) NULL COMMENT '服务端生成的高风险确认摘要',
+    confirmed_by      BIGINT        NULL COMMENT '确认用户ID',
+    confirmed_at      DATETIME      NULL COMMENT '确认时间',
+    started_at        DATETIME      NULL COMMENT '下发时间',
+    finished_at       DATETIME      NULL COMMENT '完成时间',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_ai_agent_action_action_id (action_id),
+    UNIQUE KEY uk_ai_agent_action_task_sequence (task_id, sequence_no),
+    KEY idx_ai_agent_action_task_status (task_id, status)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'AI网页代理动作表';
+
 CREATE TABLE SPRING_AI_CHAT_MEMORY
 (
     `conversation_id` VARCHAR(36)                                      NOT NULL,
@@ -322,10 +382,14 @@ CREATE TABLE sys_oper_log
     response_result TEXT         NULL COMMENT '返回结果',
     status          TINYINT      NULL COMMENT '状态 0=失败 1=成功',
     cost_time       BIGINT       NULL COMMENT '耗时（毫秒）',
+    ai_agent_task_id   BIGINT      NULL COMMENT '关联AI代理任务ID',
+    ai_agent_action_id VARCHAR(64) NULL COMMENT '关联AI代理动作ID',
+    operation_source   VARCHAR(16) NOT NULL DEFAULT 'MANUAL' COMMENT 'MANUAL/AI_AGENT',
     PRIMARY KEY (id),
     KEY idx_sys_oper_log_create_time (create_time),
     KEY idx_sys_oper_log_module (module),
-    KEY idx_sys_oper_log_status (status)
+    KEY idx_sys_oper_log_status (status),
+    KEY idx_sys_oper_log_ai_agent (ai_agent_task_id, ai_agent_action_id)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci
@@ -643,7 +707,8 @@ INSERT INTO sys_config
 VALUES
     (1, NOW(), NOW(), 1, 1, 0, 0, 'sys.title', '基础管理系统', '系统名称'),
     (2, NOW(), NOW(), 1, 1, 0, 0, 'sys.login.tokenExpireHours', '24', 'Token 有效期，单位小时'),
-    (3, NOW(), NOW(), 1, 1, 0, 0, 'ai.deepseek.apiKey', NULL, 'DeepSeek API Key，运行时由管理员配置');
+    (3, NOW(), NOW(), 1, 1, 0, 0, 'ai.deepseek.apiKey', NULL, 'DeepSeek API Key，运行时由管理员配置'),
+    (4, NOW(), NOW(), 1, 1, 0, 0, 'ai.agent.enabled', 'false', '是否启用AI站内网页代理');
 
 SET FOREIGN_KEY_CHECKS = 1;
 

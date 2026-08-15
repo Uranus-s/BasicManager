@@ -26,10 +26,14 @@ public interface ISysOperLogService extends IService<SysOperLog> {
      * @param responseResult 返回结果
      * @param status         状态 0=失败 1=成功
      * @param costTime       耗时(ms)
+     * @param aiAgentTaskId  关联 AI 代理任务 ID
+     * @param aiAgentActionId 关联 AI 代理动作 ID
+     * @param operationSource 操作来源
      * @return 日志ID
      */
     Long saveOperLog(String module, String method, String requestUrl, String requestMethod,
-                     String requestParams, String responseResult, Byte status, Long costTime);
+                     String requestParams, String responseResult, Byte status, Long costTime,
+                     Long aiAgentTaskId, String aiAgentActionId, String operationSource);
 
     /**
      * 获取操作日志详情

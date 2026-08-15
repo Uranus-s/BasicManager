@@ -34,7 +34,8 @@ public class SysOperLogServiceImpl extends ServiceImpl<SysOperLogMapper, SysOper
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long saveOperLog(String module, String method, String requestUrl, String requestMethod,
-                            String requestParams, String responseResult, Byte status, Long costTime) {
+                            String requestParams, String responseResult, Byte status, Long costTime,
+                            Long aiAgentTaskId, String aiAgentActionId, String operationSource) {
         SysOperLog operLog = new SysOperLog();
         operLog.setCreateTime(LocalDateTime.now());
         operLog.setModule(module);
@@ -45,6 +46,9 @@ public class SysOperLogServiceImpl extends ServiceImpl<SysOperLogMapper, SysOper
         operLog.setResponseResult(responseResult);
         operLog.setStatus(status);
         operLog.setCostTime(costTime);
+        operLog.setAiAgentTaskId(aiAgentTaskId);
+        operLog.setAiAgentActionId(aiAgentActionId);
+        operLog.setOperationSource(operationSource);
         save(operLog);
         return operLog.getId();
     }

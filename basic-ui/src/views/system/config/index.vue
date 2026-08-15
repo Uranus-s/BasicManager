@@ -132,6 +132,14 @@
             :model="aiForm"
             :rules="aiRules"
           >
+            <el-form-item label="AI 网页代理" prop="agentEnabled">
+              <el-switch
+                v-model="aiForm.agentEnabled"
+                :disabled="!canEdit"
+                active-text="启用"
+                inactive-text="关闭"
+              />
+            </el-form-item>
             <el-form-item label="DeepSeek API Key" prop="apiKey">
               <el-input
                 v-model="aiForm.apiKey"
@@ -150,7 +158,7 @@
 
           <div class="section-actions ai-actions">
             <el-button
-              :disabled="!canEdit || aiDirty || !deepSeekApiKeyConfigured"
+              :disabled="!canEdit || aiApiKeyDirty || !deepSeekApiKeyConfigured"
               :loading="aiTesting"
               @click="testConnection"
             >
@@ -194,7 +202,7 @@ import {
 
 const defaultBasicForm = () => ({ systemName: "" });
 const defaultSecurityForm = () => ({ tokenExpireHours: 24 });
-const defaultAiForm = () => ({ apiKey: "" });
+const defaultAiForm = () => ({ apiKey: "", agentEnabled: false });
 
 export default {
   name: "SystemConfig",
@@ -218,6 +226,7 @@ export default {
       savedBasic: defaultBasicForm(),
       savedSecurity: defaultSecurityForm(),
       aiForm: defaultAiForm(),
+      savedAi: defaultAiForm(),
       deepSeekApiKeyConfigured: false,
       deepSeekApiKeyMasked: "",
       basicRules: {
@@ -265,8 +274,15 @@ export default {
     securityValid() {
       return isSecuritySettingsValid(this.securityForm.tokenExpireHours);
     },
-    aiDirty() {
+    aiApiKeyDirty() {
       return hasAiSettingChanges(this.aiForm);
+    },
+    aiDirty() {
+      // Agent 开关可独立保存；连接测试只受 API Key 是否变更影响，不因开关切换而被禁用。
+      return (
+        this.aiApiKeyDirty ||
+        this.savedAi.agentEnabled !== this.aiForm.agentEnabled
+      );
     },
     aiValid() {
       return isAiApiKeyValid(this.aiForm.apiKey);
@@ -300,11 +316,16 @@ export default {
         const security = {
           tokenExpireHours: Number(data?.tokenExpireHours) || 24,
         };
+        const ai = {
+          apiKey: "",
+          agentEnabled: Boolean(data?.agentEnabled),
+        };
         this.basicForm = { ...basic };
         this.savedBasic = { ...basic };
         this.securityForm = { ...security };
         this.savedSecurity = { ...security };
-        this.aiForm = defaultAiForm();
+        this.aiForm = { ...ai };
+        this.savedAi = { ...ai };
         this.deepSeekApiKeyConfigured = Boolean(data?.deepSeekApiKeyConfigured);
         this.deepSeekApiKeyMasked = data?.deepSeekApiKeyMasked || "";
       } catch (error) {
@@ -337,7 +358,7 @@ export default {
       } else if (section === "security") {
         this.securityForm = { ...this.savedSecurity };
       } else {
-        this.aiForm = defaultAiForm();
+        this.aiForm = { ...this.savedAi };
       }
     },
     confirmDiscard() {
@@ -393,7 +414,10 @@ export default {
 
       this.aiSaving = true;
       try {
-        await updateAiSettings({ apiKey: this.aiForm.apiKey.trim() });
+        await updateAiSettings({
+          apiKey: this.aiForm.apiKey.trim(),
+          agentEnabled: this.aiForm.agentEnabled,
+        });
         await this.loadSettings();
         this.$message.success("AI 设置已保存");
       } finally {
@@ -401,7 +425,7 @@ export default {
       }
     },
     async testConnection() {
-      if (!this.canEdit || this.aiDirty || !this.deepSeekApiKeyConfigured) return;
+      if (!this.canEdit || this.aiApiKeyDirty || !this.deepSeekApiKeyConfigured) return;
       this.aiTesting = true;
       try {
         await testAiConnection();

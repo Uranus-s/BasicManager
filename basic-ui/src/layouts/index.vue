@@ -47,6 +47,7 @@
         <vab-app-main />
       </div>
     </div>
+    <ai-agent-observer v-if="device === 'desktop'" :runtime="aiAgentRuntime" />
     <ai-chat-float v-if="device === 'desktop'" />
     <el-backtop />
   </div>
@@ -57,6 +58,8 @@ import { ref, computed, onBeforeMount, onBeforeUnmount, onMounted, nextTick } fr
 import { useStore } from "vuex";
 import { tokenName } from "@/config";
 import AiChatFloat from "@/components/AiChatFloat/index.vue";
+import AiAgentObserver from "@/components/AiAgentObserver/index.vue";
+import { aiAgentRuntime } from "@/utils/aiAgent/runtime";
 
 const store = useStore();
 

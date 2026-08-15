@@ -13,6 +13,8 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.util.Objects;
+
 /**
  * 操作日志切面。
  */
@@ -57,6 +59,12 @@ public class OperateLogAspect {
             record.setResponseResult(error == null ? LogRequestUtils.serializeResult(result) : error.getMessage());
             record.setStatus((byte) (error == null ? 1 : 0));
             record.setCostTime(costTime);
+            // 只读取拦截器校验后写入的请求属性，原始客户端头不能直接影响操作来源和审计关联。
+            Object taskId = request == null ? null : request.getAttribute("aiAgentTaskId");
+            record.setAiAgentTaskId(taskId instanceof Long value ? value : null);
+            record.setAiAgentActionId(request == null ? null
+                    : Objects.toString(request.getAttribute("aiAgentActionId"), null));
+            record.setOperationSource(record.getAiAgentTaskId() == null ? "MANUAL" : "AI_AGENT");
             handler.handle(record);
         } catch (Exception ex) {
             log.warn("记录操作日志失败", ex);

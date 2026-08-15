@@ -55,7 +55,11 @@
             <el-icon><Refresh /></el-icon>
             重置
           </el-button>
-          <el-button v-if="hasAuthority('system:notice:add')" type="success" @click="handleCreate">
+          <el-button
+            v-if="hasAuthority('system:notice:add')"
+            type="success"
+            @click="handleCreate"
+          >
             <el-icon><Plus /></el-icon>
             新增公告
           </el-button>
@@ -81,7 +85,7 @@
         </el-table-column>
         <el-table-column label="发布时间" min-width="170" prop="publishTime" show-overflow-tooltip />
         <el-table-column label="更新时间" min-width="170" prop="updateTime" show-overflow-tooltip />
-        <el-table-column fixed="right" label="操作" width="300">
+        <el-table-column :fixed="operationColumnFixed" label="操作" width="300">
           <template #default="{ row }">
             <el-button type="text" @click="handleView(row)">查看</el-button>
             <el-button
@@ -158,7 +162,11 @@
 
           <div class="form-grid">
             <el-form-item label="公告类型" prop="noticeType">
-              <el-select v-model="form.noticeType" placeholder="请选择公告类型" style="width: 100%">
+              <el-select
+                v-model="form.noticeType"
+                placeholder="请选择公告类型"
+                style="width: 100%"
+              >
                 <el-option
                   v-for="option in noticeTypeOptions"
                   :key="option.value"
@@ -345,6 +353,9 @@ export default {
     drawerSize() {
       return this.$store.getters["settings/device"] === "mobile" ? "100%" : "760px";
     },
+    operationColumnFixed() {
+      return this.$store.getters["settings/device"] === "mobile" ? false : "right";
+    },
     drawerTitle() {
       if (this.drawerMode === "create") return "新增公告";
       if (this.drawerMode === "edit") return "编辑公告";
@@ -494,27 +505,50 @@ export default {
       });
     },
     handlePublish(row) {
-      this.confirmAction(`确认发布公告「${row.title}」吗？`, () => publishNotice(row.id), "发布成功");
+      return this.requestNoticeCommand(
+        "publish",
+        row,
+        `确认发布公告「${row.title}」吗？`,
+        () => publishNotice(row.id),
+        "发布成功"
+      );
     },
     handleWithdraw(row) {
-      this.confirmAction(`确认撤回公告「${row.title}」吗？`, () => withdrawNotice(row.id), "撤回成功");
+      return this.requestNoticeCommand(
+        "withdraw",
+        row,
+        `确认撤回公告「${row.title}」吗？`,
+        () => withdrawNotice(row.id),
+        "撤回成功"
+      );
     },
     handleDelete(row) {
-      this.confirmAction(`确认删除公告「${row.title}」吗？`, () => deleteNotice(row.id), "删除成功", "warning");
+      return this.requestNoticeCommand(
+        "delete",
+        row,
+        `确认删除公告「${row.title}」吗？`,
+        () => deleteNotice(row.id),
+        "删除成功",
+        "warning"
+      );
+    },
+    requestNoticeCommand(operation, row, message, action, successMessage, type = "warning") {
+      return this.confirmAction(message, action, successMessage, type);
+    },
+    async executeNoticeCommand(action, successMessage) {
+      await action();
+      this.$message.success(successMessage);
+      eventBus.emit("notice-updated");
+      await this.getList();
     },
     /** 状态命令统一确认、刷新列表并通知全局公告条。 */
     confirmAction(message, action, successMessage, type = "warning") {
-      this.$confirm(message, "提示", {
+      return this.$confirm(message, "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type,
       })
-        .then(async () => {
-          await action();
-          this.$message.success(successMessage);
-          eventBus.emit("notice-updated");
-          await this.getList();
-        })
+        .then(() => this.executeNoticeCommand(action, successMessage))
         .catch(() => {});
     },
     serializeForm() {

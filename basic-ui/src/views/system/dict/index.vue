@@ -52,7 +52,12 @@
           <el-form-item>
             <el-button type="primary" @click="handleDictQuery">查询</el-button>
             <el-button @click="resetDictQuery">重置</el-button>
-            <el-button type="success" @click="handleCreateDict">新增</el-button>
+            <el-button
+              type="success"
+              @click="handleCreateDict"
+            >
+              新增
+            </el-button>
           </el-form-item>
         </el-form>
 
@@ -65,12 +70,17 @@
           @row-click="handleDictSelect"
         >
           <el-table-column label="ID" prop="id" width="80" />
-          <el-table-column
-            label="字典编码"
-            min-width="150"
-            prop="dictCode"
-            show-overflow-tooltip
-          />
+          <el-table-column label="字典编码" min-width="150" show-overflow-tooltip>
+            <template #default="{ row }">
+              <el-button
+                link
+                type="primary"
+                @click.stop="handleDictSelect(row)"
+              >
+                {{ row.dictCode }}
+              </el-button>
+            </template>
+          </el-table-column>
           <el-table-column
             label="字典名称"
             min-width="150"
@@ -95,7 +105,10 @@
               <el-button type="text" @click.stop="handleEditDict(row)">
                 编辑
               </el-button>
-              <el-button type="text" @click.stop="handleDeleteDict(row)">
+              <el-button
+                type="text"
+                @click.stop="handleDeleteDict(row)"
+              >
                 删除
               </el-button>
             </template>
@@ -226,7 +239,10 @@
                 <el-button type="text" @click="handleEditDictItem(row)">
                   编辑
                 </el-button>
-                <el-button type="text" @click="handleDeleteDictItem(row)">
+                <el-button
+                  type="text"
+                  @click="handleDeleteDictItem(row)"
+                >
                   删除
                 </el-button>
               </template>
@@ -288,7 +304,11 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dictDialogVisible = false">取消</el-button>
-          <el-button type="primary" :loading="dictSubmitLoading" @click="submitDictForm">
+          <el-button
+            type="primary"
+            :loading="dictSubmitLoading"
+            @click="submitDictForm"
+          >
             保存
           </el-button>
         </span>
@@ -323,7 +343,11 @@
           />
         </el-form-item>
         <el-form-item label="排序" prop="sort">
-          <el-input-number v-model="itemForm.sort" :min="0" style="width: 160px" />
+          <el-input-number
+            v-model="itemForm.sort"
+            :min="0"
+            style="width: 160px"
+          />
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="itemForm.status">
@@ -340,7 +364,11 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="itemDialogVisible = false">取消</el-button>
-          <el-button type="primary" :loading="itemSubmitLoading" @click="submitItemForm">
+          <el-button
+            type="primary"
+            :loading="itemSubmitLoading"
+            @click="submitItemForm"
+          >
             保存
           </el-button>
         </span>
@@ -525,22 +553,23 @@ export default {
       };
     },
     handleDeleteDict(row) {
-      this.$confirm(`确认删除字典「${row.dictName}」吗？`, "提示", {
+      return this.$confirm(`确认删除字典「${row.dictName}」吗？`, "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning",
       })
-        .then(async () => {
-          await deleteDict(row.id);
-          this.$message.success("删除成功");
-          if (this.currentDict.id === row.id) {
-            this.currentDict = {};
-            this.itemList = [];
-            this.itemTotal = 0;
-          }
-          await this.getDictListData();
-        })
+        .then(() => this.executeDeleteDict(row))
         .catch(() => {});
+    },
+    async executeDeleteDict(row) {
+      await deleteDict(row.id);
+      this.$message.success("删除成功");
+      if (this.currentDict.id === row.id) {
+        this.currentDict = {};
+        this.itemList = [];
+        this.itemTotal = 0;
+      }
+      await this.getDictListData();
     },
     submitDictForm() {
       this.$refs.dictFormRef.validate(async (valid) => {
@@ -592,21 +621,21 @@ export default {
       };
     },
     handleDeleteDictItem(row) {
-      this.$confirm(`确认删除字典项「${row.itemLabel}」吗？`, "提示", {
+      return this.$confirm(`确认删除字典项「${row.itemLabel}」吗？`, "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning",
       })
-        .then(async () => {
-          await deleteDictItem(row.id);
-          this.$message.success("删除成功");
-          await this.getDictItemListData();
-        })
+        .then(() => this.executeDeleteDictItem(row))
         .catch(() => {});
+    },
+    async executeDeleteDictItem(row) {
+      await deleteDictItem(row.id);
+      this.$message.success("删除成功");
+      await this.getDictItemListData();
     },
     submitItemForm() {
       if (!this.currentDict.id) return;
-
       this.$refs.itemFormRef.validate(async (valid) => {
         if (!valid) return;
 

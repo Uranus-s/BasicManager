@@ -19,8 +19,17 @@
           <span>{{ generating ? "正在生成" : "随时可用" }}</span>
         </div>
       </div>
+      <el-segmented
+        v-if="!minimized"
+        v-model="assistantMode"
+        class="assistant-mode"
+        :options="assistantModes"
+        size="small"
+        aria-label="AI 助手模式"
+        @pointerdown.stop
+      />
       <div class="header-actions" @pointerdown.stop>
-        <el-tooltip content="清空聊天记录" placement="bottom">
+        <el-tooltip v-if="assistantMode === 'chat'" content="清空聊天记录" placement="bottom">
           <button
             class="icon-button"
             type="button"
@@ -50,6 +59,7 @@
     </header>
 
     <template v-if="!minimized">
+      <template v-if="assistantMode === 'chat'">
       <div ref="messageListRef" v-loading="loadingHistory" class="message-list">
         <button
           v-if="hasMore && messages.length"
@@ -117,6 +127,9 @@
           </button>
         </el-tooltip>
       </footer>
+      </template>
+
+      <ai-agent-panel v-else :runtime="aiAgentRuntime" />
 
       <div
         class="resize-handle"
@@ -144,6 +157,8 @@ import { ElMessage, ElMessageBox } from "element-plus"
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from "vue"
 
 import { clearAiChatMemory, getAiChatMessages, streamAiChat } from "@/api/ai/chat"
+import AiAgentPanel from "@/components/AiAgentPanel/index.vue"
+import { aiAgentRuntime } from "@/utils/aiAgent/runtime"
 import {
   appendDelta,
   clampWindowRect,
@@ -182,6 +197,11 @@ const messageListRef = ref(null)
 const abortController = shallowRef(null)
 const activeRound = shallowRef(null)
 const pendingStoppedRound = shallowRef(null)
+const assistantMode = ref("chat")
+const assistantModes = [
+  { label: "聊天", value: "chat" },
+  { label: "操作", value: "agent" },
+]
 
 let interaction = null
 let broadcastChannel = null
@@ -599,6 +619,11 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   flex: 0 0 auto;
+}
+
+.assistant-mode {
+  width: 124px;
+  flex: 0 0 124px;
 }
 
 .icon-button {

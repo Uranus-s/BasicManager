@@ -76,4 +76,19 @@ public class SysOperLog implements Serializable {
      * 耗时(ms)
      */
     private Long costTime;
+
+    /**
+     * 关联的 AI 代理任务 ID，仅在可信拦截器校验后写入。
+     */
+    private Long aiAgentTaskId;
+
+    /**
+     * 关联的 AI 代理动作 ID。
+     */
+    private String aiAgentActionId;
+
+    /**
+     * 操作来源：MANUAL 或 AI_AGENT。
+     */
+    private String operationSource;
 }
