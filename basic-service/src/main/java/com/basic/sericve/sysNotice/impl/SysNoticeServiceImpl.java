@@ -67,13 +67,44 @@ public class SysNoticeServiceImpl implements ISysNoticeService {
     private final ISysDeptService deptService;
     private final NoticeVisibilityContextResolver visibilityContextResolver;
 
+    /**
+     * 复用公告新增路径的动态业务校验，但不创建公告或接收目标记录。
+     * Agent 生成预览和最终确认时都会调用，以覆盖期间字典或组织数据变化。
+     */
+    @Override
+    public void validateNoticeDraft(NoticeAddDTO dto) {
+        validateNoticeType(dto.getNoticeType());
+        validateTargets(dto.getScopeType(), normalizeIds(dto.getRoleIds()), normalizeIds(dto.getDeptIds()));
+    }
+
+    @Override
+    public void validateNoticeUpdate(NoticeUpdateDTO dto) {
+        requireNoticeVersion(dto.getId(), dto.getVersion());
+        validateNoticeType(dto.getNoticeType());
+        validateTargets(dto.getScopeType(), normalizeIds(dto.getRoleIds()), normalizeIds(dto.getDeptIds()));
+    }
+
+    @Override
+    public void validateNoticeDelete(Long id, Integer version) {
+        requireNoticeStatus(id, version, Set.of(STATUS_DRAFT, STATUS_WITHDRAWN));
+    }
+
+    @Override
+    public void validateNoticePublish(Long id, Integer version) {
+        requireNoticeStatus(id, version, Set.of(STATUS_DRAFT, STATUS_WITHDRAWN));
+    }
+
+    @Override
+    public void validateNoticeWithdraw(Long id, Integer version) {
+        requireNoticeStatus(id, version, Set.of(STATUS_PUBLISHED));
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long addNotice(NoticeAddDTO dto) {
-        validateNoticeType(dto.getNoticeType());
+        validateNoticeDraft(dto);
         List<Long> roleIds = normalizeIds(dto.getRoleIds());
         List<Long> deptIds = normalizeIds(dto.getDeptIds());
-        validateTargets(dto.getScopeType(), roleIds, deptIds);
 
         SysNotice notice = new SysNotice();
         notice.setTitle(dto.getTitle().trim());
@@ -86,14 +117,23 @@ public class SysNoticeServiceImpl implements ISysNoticeService {
         return notice.getId();
     }
 
+    /**
+     * 在同一事务中复用既有新增、发布状态机，任一步失败均不保留半完成公告。
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long addAndPublishNotice(NoticeAddDTO dto) {
+        Long noticeId = addNotice(dto);
+        publishNotice(noticeId);
+        return noticeId;
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateNotice(NoticeUpdateDTO dto) {
-        requireNotice(dto.getId());
-        validateNoticeType(dto.getNoticeType());
+        validateNoticeUpdate(dto);
         List<Long> roleIds = normalizeIds(dto.getRoleIds());
         List<Long> deptIds = normalizeIds(dto.getDeptIds());
-        validateTargets(dto.getScopeType(), roleIds, deptIds);
 
         // 仅提交可编辑字段，避免用客户端数据覆盖当前状态和发布时间。
         SysNotice notice = new SysNotice();
@@ -111,9 +151,7 @@ public class SysNoticeServiceImpl implements ISysNoticeService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteNotice(Long id) {
         SysNotice notice = requireNotice(id);
-        if (!Set.of(STATUS_DRAFT, STATUS_WITHDRAWN).contains(notice.getStatus())) {
-            throw new BusinessException(ResultEnum.NOTICE_STATUS_INVALID);
-        }
+        requireNoticeStatus(notice, null, Set.of(STATUS_DRAFT, STATUS_WITHDRAWN));
         if (noticeMapper.deleteDraftOrWithdrawnByIdAndVersion(id, notice.getVersion()) == 0) {
             throw new BusinessException(ResultEnum.DATA_VERSION_EXPIRED);
         }
@@ -124,9 +162,7 @@ public class SysNoticeServiceImpl implements ISysNoticeService {
     @Transactional(rollbackFor = Exception.class)
     public void publishNotice(Long id) {
         SysNotice notice = requireNotice(id);
-        if (!Set.of(STATUS_DRAFT, STATUS_WITHDRAWN).contains(notice.getStatus())) {
-            throw new BusinessException(ResultEnum.NOTICE_STATUS_INVALID);
-        }
+        requireNoticeStatus(notice, null, Set.of(STATUS_DRAFT, STATUS_WITHDRAWN));
         notice.setStatus(STATUS_PUBLISHED);
         notice.setPublishTime(LocalDateTime.now());
         updateWithVersionCheck(notice);
@@ -136,9 +172,7 @@ public class SysNoticeServiceImpl implements ISysNoticeService {
     @Transactional(rollbackFor = Exception.class)
     public void withdrawNotice(Long id) {
         SysNotice notice = requireNotice(id);
-        if (!STATUS_PUBLISHED.equals(notice.getStatus())) {
-            throw new BusinessException(ResultEnum.NOTICE_STATUS_INVALID);
-        }
+        requireNoticeStatus(notice, null, Set.of(STATUS_PUBLISHED));
         notice.setStatus(STATUS_WITHDRAWN);
         updateWithVersionCheck(notice);
     }
@@ -276,6 +310,28 @@ public class SysNoticeServiceImpl implements ISysNoticeService {
         SysNotice notice = noticeMapper.selectById(id);
         if (notice == null) {
             throw new BusinessException(ResultEnum.NOTICE_NOT_FOUND_OR_INACTIVE);
+        }
+        return notice;
+    }
+
+    private SysNotice requireNoticeVersion(Long id, Integer version) {
+        SysNotice notice = requireNotice(id);
+        if (!Objects.equals(version, notice.getVersion())) {
+            throw new BusinessException(ResultEnum.DATA_VERSION_EXPIRED);
+        }
+        return notice;
+    }
+
+    private SysNotice requireNoticeStatus(Long id, Integer version, Set<String> statuses) {
+        return requireNoticeStatus(requireNotice(id), version, statuses);
+    }
+
+    private SysNotice requireNoticeStatus(SysNotice notice, Integer version, Set<String> statuses) {
+        if (version != null && !Objects.equals(version, notice.getVersion())) {
+            throw new BusinessException(ResultEnum.DATA_VERSION_EXPIRED);
+        }
+        if (!statuses.contains(notice.getStatus())) {
+            throw new BusinessException(ResultEnum.NOTICE_STATUS_INVALID);
         }
         return notice;
     }

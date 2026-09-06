@@ -3,8 +3,7 @@ import { fetchEventSource } from "@microsoft/fetch-event-source"
 import { baseURL } from "@/config"
 import { getAccessToken } from "@/utils/accessToken"
 import request from "@/utils/request"
-
-const CHAT_STREAM_EVENTS = new Set(["start", "delta", "done", "error"])
+import { isAssistantStreamEvent } from "@/utils/aiAssistant"
 
 export function getAiChatMessages(params) {
   return request({
@@ -41,7 +40,8 @@ export function streamAiChat(message, { signal, onEvent } = {}) {
     // 标签页隐藏不应触发库的断开重建，同一用户并发由后端统一控制。
     openWhenHidden: true,
     onmessage(event) {
-      if (!CHAT_STREAM_EVENTS.has(event.event)) return
+      // 忽略心跳或未来扩展事件，避免未知负载意外改变当前 UI 状态。
+      if (!isAssistantStreamEvent(event.event)) return
       const data = JSON.parse(event.data || "{}")
       onEvent?.(event.event, data)
     },

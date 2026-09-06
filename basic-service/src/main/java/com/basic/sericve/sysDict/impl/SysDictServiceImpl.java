@@ -21,6 +21,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -60,9 +61,24 @@ public class SysDictServiceImpl extends ServiceImpl<SysDictMapper, SysDict> impl
         if (dict == null) {
             throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
         }
+        updateDict(dto, dict.getVersion());
+    }
 
-        BeanUtils.copyProperties(dto, dict);
-        updateById(dict);
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateDict(DictUpdateDTO dto, Integer version) {
+        validateDictVersion(dto.getId(), version);
+
+        // 只复制请求允许修改的字段，版本号由客户端快照控制。
+        SysDict dict = new SysDict();
+        dict.setId(dto.getId());
+        dict.setDictName(dto.getDictName());
+        dict.setStatus(dto.getStatus());
+        dict.setVersion(version);
+        if (!updateById(dict)) {
+            // 乐观锁未更新任何行，说明提交期间数据已被其他请求修改。
+            throw new BusinessException(ResultEnum.DATA_VERSION_EXPIRED);
+        }
     }
 
     @Override
@@ -72,8 +88,31 @@ public class SysDictServiceImpl extends ServiceImpl<SysDictMapper, SysDict> impl
         if (dict == null) {
             throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
         }
-        // 逻辑删除
-        removeById(id);
+        deleteDict(id, dict.getVersion());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteDict(Long id, Integer version) {
+        validateDictVersion(id, version);
+        // 逻辑删除必须带版本条件，防止删除已经被并发修改的记录。
+        LambdaQueryWrapper<SysDict> wrapper = new LambdaQueryWrapper<SysDict>()
+                .eq(SysDict::getId, id)
+                .eq(SysDict::getVersion, version);
+        if (!remove(wrapper)) {
+            throw new BusinessException(ResultEnum.DATA_VERSION_EXPIRED);
+        }
+    }
+
+    @Override
+    public void validateDictVersion(Long id, Integer version) {
+        SysDict dict = getById(id);
+        if (dict == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+        if (!Objects.equals(dict.getVersion(), version)) {
+            throw new BusinessException(ResultEnum.DATA_VERSION_EXPIRED);
+        }
     }
 
     @Override

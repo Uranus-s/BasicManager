@@ -39,7 +39,8 @@ build/
 ### Mac OS ###
 .DS_Store
 /CLAUDE.md
-/docs/
+/docs/*
+!/docs/ai-assistant.md
 /.claude/
 
 ### Tests ###

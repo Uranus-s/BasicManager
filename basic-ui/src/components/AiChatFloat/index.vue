@@ -82,6 +82,32 @@
           </div>
         </article>
 
+        <div v-if="toolStatus" class="tool-status" role="status" aria-live="polite">
+          <el-icon class="is-loading"><Loading /></el-icon>
+          <span>{{ toolStatus }}</span>
+        </div>
+
+        <section v-if="pendingAction" class="pending-action" aria-label="待确认操作预览">
+          <header>
+            <el-icon><DocumentChecked /></el-icon>
+            <div>
+              <strong>{{ pendingAction.title || "操作待确认" }}</strong>
+              <span>{{ pendingExpiresText }}</span>
+            </div>
+          </header>
+          <dl v-if="pendingAction.fields?.length">
+            <div v-for="(field, index) in pendingAction.fields" :key="`${field.label}:${index}`">
+              <dt>{{ field.label }}</dt>
+              <dd>{{ field.value }}</dd>
+            </div>
+          </dl>
+          <div
+            v-if="pendingAction.content"
+            class="pending-content markdown-body"
+            v-html="renderMarkdown(pendingAction.content)"
+          />
+        </section>
+
         <div v-if="errorMessage" class="stream-error" role="status">
           <span>{{ errorMessage }}</span>
           <el-button v-if="lastFailedQuestion" text type="primary" @click="retryLastMessage">
@@ -134,16 +160,20 @@ import {
   ChatLineRound,
   Close,
   Delete,
+  DocumentChecked,
   FullScreen,
+  Loading,
   Minus,
   Promotion,
   RefreshRight,
   VideoPause,
 } from "@element-plus/icons-vue"
+import dayjs from "dayjs"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from "vue"
 
 import { clearAiChatMemory, getAiChatMessages, streamAiChat } from "@/api/ai/chat"
+import { reduceAssistantEvent } from "@/utils/aiAssistant"
 import {
   appendDelta,
   clampWindowRect,
@@ -177,6 +207,10 @@ const messages = ref([])
 const input = ref("")
 const errorMessage = ref("")
 const lastFailedQuestion = ref("")
+// 工具进度与助手正文分离，避免状态提示被保存为聊天消息。
+const toolStatus = ref("")
+// 后端返回的唯一有效操作预览，确认动作仍通过自然语言消息发送。
+const pendingAction = ref(null)
 const rect = ref(dockBottomRightRect(storedRect, viewport()))
 const messageListRef = ref(null)
 const abortController = shallowRef(null)
@@ -198,6 +232,11 @@ const windowStyle = computed(() => ({
   height: minimized.value ? "56px" : `${rect.value.height}px`,
 }))
 
+const pendingExpiresText = computed(() => {
+  if (!pendingAction.value?.expiresAt) return "等待确认"
+  return `有效期至 ${dayjs(pendingAction.value.expiresAt).format("YYYY-MM-DD HH:mm")}`
+})
+
 const scrollToBottom = async () => {
   await nextTick()
   if (messageListRef.value) messageListRef.value.scrollTop = messageListRef.value.scrollHeight
@@ -209,6 +248,25 @@ const applyHistory = (history) => {
   messages.value = history.messages || []
   nextBeforeId.value = history.nextBeforeId ?? null
   hasMore.value = Boolean(history.hasMore)
+  pendingAction.value = history.pendingAction || null
+}
+
+/**
+ * 将助手事件归约结果同步回 Vue 状态；助手正文仍由 sendMessage 单独处理。
+ */
+const applyAssistantEvent = (type, data) => {
+  const next = reduceAssistantEvent(
+    {
+      generating: generating.value,
+      toolStatus: toolStatus.value,
+      pendingAction: pendingAction.value,
+    },
+    type,
+    data
+  )
+  generating.value = next.generating
+  toolStatus.value = next.toolStatus
+  pendingAction.value = next.pendingAction
 }
 
 /**
@@ -251,7 +309,10 @@ const loadOlder = async () => {
 const broadcast = (type) => broadcastChannel?.postMessage({ type })
 
 const finishStream = async () => {
+  // 比较刷新前后的 Action ID，通知其他标签页是否需要清除旧审批预览。
+  const previousPendingId = pendingAction.value?.id ?? null
   generating.value = false
+  toolStatus.value = ""
   abortController.value = null
   activeRound.value = null
   try {
@@ -260,7 +321,8 @@ const finishStream = async () => {
     // 模型已完成时不得因历史刷新失败进入重试，否则会重复提交同一问题。
     ElMessage.warning("回答已完成，聊天历史暂未刷新")
   }
-  broadcast("updated")
+  const nextPendingId = pendingAction.value?.id ?? null
+  broadcast(previousPendingId !== nextPendingId ? "approval-updated" : "updated")
   await scrollToBottom()
 }
 
@@ -273,6 +335,7 @@ const sendMessage = async (overrideMessage) => {
   errorMessage.value = ""
   lastFailedQuestion.value = ""
   generating.value = true
+  toolStatus.value = ""
   const userId = `temp-user-${++temporaryId}`
   const assistantId = `temp-assistant-${temporaryId}`
   const afterId = messages.value.reduce((max, item) => {
@@ -292,6 +355,8 @@ const sendMessage = async (overrideMessage) => {
     await streamAiChat(question, {
       signal: controller.signal,
       onEvent(type, data) {
+        // 先更新助手辅助状态，再按事件类型处理正文或错误展示。
+        applyAssistantEvent(type, data)
         const assistant = messages.value.find((item) => item.id === assistantId)
         if (type === "delta" && assistant) {
           assistant.content = appendDelta(assistant.content, data)
@@ -316,6 +381,7 @@ const sendMessage = async (overrideMessage) => {
     if (controller.signal.aborted) return
     streamFailed = true
     generating.value = false
+    toolStatus.value = ""
     abortController.value = null
     activeRound.value = null
     errorMessage.value = "连接中断，请稍后重试"
@@ -361,6 +427,7 @@ const stopGenerating = () => {
   abortController.value = null
   activeRound.value = null
   generating.value = false
+  toolStatus.value = ""
   errorMessage.value = "已停止生成，正在保存部分回答"
   const assistant = messages.value.find((item) => item.id === round.assistantId)
   if (assistant) assistant.partial = Boolean(assistant.content)
@@ -394,6 +461,8 @@ const clearMessages = async () => {
     errorMessage.value = ""
     lastFailedQuestion.value = ""
     pendingStoppedRound.value = null
+    pendingAction.value = null
+    toolStatus.value = ""
     clearTimeout(refreshTimer)
     broadcast("cleared")
     ElMessage.success("聊天记录已清空")
@@ -480,6 +549,14 @@ onMounted(() => {
         messages.value = []
         nextBeforeId.value = null
         hasMore.value = false
+        pendingAction.value = null
+        toolStatus.value = ""
+      } else if (event.data?.type === "approval-updated") {
+        // 另一标签页可能已确认、取消或替换操作，先移除旧预览再静默拉取权威状态。
+        pendingAction.value = null
+        if (!generating.value && !pendingStoppedRound.value) {
+          refreshLatestQuietly().catch(() => {})
+        }
       } else if (event.data?.type === "updated" && !generating.value && !pendingStoppedRound.value) {
         refreshLatestQuietly().catch(() => {})
       }
@@ -743,6 +820,101 @@ onBeforeUnmount(() => {
   font-size: 13px;
   background: var(--el-color-danger-light-9);
   border-radius: 4px;
+}
+
+.tool-status {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 0 10px;
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+  background: var(--el-bg-color);
+  border-left: 3px solid var(--el-color-primary);
+
+  .el-icon {
+    color: var(--el-color-primary);
+    flex: 0 0 auto;
+  }
+}
+
+.pending-action {
+  margin: 0 0 14px;
+  padding: 12px;
+  overflow: hidden;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
+  border-left: 3px solid var(--el-color-warning);
+  border-radius: 6px;
+
+  > header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+
+    > .el-icon {
+      color: var(--el-color-warning);
+      font-size: 20px;
+      flex: 0 0 auto;
+    }
+
+    > div {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+    }
+
+    strong {
+      font-size: 14px;
+      line-height: 20px;
+    }
+
+    span {
+      color: var(--el-text-color-secondary);
+      font-size: 12px;
+      line-height: 18px;
+    }
+  }
+
+  dl {
+    display: grid;
+    margin: 10px 0;
+    gap: 6px;
+  }
+
+  dl > div {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  dt,
+  dd {
+    margin: 0;
+    font-size: 13px;
+    line-height: 20px;
+  }
+
+  dt {
+    color: var(--el-text-color-secondary);
+  }
+
+  dd {
+    overflow-wrap: anywhere;
+  }
+}
+
+.pending-content {
+  max-height: 220px;
+  padding-top: 10px;
+  overflow: auto;
+  border-top: 1px solid var(--el-border-color-lighter);
+  overflow-wrap: anywhere;
 }
 
 .composer {

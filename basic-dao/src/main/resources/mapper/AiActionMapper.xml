@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.basic.dao.ai.action.mapper.AiActionMapper">
+
+    <!-- 用户表行作为稳定锁载体，避免“尚无 Action 行”时无法串行创建首条快照。 -->
+    <select id="lockActionOwner" resultType="java.lang.Long">
+        SELECT id
+        FROM sys_user
+        WHERE id = #{userId}
+          AND deleted = 0
+        FOR UPDATE
+    </select>
+
+    <!-- 确认和取消必须持有 Action 排他锁，确保状态只被一个事务推进。 -->
+    <select id="selectByIdForUpdate" resultType="com.basic.dao.ai.action.entity.AiAction">
+        SELECT *
+        FROM ai_agent_action
+        WHERE id = #{id}
+          AND deleted = 0
+        FOR UPDATE
+    </select>
+
+    <!-- 只返回当前仍可确认的最新操作，过期记录无需额外写入状态。 -->
+    <select id="selectPendingByUserId" resultType="com.basic.dao.ai.action.entity.AiAction">
+        SELECT *
+        FROM ai_agent_action
+        WHERE user_id = #{userId}
+          AND status = 'PENDING'
+          AND expires_at &gt; #{now}
+          AND deleted = 0
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <!-- 创建新提议或清空上下文时批量关闭旧的待审批槽位。 -->
+    <update id="cancelPendingByUserId">
+        UPDATE ai_agent_action
+        SET status = 'CANCELLED',
+            update_time = #{updateTime},
+            version = version + 1
+        WHERE user_id = #{userId}
+          AND status = 'PENDING'
+          AND deleted = 0
+    </update>
+</mapper>

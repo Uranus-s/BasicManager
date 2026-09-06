@@ -21,6 +21,7 @@ DROP TABLE IF EXISTS sys_user_role;
 DROP TABLE IF EXISTS sys_user_dept;
 DROP TABLE IF EXISTS sys_notice_target;
 DROP TABLE IF EXISTS sys_notice;
+DROP TABLE IF EXISTS ai_agent_action;
 DROP TABLE IF EXISTS sys_dict_item;
 DROP TABLE IF EXISTS sys_oper_log;
 DROP TABLE IF EXISTS sys_login_log;
@@ -257,6 +258,33 @@ CREATE TABLE ai_chat_message
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci
   COMMENT = 'AI聊天消息表';
+
+-- 写操作先固化为不可变快照；用户确认后才由确定性业务代码读取并执行。
+CREATE TABLE ai_agent_action
+(
+    id           BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+    create_time  DATETIME     NULL COMMENT '创建时间',
+    update_time  DATETIME     NULL COMMENT '更新时间',
+    create_by    BIGINT       NULL COMMENT '创建人',
+    update_by    BIGINT       NULL COMMENT '更新人',
+    version      INT          NOT NULL DEFAULT 0 COMMENT '乐观锁版本号',
+    deleted      TINYINT      NOT NULL DEFAULT 0 COMMENT '逻辑删除 0=未删除 1=已删除',
+    trigger_message_id BIGINT       NOT NULL COMMENT '生成该操作的聊天消息ID',
+    user_id      BIGINT       NOT NULL COMMENT '操作所属用户ID',
+    action_type  VARCHAR(64)  NOT NULL COMMENT '操作类型',
+    payload_json LONGTEXT     NOT NULL COMMENT '不可变业务快照JSON',
+    status       VARCHAR(32)  NOT NULL COMMENT '审批状态',
+    expires_at   DATETIME     NOT NULL COMMENT '审批过期时间',
+    confirmed_at DATETIME     NULL COMMENT '确认时间',
+    executed_at  DATETIME     NULL COMMENT '执行完成时间',
+    result_id    BIGINT       NULL COMMENT '确定性执行结果业务ID',
+    PRIMARY KEY (id),
+    KEY idx_ai_agent_action_user_status_expire (user_id, status, expires_at, deleted),
+    KEY idx_ai_agent_action_trigger_message (trigger_message_id, deleted)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci
+  COMMENT = 'AI Agent待审批操作表';
 
 CREATE TABLE SPRING_AI_CHAT_MEMORY
 (

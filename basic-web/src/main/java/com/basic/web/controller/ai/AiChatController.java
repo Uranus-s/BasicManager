@@ -11,7 +11,7 @@ import com.basic.common.result.ResultEnum;
 import com.basic.common.web.annotation.IgnoreResponseAdvice;
 import com.basic.core.log.annotation.OperateLog;
 import com.basic.core.security.model.LoginUser;
-import com.basic.sericve.ai.service.IAiChatService;
+import com.basic.sericve.ai.chat.service.IAiChatService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -40,7 +40,7 @@ public class AiChatController implements AiChatApi {
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @IgnoreResponseAdvice
     public Flux<ServerSentEvent<AiChatStreamVO>> stream(@Valid @RequestBody AiChatSendDTO dto) {
-        return aiChatService.stream(currentUserId(), dto.getMessage());
+        return aiChatService.stream(currentLoginUser(), dto.getMessage());
     }
 
     @Override
@@ -59,12 +59,19 @@ public class AiChatController implements AiChatApi {
     }
 
     private Long currentUserId() {
+        return currentLoginUser().getUserId();
+    }
+
+    /**
+     * 从 Security 上下文读取完整登录用户，用户 ID 和权限均不接受请求参数覆盖。
+     */
+    private LoginUser currentLoginUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()
                 || !(authentication.getPrincipal() instanceof LoginUser loginUser)
                 || loginUser.getUserId() == null) {
             throw new BusinessException(ResultEnum.UNAUTHORIZED);
         }
-        return loginUser.getUserId();
+        return loginUser;
     }
 }

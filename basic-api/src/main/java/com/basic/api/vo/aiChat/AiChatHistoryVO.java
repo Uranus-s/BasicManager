@@ -14,4 +14,6 @@ public class AiChatHistoryVO {
     private List<AiChatMessageVO> messages;
     private Long nextBeforeId;
     private Boolean hasMore;
+    /** 当前用户唯一有效的待审批操作；不存在时为 null。 */
+    private AiPendingActionVO pendingAction;
 }

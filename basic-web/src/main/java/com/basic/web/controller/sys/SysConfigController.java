@@ -8,7 +8,7 @@ import com.basic.api.vo.sysConfig.ConfigSettingsVO;
 import com.basic.common.result.Result;
 import com.basic.core.log.annotation.OperateLog;
 import com.basic.sericve.sysConfig.service.ISysConfigService;
-import com.basic.sericve.ai.service.IAiChatService;
+import com.basic.sericve.ai.chat.service.IAiChatService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;

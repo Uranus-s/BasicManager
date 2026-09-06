@@ -17,7 +17,31 @@ import java.util.List;
  */
 public interface ISysNoticeService {
 
+    /**
+     * 只校验公告草稿的类型、范围和目标，不产生任何数据库写入。
+     */
+    void validateNoticeDraft(NoticeAddDTO dto);
+
+    /**
+     * 校验公告修改内容及客户端版本，不产生数据库写入。
+     */
+    void validateNoticeUpdate(NoticeUpdateDTO dto);
+
+    /** 校验指定版本的公告当前允许删除。 */
+    void validateNoticeDelete(Long id, Integer version);
+
+    /** 校验指定版本的公告当前允许发布。 */
+    void validateNoticePublish(Long id, Integer version);
+
+    /** 校验指定版本的公告当前允许撤回。 */
+    void validateNoticeWithdraw(Long id, Integer version);
+
     Long addNotice(NoticeAddDTO dto);
+
+    /**
+     * 在同一事务中创建并发布公告，供审批执行器从外部 Bean 调用。
+     */
+    Long addAndPublishNotice(NoticeAddDTO dto);
 
     void updateNotice(NoticeUpdateDTO dto);
 

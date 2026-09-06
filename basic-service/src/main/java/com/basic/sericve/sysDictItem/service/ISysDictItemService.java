@@ -34,12 +34,16 @@ public interface ISysDictItemService extends IService<SysDictItem> {
      */
     void updateDictItem(DictItemUpdateDTO dto);
 
+    void updateDictItem(DictItemUpdateDTO dto, Integer version);
+
     /**
      * 删除字典项
      *
      * @param id 字典项ID
      */
     void deleteDictItem(Long id);
+
+    void deleteDictItem(Long id, Integer version);
 
     /**
      * 获取字典项详情

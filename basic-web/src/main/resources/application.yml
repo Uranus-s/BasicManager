@@ -45,6 +45,14 @@ system:
   init-key: ${SYSTEM_INIT_KEY:admin-init-key}
 
 basic:
+  ai:
+    agent:
+      # 单次运行限制工具调用总数，防止模型持续调用工具形成循环。
+      max-tool-calls: 16
+      # 限制完整 AI 模型流的执行时间，纯聊天和工具调用共用。
+      timeout: 90s
+      # 写操作预览超过该时间后必须重新生成，不能继续确认旧快照。
+      approval-ttl: 15m
   file:
     storage-type: local
     local:

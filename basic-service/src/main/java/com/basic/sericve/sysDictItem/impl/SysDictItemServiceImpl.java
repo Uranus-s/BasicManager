@@ -75,6 +75,17 @@ public class SysDictItemServiceImpl extends ServiceImpl<SysDictItemMapper, SysDi
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public void updateDictItem(DictItemUpdateDTO dto, Integer version) {
+        SysDictItem item = getById(dto.getId());
+        if (item == null) throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        if (version != null && !version.equals(item.getVersion())) throw new BusinessException(ResultEnum.DATA_VERSION_EXPIRED);
+        BeanUtils.copyProperties(dto, item);
+        item.setVersion(version);
+        if (!updateById(item)) throw new BusinessException(ResultEnum.DATA_VERSION_EXPIRED);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteDictItem(Long id) {
         SysDictItem item = getById(id);
         if (item == null) {
@@ -82,6 +93,18 @@ public class SysDictItemServiceImpl extends ServiceImpl<SysDictItemMapper, SysDi
         }
         // 逻辑删除
         removeById(id);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteDictItem(Long id, Integer version) {
+        SysDictItem item = getById(id);
+        if (item == null) throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        if (version != null && !version.equals(item.getVersion())) throw new BusinessException(ResultEnum.DATA_VERSION_EXPIRED);
+        LambdaQueryWrapper<SysDictItem> wrapper = new LambdaQueryWrapper<SysDictItem>()
+                .eq(SysDictItem::getId, id)
+                .eq(version != null, SysDictItem::getVersion, version);
+        if (!remove(wrapper)) throw new BusinessException(ResultEnum.DATA_VERSION_EXPIRED);
     }
 
     @Override

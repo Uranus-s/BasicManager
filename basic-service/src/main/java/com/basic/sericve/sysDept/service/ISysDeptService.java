@@ -30,6 +30,14 @@ public interface ISysDeptService extends IService<SysDept> {
     Long addDept(DeptAddDTO dto);
 
     /**
+     * 校验父部门是否存在且不是当前部门自身；新增时 deptId 传 null。
+     */
+    void validateDeptParent(Long deptId, Long parentId);
+
+    /** 校验目标部门存在且当前没有直接子部门，不产生数据写入。 */
+    void validateDeptDelete(Long id);
+
+    /**
      * 更新部门
      *
      * @param dto 部门更新DTO

@@ -43,11 +43,13 @@ spring:
 
 logging:
   level:
-    org.mybatis: debug
-    com.basic.dao: debug
+    org.mybatis: OFF
+    com.basic.dao: OFF
+    # AI 助手完整会话仅在开发环境输出，写出前仍会遮蔽凭据和身份证号。
+    com.basic.ai.assistant.conversation: debug
     # 系统配置包含第三方密钥，聊天 Mapper 包含完整消息正文，禁止输出绑定参数。
     com.basic.dao.sysConfig.mapper: info
-    com.basic.dao.aiChat.mapper: info
+    com.basic.dao.ai.chat.mapper: info
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 

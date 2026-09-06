@@ -6,6 +6,8 @@ import com.basic.common.result.PageResult;
 import com.basic.dao.sysOperLog.entity.SysOperLog;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.Map;
+
 /**
  * <p>
  * 操作日志表 服务类
@@ -30,6 +32,13 @@ public interface ISysOperLogService extends IService<SysOperLog> {
      */
     Long saveOperLog(String module, String method, String requestUrl, String requestMethod,
                      String requestParams, String responseResult, Byte status, Long costTime);
+
+    /**
+     * 保存 Agent 写操作的脱敏审计信息，调用方只能传入核准后的最小业务字段。
+     */
+    Long saveAgentActionLog(String module, String method, Long userId, Long actionId,
+                            Map<String, Object> safeRequest,
+                            Map<String, Object> safeResponse);
 
     /**
      * 获取操作日志详情

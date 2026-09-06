@@ -15,7 +15,7 @@ basic-parent (pom)
 │  ├─ basic-common-core          公共工具模块
 │  └─ basic-common-web           Web层公共模块
 ├─ basic-core                    核心能力模块（MyBatis-Plus / Redis / Security）
-├─ basic-ai                      AI 基础设施模块（Spring AI / DeepSeek / ChatMemory）
+├─ basic-ai                      AI 基础设施模块（助手运行时 / 模型提供商 / ChatMemory / 聊天历史）
 ├─ basic-api                     接口定义模块（Controller 接口）
 ├─ basic-service                 业务逻辑模块
 ├─ basic-dao                     数据访问模块（Entity / Mapper）
@@ -113,7 +113,7 @@ basic-core
 
 ### 5. basic-ai（AI 基础设施模块）
 
-**职责：** 隔离模型提供商、Spring AI 客户端和聊天记忆的具体实现，为业务层提供稳定的模型调用网关。
+**职责：** 提供统一助手运行时、模型提供商、ChatMemory 和聊天历史基础设施，为业务层提供稳定的模型调用网关。
 
 **当前能力：**
 
@@ -131,7 +131,7 @@ basic-service → basic-ai → basic-dao → basic-core
 
 `basic-ai` 不依赖 `basic-service`、`basic-api` 或 `basic-web`。登录用户鉴权、SSE 事件包装和业务编排仍由 service/web 层负责。
 
-详细配置和接口说明见 [basic-ai/README.md](./basic-ai/README.md)。
+模块边界见 [basic-ai/README.md](./basic-ai/README.md)，完整调用流程和接口说明见 [AI 助手端到端说明](./docs/ai-assistant.md)。
 
 ---
 

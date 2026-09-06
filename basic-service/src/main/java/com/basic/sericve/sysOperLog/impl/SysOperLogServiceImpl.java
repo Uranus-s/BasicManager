@@ -16,10 +16,15 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import lombok.RequiredArgsConstructor;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * <p>
@@ -29,7 +34,10 @@ import java.util.List;
  * @author Gas
  */
 @Service
+@RequiredArgsConstructor
 public class SysOperLogServiceImpl extends ServiceImpl<SysOperLogMapper, SysOperLog> implements ISysOperLogService {
+
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -47,6 +55,35 @@ public class SysOperLogServiceImpl extends ServiceImpl<SysOperLogMapper, SysOper
         operLog.setCostTime(costTime);
         save(operLog);
         return operLog.getId();
+    }
+
+    /** 保存 Agent 写操作最小审计字段，调用方负责只传入核准后的安全内容。 */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long saveAgentActionLog(String module, String method, Long userId, Long actionId,
+                                   Map<String, Object> safeRequest,
+                                   Map<String, Object> safeResponse) {
+        Map<String, Object> request = new LinkedHashMap<>();
+        if (safeRequest != null) {
+            request.putAll(safeRequest);
+        }
+        request.put("userId", userId);
+        request.put("actionId", actionId);
+        Map<String, Object> response = new LinkedHashMap<>();
+        if (safeResponse != null) {
+            response.putAll(safeResponse);
+        }
+        response.put("result", "SUCCESS");
+        try {
+            // 复用统一操作日志入口，使 Agent 写操作与后台接口采用同一存储格式。
+            return saveOperLog(module, method, "/ai/chat/stream", "POST",
+                    objectMapper.writeValueAsString(request),
+                    objectMapper.writeValueAsString(response),
+                    (byte) 1, 0L);
+        }
+        catch (JacksonException exception) {
+            throw new BusinessException(ResultEnum.SERIALIZE_ERROR);
+        }
     }
 
     @Override

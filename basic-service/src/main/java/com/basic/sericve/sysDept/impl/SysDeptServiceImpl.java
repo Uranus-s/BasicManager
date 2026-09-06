@@ -47,6 +47,7 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long addDept(DeptAddDTO dto) {
+        validateDeptParent(null, dto.getParentId());
         // 创建部门
         SysDept dept = new SysDept();
         BeanUtils.copyProperties(dto, dept);
@@ -64,11 +65,7 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
         if (dept == null) {
             throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
         }
-
-        // 检查是否将部门设置为自己或自己的子部门
-        if (dto.getId().equals(dto.getParentId())) {
-            throw new BusinessException(ResultEnum.PARAM_ILLEGAL);
-        }
+        validateDeptParent(dto.getId(), dto.getParentId());
 
         BeanUtils.copyProperties(dto, dept);
         updateById(dept);
@@ -77,19 +74,36 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteDept(Long id) {
-        // 检查是否有子部门
+        validateDeptDelete(id);
+        // 逻辑删除
+        removeById(id);
+    }
+
+    /** 父部门是根节点时无需查询；其余父节点必须真实存在。 */
+    @Override
+    public void validateDeptParent(Long deptId, Long parentId) {
+        if (parentId == null) {
+            throw new BusinessException(ResultEnum.PARAM_INVALID);
+        }
+        if (deptId != null && deptId.equals(parentId)) {
+            throw new BusinessException(ResultEnum.PARAM_ILLEGAL);
+        }
+        if (!parentId.equals(0L) && getById(parentId) == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+    }
+
+    /** 删除预检与真实删除复用同一规则，避免预览和确认阶段出现规则漂移。 */
+    @Override
+    public void validateDeptDelete(Long id) {
+        if (id == null || getById(id) == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
         LambdaQueryWrapper<SysDept> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysDept::getParentId, id);
         if (count(wrapper) > 0) {
             throw new BusinessException(ResultEnum.STATUS_NOT_ALLOWED);
         }
-
-        SysDept dept = getById(id);
-        if (dept == null) {
-            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
-        }
-        // 逻辑删除
-        removeById(id);
     }
 
     @Override
