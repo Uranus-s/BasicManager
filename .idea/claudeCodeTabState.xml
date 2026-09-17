@@ -7,9 +7,9 @@
           <value>
             <TabSessionState>
               <option name="provider" value="codex" />
-              <option name="sessionId" value="01a076d8-ceb7-7780-8a9e-50fdff37de99" />
+              <option name="sessionId" value="01a07bc8-6965-7853-9048-6d7c63d3f271" />
               <option name="cwd" value="D:\code\BasicProject" />
-              <option name="model" value="gpt-5.6-terra" />
+              <option name="model" value="gpt-6-astra" />
               <option name="permissionMode" value="bypassPermissions" />
             </TabSessionState>
           </value>

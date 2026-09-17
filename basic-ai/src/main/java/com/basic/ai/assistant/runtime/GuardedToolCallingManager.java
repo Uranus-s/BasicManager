@@ -27,11 +27,20 @@ import java.util.Objects;
 @Component
 public final class GuardedToolCallingManager implements ToolCallingManager {
 
+    /** 仅记录服务端诊断信息，避免将底层工具异常细节返回给客户端。 */
     private static final Logger LOG = LoggerFactory.getLogger(GuardedToolCallingManager.class);
 
+    /** Spring AI 原生工具调度器，实际的工具解析和调用均委托给它完成。 */
     private final ToolCallingManager delegate;
+    /** 统一记录模型轮次与工具执行结果，便于按一次运行关联排查问题。 */
     private final AssistantConversationLogger conversationLogger;
 
+    /**
+     * 创建受控的工具调度器，并将底层工具执行异常转换为对外稳定的业务错误。
+     *
+     * <p>已有 {@link BusinessException} 会原样透传，保证工具主动声明的业务错误码不被覆盖；
+     * 其余异常仅写入服务端日志，防止实现细节泄露给客户端。</p>
+     */
     @Autowired
     public GuardedToolCallingManager(AssistantConversationLogger conversationLogger) {
         this(ToolCallingManager.builder()
@@ -47,6 +56,9 @@ public final class GuardedToolCallingManager implements ToolCallingManager {
                 .build(), conversationLogger);
     }
 
+    /**
+     * 注入底层调度器和会话日志器。包级可见性用于在同包测试或装配场景中替换底层实现。
+     */
     GuardedToolCallingManager(ToolCallingManager delegate,
                               AssistantConversationLogger conversationLogger) {
         this.delegate = Objects.requireNonNull(delegate, "delegate 不能为空");
@@ -56,9 +68,17 @@ public final class GuardedToolCallingManager implements ToolCallingManager {
 
     @Override
     public List<ToolDefinition> resolveToolDefinitions(ToolCallingChatOptions options) {
+        // 不改变 Spring AI 的工具解析规则，仅在执行阶段补充运行时安全边界。
         return delegate.resolveToolDefinitions(options);
     }
 
+    /**
+     * 执行当前模型响应请求的工具批次，并控制审批场景下的 ReAct 循环。
+     *
+     * <p>批次执行前先累计工具调用数，防止模型通过多轮递归绕过单次运行上限。
+     * 写工具生成待审批快照后，保留工具历史并直接返回，使模型无法在用户确认前继续推理或
+     * 生成“已成功”的描述。</p>
+     */
     @Override
     public ToolExecutionResult executeToolCalls(Prompt prompt, ChatResponse chatResponse) {
         AssistantRunContext context = resolveRunContext(prompt);
@@ -103,6 +123,12 @@ public final class GuardedToolCallingManager implements ToolCallingManager {
         return null;
     }
 
+    /**
+     * 从 Prompt 的工具上下文中取得本次运行状态。
+     *
+     * <p>工具调用必须绑定受控运行上下文；缺失或类型不符通常意味着调用链配置错误，
+     * 因此按系统错误终止，而不是在没有调用次数和审批状态保护的情况下继续执行。</p>
+     */
     private static AssistantRunContext resolveRunContext(Prompt prompt) {
         if (!(prompt.getOptions() instanceof ToolCallingChatOptions options)) {
             throw new BusinessException(ResultEnum.SYSTEM_ERROR);
