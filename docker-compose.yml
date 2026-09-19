@@ -1,0 +1,241 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: basic-manager-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_ROOT_HOST: "%"
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./initSql.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --server-id=1
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --log-replica-updates=ON
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p123456 --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  mysql-replica-1:
+    image: mysql:8.4
+    container_name: basic-manager-mysql-replica-1
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_ROOT_HOST: "%"
+      TZ: Asia/Shanghai
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_replica_1_data:/var/lib/mysql
+    command:
+      - --server-id=2
+      - --relay-log=relay-bin
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --log-replica-updates=ON
+      - --read-only=ON
+      - --skip-replica-start=ON
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p123456 --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  mysql-replica-2:
+    image: mysql:8.4
+    container_name: basic-manager-mysql-replica-2
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_ROOT_HOST: "%"
+      TZ: Asia/Shanghai
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_replica_2_data:/var/lib/mysql
+    command:
+      - --server-id=3
+      - --relay-log=relay-bin
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --log-replica-updates=ON
+      - --read-only=ON
+      - --skip-replica-start=ON
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p123456 --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  mysql-replication-init:
+    image: mysql:8.4
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mysql-replica-1:
+        condition: service_healthy
+      mysql-replica-2:
+        condition: service_healthy
+    restart: "no"
+    environment:
+      MYSQL_PWD: 123456
+    command:
+      - sh
+      - -ec
+      - >-
+        if [ "$(mysql -h mysql-replica-1 -uroot -N -e \"SELECT SERVICE_STATE FROM performance_schema.replication_connection_status\")" = "ON" ] &&
+           [ "$(mysql -h mysql-replica-2 -uroot -N -e \"SELECT SERVICE_STATE FROM performance_schema.replication_connection_status\")" = "ON" ]; then
+          exit 0;
+        fi;
+        mysql -h mysql -uroot -e "CREATE USER IF NOT EXISTS 'repl'@'%' IDENTIFIED BY '123456'; GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%'; FLUSH PRIVILEGES;";
+        mysqldump -h mysql -uroot --single-transaction --routines --events --set-gtid-purged=ON --databases basic_project > /tmp/basic_project.sql;
+        for replica in mysql-replica-1 mysql-replica-2; do
+          mysql -h "$${replica}" -uroot -e "SET GLOBAL super_read_only = OFF;";
+          mysql -h "$${replica}" -uroot < /tmp/basic_project.sql;
+          mysql -h "$${replica}" -uroot -e "CHANGE REPLICATION SOURCE TO SOURCE_HOST='mysql', SOURCE_USER='repl', SOURCE_PASSWORD='123456', GET_SOURCE_PUBLIC_KEY=1, SOURCE_AUTO_POSITION=1; START REPLICA; SET GLOBAL super_read_only = ON;";
+        done
+
+  redis-1:
+    image: redis:7.4-alpine
+    container_name: basic-manager-redis-1
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_1_data:/data
+    command: redis-server --appendonly yes --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --cluster-announce-hostname localhost --cluster-preferred-endpoint-type hostname
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis-2:
+    image: redis:7.4-alpine
+    container_name: basic-manager-redis-2
+    restart: unless-stopped
+    ports:
+      - "6380:6380"
+    volumes:
+      - redis_2_data:/data
+    command: redis-server --port 6380 --appendonly yes --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --cluster-announce-hostname localhost --cluster-preferred-endpoint-type hostname
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6380", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis-3:
+    image: redis:7.4-alpine
+    container_name: basic-manager-redis-3
+    restart: unless-stopped
+    ports:
+      - "6381:6381"
+    volumes:
+      - redis_3_data:/data
+    command: redis-server --port 6381 --appendonly yes --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --cluster-announce-hostname localhost --cluster-preferred-endpoint-type hostname
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6381", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis-4:
+    image: redis:7.4-alpine
+    container_name: basic-manager-redis-4
+    restart: unless-stopped
+    ports:
+      - "6382:6382"
+    volumes:
+      - redis_4_data:/data
+    command: redis-server --port 6382 --appendonly yes --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --cluster-announce-hostname localhost --cluster-preferred-endpoint-type hostname
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6382", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis-5:
+    image: redis:7.4-alpine
+    container_name: basic-manager-redis-5
+    restart: unless-stopped
+    ports:
+      - "6383:6383"
+    volumes:
+      - redis_5_data:/data
+    command: redis-server --port 6383 --appendonly yes --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --cluster-announce-hostname localhost --cluster-preferred-endpoint-type hostname
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6383", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis-6:
+    image: redis:7.4-alpine
+    container_name: basic-manager-redis-6
+    restart: unless-stopped
+    ports:
+      - "6384:6384"
+    volumes:
+      - redis_6_data:/data
+    command: redis-server --port 6384 --appendonly yes --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --cluster-announce-hostname localhost --cluster-preferred-endpoint-type hostname
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6384", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis-cluster-init:
+    image: redis:7.4-alpine
+    depends_on:
+      redis-1:
+        condition: service_healthy
+      redis-2:
+        condition: service_healthy
+      redis-3:
+        condition: service_healthy
+      redis-4:
+        condition: service_healthy
+      redis-5:
+        condition: service_healthy
+      redis-6:
+        condition: service_healthy
+    restart: "no"
+    command:
+      - sh
+      - -c
+      - >-
+        if redis-cli -h redis-1 cluster info | grep -q 'cluster_state:ok'; then
+          exit 0;
+        fi;
+        redis-cli --cluster create redis-1:6379 redis-2:6380 redis-3:6381 redis-4:6382 redis-5:6383 redis-6:6384 --cluster-replicas 1 --cluster-yes
+
+volumes:
+  mysql_data:
+  mysql_replica_1_data:
+  mysql_replica_2_data:
+  redis_1_data:
+  redis_2_data:
+  redis_3_data:
+  redis_4_data:
+  redis_5_data:
+  redis_6_data:

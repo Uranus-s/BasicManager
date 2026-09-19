@@ -4,7 +4,7 @@
 
 ## 项目概览
 
-这是一个前后端一体的管理系统项目。后端采用 Spring Boot 多模块架构，设计目标是支持单体演进或后续拆分为微服务，使用 Java 23、Spring Boot 4.0.0、MyBatis-Plus、Spring Security、JWT、Redis 和 MySQL；配套前端位于 `basic-ui`，使用 Vue 3、Rspack、Element Plus、Vuex、Vue Router 和 Axios。
+这是一个前后端一体的管理系统项目。后端采用 Spring Boot 多模块架构，设计目标是支持单体演进或后续拆分为微服务，使用 Java 25、Spring Boot 4.0.0、MyBatis-Plus、Spring Security、JWT、Redis 和 MySQL；配套前端位于 `basic-ui`，使用 Vue 3、Rspack、Element Plus、Vuex、Vue Router 和 Axios。
 
 当前工程以 `basic-web` 作为启动模块，业务能力按 `api`、`service`、`dao`、`core`、`common` 分层组织。
 
@@ -143,7 +143,7 @@ Entity → VO → 响应
 
 ## 代码约定
 
-- Java 版本为 23，编译使用 Maven Compiler Plugin 的 `<release>23</release>`。
+- Java 版本为 25，编译使用 Maven Compiler Plugin 的 `<release>25</release>`。
 - 项目使用 Lombok，已有代码常用 `@Getter`、`@Setter`、`@ToString`、`@RequiredArgsConstructor`。
 - 构造器注入优先于字段注入，已有 `@RequiredArgsConstructor` 的类继续沿用。
 - MyBatis-Plus 查询优先使用 `LambdaQueryWrapper`，避免硬编码字段名。

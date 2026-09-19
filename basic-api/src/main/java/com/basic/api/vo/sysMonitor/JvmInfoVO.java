@@ -15,7 +15,7 @@ public class JvmInfoVO {
     /**
      * Java版本
      */
-    @Schema(description = "Java 版本", example = "23")
+    @Schema(description = "Java 版本", example = "25")
     private String javaVersion;
 
     /**

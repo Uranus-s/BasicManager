@@ -295,7 +295,7 @@ public class TestController implements TestApi {
 
 | 技术 | 版本 |
 |------|------|
-| Java | 23 |
+| Java | 25 |
 | Spring Boot | 4.0.0 |
 | Spring AI | 2.0.0 |
 | DeepSeek | V4 Flash |

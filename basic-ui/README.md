@@ -40,7 +40,7 @@
 
 - Node.js 16 或更高版本
 - pnpm
-- Java 23
+- Java 25
 - 可用的 MySQL、Redis 和已初始化的 `basic_project` 数据库
 
 运行前端前，建议先按照仓库根目录 `README.md` 启动后端服务。

@@ -15,7 +15,7 @@
         <basic.version>4.0.0</basic.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>23</java.version>
+        <java.version>25</java.version>
 
         <spring-boot.version>4.0.0</spring-boot.version>
         <spring-ai.version>2.0.0</spring-ai.version>
@@ -171,12 +171,12 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <release>23</release>
+                    <release>25</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>1.18.30</version>
+                            <version>1.18.42</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
