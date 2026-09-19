@@ -20,7 +20,7 @@ export function getUserInfo() {
 export function getAvatar() {
   return request({
     baseURL: "",
-    url: "/system/user/getAvatar",
+    url: "/system/user/avatar",
     method: "get",
   });
 }

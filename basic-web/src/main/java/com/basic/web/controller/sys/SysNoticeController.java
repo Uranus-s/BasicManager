@@ -10,7 +10,7 @@ import com.basic.api.vo.sysNotice.NoticeVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import com.basic.core.log.annotation.OperateLog;
-import com.basic.sericve.sysNotice.service.ISysNoticeService;
+import com.basic.service.sysNotice.service.ISysNoticeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;

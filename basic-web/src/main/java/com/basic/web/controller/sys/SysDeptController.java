@@ -10,7 +10,7 @@ import com.basic.api.vo.sysUser.UserListVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import com.basic.core.log.annotation.OperateLog;
-import com.basic.sericve.sysDept.service.ISysDeptService;
+import com.basic.service.sysDept.service.ISysDeptService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;

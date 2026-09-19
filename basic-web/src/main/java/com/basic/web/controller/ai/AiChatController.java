@@ -11,7 +11,7 @@ import com.basic.common.result.ResultEnum;
 import com.basic.common.web.annotation.IgnoreResponseAdvice;
 import com.basic.core.log.annotation.OperateLog;
 import com.basic.core.security.model.LoginUser;
-import com.basic.sericve.ai.chat.service.IAiChatService;
+import com.basic.service.ai.chat.service.IAiChatService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;

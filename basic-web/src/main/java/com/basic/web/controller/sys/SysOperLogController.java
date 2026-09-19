@@ -5,7 +5,7 @@ import com.basic.api.dto.sysOperLog.OperLogQueryDTO;
 import com.basic.api.vo.sysOperLog.OperLogVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
-import com.basic.sericve.sysOperLog.service.ISysOperLogService;
+import com.basic.service.sysOperLog.service.ISysOperLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

@@ -107,7 +107,7 @@ Entity → VO → 响应
 
 ### basic-service
 
-- 包名当前是 `com.basic.sericve`，注意拼写是 `sericve`，不是 `service`。不要擅自整体重命名。
+- 包名统一为 `com.basic.service`。
 - Service 接口放在 `{业务名}.service`，实现类放在 `{业务名}.impl`。
 - 业务校验、事务、跨表编排、缓存使用、文件存储选择等逻辑放在 service。
 - 需要事务的方法使用 `@Transactional(rollbackFor = Exception.class)`。
@@ -198,7 +198,7 @@ Entity → VO → 响应
 
 - JWT 工具位于 `basic-core/src/main/java/com/basic/core/security/util/JwtUtil.java`。
 - Security 配置位于 `basic-core/src/main/java/com/basic/core/security/config/SecurityConfig.java`。
-- 认证业务主要位于 `basic-service/src/main/java/com/basic/sericve/auth`。
+- 认证业务主要位于 `basic-service/src/main/java/com/basic/service/auth`。
 - 当前登录用户模型为 `com.basic.core.security.model.LoginUser`。
 - 权限、角色、菜单相关改动需要同时检查初始化权限、用户路由、角色权限关联和前端所需字段。
 - 不要绕过 `PasswordEncoder`、JWT 校验或 Security 上下文。
@@ -207,7 +207,7 @@ Entity → VO → 响应
 
 - 操作日志注解：`@OperateLog`。
 - 登录日志和操作日志的 AOP 位于 `basic-core`。
-- 数据库日志落库实现位于 `basic-service/src/main/java/com/basic/sericve/log`。
+- 数据库日志落库实现位于 `basic-service/src/main/java/com/basic/service/log`。
 - 新增会修改数据的后台管理接口时，优先补充操作日志。
 - 不要在日志中记录明文密码、token、身份证号等敏感信息。
 
@@ -258,8 +258,5 @@ mvn test
 
 ## 已知注意事项
 
-- `basic-service` 的 Java 包名拼写为 `com.basic.sericve`，这是当前代码事实。
-- `SysUserApi#getCurrentUserAvatar` 标注为 `GET /avatar`，当前 `SysUserController#getCurrentUserAvatar` 实现为 `GET /getAvatar`；修改相关接口时需要特别核对路径一致性。
-- 根 POM 中声明的 `mybatis-plus.version` 为 `3.5.15`，但实际管理依赖使用 `mybatis-plus-spring-boot4-starter` `3.5.14`；升级依赖时要统一检查。
-- 根 POM 中 `spring-boot-starter-aop` 当前显式版本为 `4.0.0-M2`，与 Spring Boot BOM 版本不同；调整依赖时不要只改一处。
+- `basic-service` 的 Java 包名拼写为 `com.basic.service`，这是当前代码事实。
 - README 与模块 README 中可能仍保留示例性写法，例如 Entity 继承 `BaseEntity`、Mapper 继承 `BaseMapperPlus`。实际改代码时以当前源码为准。

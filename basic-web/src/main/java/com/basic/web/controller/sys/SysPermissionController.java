@@ -9,7 +9,7 @@ import com.basic.api.vo.sysPermission.PermissionVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import com.basic.core.log.annotation.OperateLog;
-import com.basic.sericve.sysPermission.service.ISysPermissionService;
+import com.basic.service.sysPermission.service.ISysPermissionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;

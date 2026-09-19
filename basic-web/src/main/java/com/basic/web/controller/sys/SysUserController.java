@@ -11,7 +11,7 @@ import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import com.basic.core.log.annotation.OperateLog;
 import com.basic.core.security.model.LoginUser;
-import com.basic.sericve.sysUser.service.ISysUserService;
+import com.basic.service.sysUser.service.ISysUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -184,7 +184,7 @@ public class SysUserController implements SysUserApi {
      * @return 头像访问路径
      */
     @Override
-    @GetMapping("/getAvatar")
+    @GetMapping("/avatar")
     public Result<String> getCurrentUserAvatar() {
         return Result.success(sysUserService.getCurrentUserAvatar(getCurrentUserId()));
     }

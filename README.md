@@ -177,7 +177,7 @@ public interface UserApi {
 **包含内容：**
 ```text
 basic-service
-└─ com.basic.sericve (注意：包名 sericve)
+└─ com.basic.service
     ├── sysUser/           用户服务
     ├── sysRole/           角色服务
     ├── sysPermission/     权限服务

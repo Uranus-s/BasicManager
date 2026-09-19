@@ -5,7 +5,7 @@ import com.basic.api.dto.sysLog.SysLogQueryDTO;
 import com.basic.api.vo.sysLog.SysLogVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
-import com.basic.sericve.sysLog.service.ISysLogService;
+import com.basic.service.sysLog.service.ISysLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;

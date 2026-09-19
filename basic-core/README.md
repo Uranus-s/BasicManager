@@ -325,8 +325,12 @@ CPU 和虚拟线程执行器会传播任务提交方的 `SecurityContext` 与 MD
         <artifactId>spring-boot-starter-data-redis</artifactId>
     </dependency>
     <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-aop</artifactId>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-aop</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.aspectj</groupId>
+        <artifactId>aspectjweaver</artifactId>
     </dependency>
     <dependency>
         <groupId>org.springframework.boot</groupId>

@@ -1,0 +1,252 @@
+package com.basic.service.sysDept.impl;
+
+import com.basic.api.dto.sysDept.DeptAddDTO;
+import com.basic.api.dto.sysDept.DeptQueryDTO;
+import com.basic.api.dto.sysDept.DeptUpdateDTO;
+import com.basic.api.vo.sysDept.DeptTreeVO;
+import com.basic.api.vo.sysDept.DeptVO;
+import com.basic.api.vo.sysUser.UserListVO;
+import com.basic.common.exception.BusinessException;
+import com.basic.common.result.PageResult;
+import com.basic.common.result.ResultEnum;
+import com.basic.dao.sysDept.entity.SysDept;
+import com.basic.dao.sysDept.mapper.SysDeptMapper;
+import com.basic.dao.sysUser.entity.SysUser;
+import com.basic.dao.sysUser.mapper.SysUserMapper;
+import com.basic.service.sysDept.service.ISysDeptService;
+import com.basic.service.sysUserDept.service.ISysUserDeptService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+/**
+ * <p>
+ * 部门表 服务实现类
+ * </p>
+ *
+ * @author Gas
+ */
+@Service
+@RequiredArgsConstructor
+public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> implements ISysDeptService {
+
+    private final ISysUserDeptService sysUserDeptService;
+    private final SysUserMapper sysUserMapper;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long addDept(DeptAddDTO dto) {
+        validateDeptParent(null, dto.getParentId());
+        // 创建部门
+        SysDept dept = new SysDept();
+        BeanUtils.copyProperties(dto, dept);
+        if (dept.getSort() == null) {
+            dept.setSort(0);
+        }
+        save(dept);
+        return dept.getId();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateDept(DeptUpdateDTO dto) {
+        SysDept dept = getById(dto.getId());
+        if (dept == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+        validateDeptParent(dto.getId(), dto.getParentId());
+
+        BeanUtils.copyProperties(dto, dept);
+        updateById(dept);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteDept(Long id) {
+        validateDeptDelete(id);
+        // 逻辑删除
+        removeById(id);
+    }
+
+    /** 父部门是根节点时无需查询；其余父节点必须真实存在。 */
+    @Override
+    public void validateDeptParent(Long deptId, Long parentId) {
+        if (parentId == null) {
+            throw new BusinessException(ResultEnum.PARAM_INVALID);
+        }
+        if (deptId != null && deptId.equals(parentId)) {
+            throw new BusinessException(ResultEnum.PARAM_ILLEGAL);
+        }
+        if (!parentId.equals(0L) && getById(parentId) == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+    }
+
+    /** 删除预检与真实删除复用同一规则，避免预览和确认阶段出现规则漂移。 */
+    @Override
+    public void validateDeptDelete(Long id) {
+        if (id == null || getById(id) == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+        LambdaQueryWrapper<SysDept> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysDept::getParentId, id);
+        if (count(wrapper) > 0) {
+            throw new BusinessException(ResultEnum.STATUS_NOT_ALLOWED);
+        }
+    }
+
+    @Override
+    public DeptVO getDeptById(Long id) {
+        SysDept dept = getById(id);
+        if (dept == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+
+        DeptVO vo = new DeptVO();
+        BeanUtils.copyProperties(dept, vo);
+
+        // 获取父部门名称
+        if (dept.getParentId() != null && !dept.getParentId().equals(0L)) {
+            SysDept parentDept = getById(dept.getParentId());
+            if (parentDept != null) {
+                vo.setParentName(parentDept.getDeptName());
+            }
+        }
+
+        return vo;
+    }
+
+    @Override
+    public PageResult<DeptVO> getDeptList(DeptQueryDTO dto) {
+        LambdaQueryWrapper<SysDept> wrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.hasText(dto.getDeptName())) {
+            wrapper.like(SysDept::getDeptName, dto.getDeptName());
+        }
+        if (StringUtils.hasText(dto.getLeader())) {
+            wrapper.like(SysDept::getLeader, dto.getLeader());
+        }
+        if (dto.getParentId() != null) {
+            wrapper.eq(SysDept::getParentId, dto.getParentId());
+        }
+        wrapper.orderByAsc(SysDept::getSort).orderByDesc(SysDept::getCreateTime);
+
+        IPage<SysDept> page = page(new Page<>(dto.getPageNum(), dto.getPageSize()), wrapper);
+
+        List<DeptVO> voList = new ArrayList<>();
+        for (SysDept dept : page.getRecords()) {
+            DeptVO vo = new DeptVO();
+            BeanUtils.copyProperties(dept, vo);
+
+            // 获取父部门名称
+            if (dept.getParentId() != null && !dept.getParentId().equals(0L)) {
+                SysDept parentDept = getById(dept.getParentId());
+                if (parentDept != null) {
+                    vo.setParentName(parentDept.getDeptName());
+                }
+            }
+
+            voList.add(vo);
+        }
+
+        return PageResult.of(page.getCurrent(), page.getSize(), page.getTotal(), voList);
+    }
+
+    @Override
+    public List<DeptTreeVO> getDeptTree() {
+        // 查询所有部门
+        List<SysDept> allDepts = list(new LambdaQueryWrapper<SysDept>()
+                .orderByAsc(SysDept::getSort));
+
+        // 构建部门映射
+        Map<Long, SysDept> deptMap = allDepts.stream()
+                .collect(Collectors.toMap(SysDept::getId, d -> d));
+
+        // 构建树形结构
+        return buildDeptTree(0L, allDepts);
+    }
+
+    private List<DeptTreeVO> buildDeptTree(Long parentId, List<SysDept> allDepts) {
+        List<DeptTreeVO> tree = new ArrayList<>();
+        for (SysDept dept : allDepts) {
+            Long currentParentId = dept.getParentId() == null ? 0L : dept.getParentId();
+            if (currentParentId.equals(parentId)) {
+                DeptTreeVO vo = new DeptTreeVO();
+                BeanUtils.copyProperties(dept, vo);
+                vo.setChildren(buildDeptTree(dept.getId(), allDepts));
+                tree.add(vo);
+            }
+        }
+        return tree;
+    }
+
+    @Override
+    public List<DeptVO> getAllDepts() {
+        List<SysDept> depts = list(new LambdaQueryWrapper<SysDept>()
+                .orderByAsc(SysDept::getSort));
+
+        return depts.stream()
+                .map(dept -> {
+                    DeptVO vo = new DeptVO();
+                    BeanUtils.copyProperties(dept, vo);
+                    return vo;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserListVO> getUsersByDeptId(Long deptId) {
+        SysDept dept = getById(deptId);
+        if (dept == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+
+        List<Long> userIds = sysUserDeptService.getUserIdsByDeptId(deptId);
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<SysUser> users = sysUserMapper.selectByIds(userIds);
+        return users.stream()
+                .map(user -> {
+                    UserListVO vo = new UserListVO();
+                    BeanUtils.copyProperties(user, vo);
+                    return vo;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void addUsersToDept(Long deptId, List<Long> userIds) {
+        checkDeptAndUserIds(deptId, userIds);
+        sysUserDeptService.addUsersToDept(deptId, userIds);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void removeUsersFromDept(Long deptId, List<Long> userIds) {
+        checkDeptAndUserIds(deptId, userIds);
+        sysUserDeptService.removeUsersFromDept(deptId, userIds);
+    }
+
+    private void checkDeptAndUserIds(Long deptId, List<Long> userIds) {
+        SysDept dept = getById(deptId);
+        if (dept == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+        if (userIds == null || userIds.isEmpty()) {
+            throw new BusinessException(ResultEnum.PARAM_INVALID);
+        }
+    }
+}

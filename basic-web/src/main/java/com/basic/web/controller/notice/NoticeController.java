@@ -9,7 +9,7 @@ import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import com.basic.common.result.ResultEnum;
 import com.basic.core.security.model.LoginUser;
-import com.basic.sericve.sysNotice.service.ISysNoticeService;
+import com.basic.service.sysNotice.service.ISysNoticeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

@@ -1,0 +1,242 @@
+package com.basic.service.sysRole.impl;
+
+import com.basic.api.dto.sysRole.RoleAddDTO;
+import com.basic.api.dto.sysRole.RoleQueryDTO;
+import com.basic.api.dto.sysRole.RoleUpdateDTO;
+import com.basic.api.dto.sysRole.RoleUserManageDTO;
+import com.basic.api.vo.sysRole.RoleListVO;
+import com.basic.api.vo.sysRole.RoleVO;
+import com.basic.api.vo.sysUser.UserListVO;
+import com.basic.common.exception.BusinessException;
+import com.basic.common.result.PageResult;
+import com.basic.common.result.ResultEnum;
+import com.basic.dao.sysPermission.entity.SysPermission;
+import com.basic.dao.sysRole.entity.SysRole;
+import com.basic.dao.sysRole.mapper.SysRoleMapper;
+import com.basic.dao.sysUser.entity.SysUser;
+import com.basic.dao.sysUser.mapper.SysUserMapper;
+import com.basic.service.sysPermission.service.ISysPermissionService;
+import com.basic.service.sysRole.service.ISysRoleService;
+import com.basic.service.sysRolePermission.service.ISysRolePermissionService;
+import com.basic.service.sysUserRole.service.ISysUserRoleService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * <p>
+ * 系统角色表 服务实现类
+ * </p>
+ *
+ * @author Gas
+ */
+@Service
+@RequiredArgsConstructor
+public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> implements ISysRoleService {
+
+    private final ISysRolePermissionService sysRolePermissionService;
+    private final ISysPermissionService sysPermissionService;
+    private final ISysUserRoleService sysUserRoleService;
+    private final SysUserMapper sysUserMapper;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long addRole(RoleAddDTO dto) {
+        // 检查角色编码是否已存在
+        LambdaQueryWrapper<SysRole> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysRole::getRoleCode, dto.getRoleCode());
+        if (count(wrapper) > 0) {
+            throw new BusinessException(ResultEnum.DATA_ALREADY_EXIST);
+        }
+
+        // 创建角色
+        SysRole role = new SysRole();
+        BeanUtils.copyProperties(dto, role);
+        if (role.getStatus() == null) {
+            role.setStatus((byte) 1);
+        }
+        save(role);
+
+        // 分配权限
+        if (dto.getPermissionIds() != null && !dto.getPermissionIds().isEmpty()) {
+            sysRolePermissionService.assignPermissions(role.getId(), dto.getPermissionIds());
+        }
+
+        return role.getId();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateRole(RoleUpdateDTO dto) {
+        SysRole role = getById(dto.getId());
+        if (role == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+
+        BeanUtils.copyProperties(dto, role);
+        updateById(role);
+
+        // 更新权限
+        if (dto.getPermissionIds() != null) {
+            sysRolePermissionService.assignPermissions(dto.getId(), dto.getPermissionIds());
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteRole(Long id) {
+        SysRole role = getById(id);
+        if (role == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+        // 逻辑删除
+        removeById(id);
+        // 删除角色权限关联
+        sysRolePermissionService.removeAllByRoleId(id);
+    }
+
+    @Override
+    public RoleVO getRoleById(Long id) {
+        SysRole role = getById(id);
+        if (role == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+
+        RoleVO vo = new RoleVO();
+        BeanUtils.copyProperties(role, vo);
+
+        // 获取权限信息
+        List<Long> permissionIds = sysRolePermissionService.getPermissionIdsByRoleId(id);
+        if (!permissionIds.isEmpty()) {
+            List<SysPermission> permissions = sysPermissionService.listByIds(permissionIds);
+            List<RoleVO.PermissionInfo> permissionInfos = permissions.stream()
+                    .map(permission -> {
+                        RoleVO.PermissionInfo info = new RoleVO.PermissionInfo();
+                        info.setId(permission.getId());
+                        info.setName(permission.getName());
+                        info.setPermission(permission.getPermission());
+                        return info;
+                    })
+                    .collect(Collectors.toList());
+            vo.setPermissions(permissionInfos);
+        }
+
+        return vo;
+    }
+
+    @Override
+    public PageResult<RoleListVO> getRoleList(RoleQueryDTO dto) {
+        LambdaQueryWrapper<SysRole> wrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.hasText(dto.getRoleCode())) {
+            wrapper.like(SysRole::getRoleCode, dto.getRoleCode());
+        }
+        if (StringUtils.hasText(dto.getRoleName())) {
+            wrapper.like(SysRole::getRoleName, dto.getRoleName());
+        }
+        if (dto.getStatus() != null) {
+            wrapper.eq(SysRole::getStatus, dto.getStatus());
+        }
+        wrapper.orderByDesc(SysRole::getCreateTime);
+
+        IPage<SysRole> page = page(new Page<>(dto.getPageNum(), dto.getPageSize()), wrapper);
+
+        List<RoleListVO> voList = new ArrayList<>();
+        for (SysRole role : page.getRecords()) {
+            RoleListVO vo = new RoleListVO();
+            BeanUtils.copyProperties(role, vo);
+            voList.add(vo);
+        }
+
+        return PageResult.of(page.getCurrent(), page.getSize(), page.getTotal(), voList);
+    }
+
+    @Override
+    public List<RoleListVO> getAllRoles() {
+        LambdaQueryWrapper<SysRole> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysRole::getStatus, (byte) 1);
+        wrapper.orderByAsc(SysRole::getId);
+        List<SysRole> roles = list(wrapper);
+
+        return roles.stream()
+                .map(role -> {
+                    RoleListVO vo = new RoleListVO();
+                    BeanUtils.copyProperties(role, vo);
+                    return vo;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void assignPermissions(Long roleId, List<Long> permissionIds) {
+        SysRole role = getById(roleId);
+        if (role == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+        sysRolePermissionService.assignPermissions(roleId, permissionIds);
+    }
+
+    @Override
+    public List<Long> getRolePermissions(Long roleId) {
+        return sysRolePermissionService.getPermissionIdsByRoleId(roleId);
+    }
+
+    @Override
+    public List<UserListVO> getUsersByRoleId(Long roleId) {
+        SysRole role = getById(roleId);
+        if (role == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+
+        List<Long> userIds = sysUserRoleService.getUserIdsByRoleId(roleId);
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<SysUser> users = sysUserMapper.selectByIds(userIds);
+        return users.stream()
+                .map(user -> {
+                    UserListVO vo = new UserListVO();
+                    BeanUtils.copyProperties(user, vo);
+                    return vo;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void manageRoleUsers(Long roleId, RoleUserManageDTO dto) {
+        SysRole role = getById(roleId);
+        if (role == null) {
+            throw new BusinessException(ResultEnum.DATA_NOT_EXIST);
+        }
+        if (dto == null || !dto.isNotEmptyOperation()) {
+            throw new BusinessException(ResultEnum.PARAM_INVALID);
+        }
+        sysUserRoleService.manageRoleUsers(roleId, dto.getAddUserIds(), dto.getRemoveUserIds());
+    }
+
+    @Override
+    public List<String> getRoleCodes(Long userId) {
+        // 获取用户角色ID列表
+        List<Long> roleIds = sysUserRoleService.getRoleIdsByUserId(userId);
+        if (roleIds == null || roleIds.isEmpty()) {
+            return List.of();
+        }
+        // 获取角色信息
+        List<SysRole> roles = listByIds(roleIds);
+        return roles.stream()
+                .map(SysRole::getRoleCode)
+                .collect(Collectors.toList());
+    }
+}

@@ -3,7 +3,7 @@ package com.basic.web.controller.common;
 import com.basic.api.controller.sys.PublicConfigApi;
 import com.basic.api.vo.sysConfig.PublicConfigVO;
 import com.basic.common.result.Result;
-import com.basic.sericve.sysConfig.service.ISysConfigService;
+import com.basic.service.sysConfig.service.ISysConfigService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

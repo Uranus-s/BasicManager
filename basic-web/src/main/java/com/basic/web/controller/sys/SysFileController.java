@@ -6,7 +6,7 @@ import com.basic.api.vo.sysFile.FileVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import com.basic.core.log.annotation.OperateLog;
-import com.basic.sericve.sysFile.service.ISysFileService;
+import com.basic.service.sysFile.service.ISysFileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

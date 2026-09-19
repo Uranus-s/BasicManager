@@ -42,7 +42,7 @@ basic-ai
    ├─ event/                AI 配置变更事件
    └─ provider/deepseek/    DeepSeek 客户端工厂和助手网关实现
 
-basic-service/src/main/java/com/basic/sericve/ai
+basic-service/src/main/java/com/basic/service/ai
 ├─ assistant/
 │  ├─ action/               待审批操作生命周期与预览模型
 │  ├─ approval/             自然语言审批意图路由

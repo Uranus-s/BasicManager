@@ -18,7 +18,7 @@
 
 ```text
 basic-service
- └── com.basic.sericve (注意：包名 sericve 而非 service)
+ └── com.basic.service
      ├── sysUser/           # 用户服务
      │   ├── service/
      │   │   └── ISysUserService.java

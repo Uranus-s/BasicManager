@@ -13,8 +13,8 @@ import com.basic.api.vo.sysPermission.PermissionTreeVO;
 import com.basic.common.result.Result;
 import com.basic.core.log.annotation.OperateLog;
 import com.basic.core.security.model.LoginUser;
-import com.basic.sericve.auth.service.IAuthService;
-import com.basic.sericve.sysUser.service.ISysUserService;
+import com.basic.service.auth.service.IAuthService;
+import com.basic.service.sysUser.service.ISysUserService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;

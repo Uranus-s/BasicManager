@@ -8,7 +8,7 @@ import com.basic.api.vo.sysDictItem.DictItemVO;
 import com.basic.common.result.PageResult;
 import com.basic.common.result.Result;
 import com.basic.core.log.annotation.OperateLog;
-import com.basic.sericve.sysDictItem.service.ISysDictItemService;
+import com.basic.service.sysDictItem.service.ISysDictItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
